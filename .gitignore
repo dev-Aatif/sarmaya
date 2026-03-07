@@ -1,0 +1,27 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Android Profiler
+*.hprof
+
+# APKs
+*.apk
+*.ap_
+*.aab
+
+# Kotlin
+*.kotlin_module
+*.kotlin_builtins
+*.kotlin_metadata
+
+# App level build files
+app/build/
+app/release/

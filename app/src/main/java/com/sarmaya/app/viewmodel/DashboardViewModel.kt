@@ -1,0 +1,74 @@
+package com.sarmaya.app.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.sarmaya.app.SarmayaApplication
+import com.sarmaya.app.data.StockDao
+import com.sarmaya.app.data.TransactionDao
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+import com.sarmaya.app.data.PortfolioCalculator
+
+class DashboardViewModel(
+    private val transactionDao: TransactionDao,
+    private val stockDao: StockDao
+) : ViewModel() {
+
+    val computedHoldings = PortfolioCalculator.getEventSourcedHoldings(
+        transactionDao.getAllTransactions(),
+        stockDao.getAllStocks()
+    ).stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList()
+    )
+
+    val totalPortfolioValue = computedHoldings.map { holdings ->
+        holdings.sumOf { it.currentValue }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val totalInvested = computedHoldings.map { holdings ->
+        holdings.sumOf { it.totalInvested }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    
+    val totalProfitLoss = computedHoldings.map { holdings ->
+        holdings.sumOf { it.profitLossAmount }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    
+    val sectorAllocation = computedHoldings.map { holdings ->
+        holdings.groupBy { it.sector }
+            .mapValues { entry -> entry.value.sumOf { it.currentValue } }
+            .toList()
+            .sortedByDescending { it.second }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun updatePrices(prices: Map<String, Double>) {
+        viewModelScope.launch {
+            if (prices.isEmpty()) return@launch
+            prices.forEach { (symbol, price) ->
+                stockDao.updatePrice(symbol, price)
+            }
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(
+                modelClass: Class<T>,
+                extras: CreationExtras
+            ): T {
+                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as SarmayaApplication
+                return DashboardViewModel(
+                    application.container.transactionDao,
+                    application.container.stockDao
+                ) as T
+            }
+        }
+    }
+}
