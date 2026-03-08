@@ -35,6 +35,7 @@ class TransactionsViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val searchResults = _searchQuery.flatMapLatest { query ->
         if (query.isBlank()) {
             stockDao.getAllStocks()
@@ -177,6 +178,11 @@ class TransactionsViewModel(
                 
                 dbTransactionRunner {
                     transactionDao.update(t)
+                    // When editing a BUY, also update the stock's currentPrice
+                    // to match the new buy price (same behavior as addTransaction)
+                    if (type == "BUY") {
+                        stockDao.updatePrice(stockSymbol, pricePerShare)
+                    }
                 }
                 onSuccess()
             }

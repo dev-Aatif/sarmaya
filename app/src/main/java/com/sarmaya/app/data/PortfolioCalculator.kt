@@ -17,6 +17,7 @@ object PortfolioCalculator {
                 var qty = 0
                 var invested = 0.0
                 var divs = 0.0
+                var realizedPL = 0.0
                 
                 // Chronological replay to properly account for re-entry and cost-drag
                 txList.sortedBy { it.date }.forEach { tx ->
@@ -34,6 +35,8 @@ object PortfolioCalculator {
                         "SELL" -> {
                             if (qty > 0) {
                                 val avgCost = invested / qty
+                                // Realized P/L = (sell price - avg cost) * quantity sold
+                                realizedPL += (tx.pricePerShare - avgCost) * tx.quantity
                                 qty -= tx.quantity
                                 // Proportional reduction of cost basis, floored at 0
                                 invested = maxOf(0.0, invested - (tx.quantity * avgCost))
@@ -42,8 +45,8 @@ object PortfolioCalculator {
                             }
                         }
                         "DIVIDEND" -> {
-                            // Dividend payout is based on chronological owned quantity, not transaction input quantity
-                            divs += (qty * tx.pricePerShare)
+                            // Dividend payout uses the user-entered quantity of shares paying the dividend
+                            divs += (tx.quantity * tx.pricePerShare)
                         }
                     }
                     if (qty <= 0) {
@@ -52,7 +55,7 @@ object PortfolioCalculator {
                     }
                 }
                 
-                if (qty > 0 || invested > 0.0 || divs > 0.0) {
+                if (qty > 0 || invested > 0.0 || divs > 0.0 || realizedPL != 0.0) {
                     holdingsMap[symbol] = ComputedHolding(
                         stockSymbol = symbol,
                         name = stock.name,
@@ -60,7 +63,8 @@ object PortfolioCalculator {
                         currentPrice = stock.currentPrice,
                         quantity = qty,
                         totalInvested = invested,
-                        totalDividends = divs
+                        totalDividends = divs,
+                        realizedProfitLoss = realizedPL
                     )
                 }
             }

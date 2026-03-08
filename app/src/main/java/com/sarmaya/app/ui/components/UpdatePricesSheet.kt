@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.viewmodel.DashboardViewModel
 import kotlinx.coroutines.launch
@@ -22,10 +23,9 @@ fun UpdatePricesSheet(
     onDismissRequest: () -> Unit,
     viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
 ) {
-    val holdings by viewModel.computedHoldings.collectAsState()
+    val holdings by viewModel.computedHoldings.collectAsStateWithLifecycle()
     // Just keeping local state for the editable fields
     val priceMap = remember { mutableStateMapOf<String, String>() }
-    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(holdings) {
         holdings.forEach { h ->
@@ -70,7 +70,7 @@ fun UpdatePricesSheet(
                             singleLine = true
                         )
                     }
-                    Divider()
+                    HorizontalDivider()
                 }
             }
 

@@ -39,13 +39,46 @@ class DashboardViewModel(
     val totalProfitLoss = computedHoldings.map { holdings ->
         holdings.sumOf { it.profitLossAmount }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val totalRealizedPL = computedHoldings.map { holdings ->
+        holdings.sumOf { it.realizedProfitLoss }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val totalDividends = computedHoldings.map { holdings ->
+        holdings.sumOf { it.totalDividends }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val totalReturn = computedHoldings.map { holdings ->
+        holdings.sumOf { it.totalReturn }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val holdingsCount = computedHoldings.map { holdings ->
+        holdings.count { it.quantity > 0 }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
     
     val sectorAllocation = computedHoldings.map { holdings ->
-        holdings.groupBy { it.sector }
+        holdings.filter { it.quantity > 0 }
+            .groupBy { it.sector }
             .mapValues { entry -> entry.value.sumOf { it.currentValue } }
             .toList()
             .sortedByDescending { it.second }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val topGainers = computedHoldings.map { holdings ->
+        holdings.filter { it.quantity > 0 && it.profitLossPercentage > 0 }
+            .sortedByDescending { it.profitLossPercentage }
+            .take(3)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val topLosers = computedHoldings.map { holdings ->
+        holdings.filter { it.quantity > 0 && it.profitLossPercentage < 0 }
+            .sortedBy { it.profitLossPercentage }
+            .take(3)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val recentTransactions = transactionDao.getAllTransactions()
+        .map { it.take(5) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun updatePrices(prices: Map<String, Double>) {
         viewModelScope.launch {

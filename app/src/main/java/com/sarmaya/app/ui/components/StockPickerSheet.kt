@@ -49,7 +49,7 @@ fun StockPickerSheet(
                             .fillMaxWidth()
                             .clickable { onStockSelected(stock) }
                     )
-                    Divider()
+                    HorizontalDivider()
                 }
             }
         }
