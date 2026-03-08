@@ -1,27 +1,74 @@
-*.iml
-.gradle
-/local.properties
-/.idea/
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-
-# Android Profiler
-*.hprof
-
-# APKs
+# Built application files
 *.apk
 *.ap_
 *.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+build/
+app/build/
+app/release/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio
+/.idea/
+*.iml
+.navigation/
+captures/
+
+# External native build
+.externalNativeBuild/
+.cxx/
+
+# Android Profiler
+*.hprof
 
 # Kotlin
 *.kotlin_module
 *.kotlin_builtins
 *.kotlin_metadata
+.kotlin/
 
-# App level build files
-app/build/
-app/release/
+# Signing
+*.keystore
+*.jks
+keystore.properties
+signing.properties
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python (scripts/)
+__pycache__/
+*.pyc
+*.pyo
+
+# Room schema exports
+app/schemas/
+
+# Temp
+temp/

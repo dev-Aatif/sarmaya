@@ -1,6 +1,22 @@
-# Sarmaya (سرمایہ)
+<p align="center">
+  <img src="app/src/main/res/drawable-nodpi/sarmaya_logo.png" alt="Sarmaya Logo" width="120" />
+</p>
 
-**Sarmaya** is a modern, offline-first portfolio tracker for the Pakistan Stock Exchange (PSX). It uses an event-sourced calculation engine to ensure your holdings, realized profits, and dividends are always accurate — even with backdated edits or complex corporate actions.
+<h1 align="center">Sarmaya (سرمایہ)</h1>
+
+<p align="center">
+  <strong>A modern, offline-first portfolio tracker for the Pakistan Stock Exchange</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/dev-Aatif/sarmaya/releases"><img src="https://img.shields.io/github/v/release/dev-Aatif/sarmaya?style=flat-square&color=2dd4bf" alt="Release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/dev-Aatif/sarmaya?style=flat-square&color=2dd4bf" alt="License" /></a>
+  <img src="https://img.shields.io/badge/min%20SDK-26%20(Oreo)-green?style=flat-square" alt="Min SDK" />
+  <img src="https://img.shields.io/badge/platform-Android-brightgreen?style=flat-square" alt="Platform" />
+  <img src="https://img.shields.io/badge/language-Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin" />
+</p>
+
+---
 
 ## ✨ Features
 
@@ -15,12 +31,22 @@
 
 ## 📸 Screenshots
 
-*Coming soon*
+<p align="center">
+  <img src="screenshots/dashboard.png" alt="Dashboard" width="250" />
+  &nbsp;&nbsp;
+  <img src="screenshots/portfolio.png" alt="Portfolio" width="250" />
+  &nbsp;&nbsp;
+  <img src="screenshots/transactions.png" alt="Transaction History" width="250" />
+</p>
+
+<p align="center">
+  <sub>Dashboard &nbsp;•&nbsp; Portfolio Holdings &nbsp;•&nbsp; Transaction History</sub>
+</p>
 
 ## 🏗 Tech Stack
 
 | Component | Technology |
-|-----------|-----------|
+|-----------|------------|
 | Language | Kotlin |
 | UI | Jetpack Compose |
 | Design System | Material 3 |
@@ -42,21 +68,26 @@ app/src/main/java/com/sarmaya/app/
 │   ├── components/  # Bottom sheets, pickers
 │   ├── navigation/  # Tab navigation with Crossfade
 │   └── theme/       # Colors, typography, SarmayaFinanceColors
+
+scripts/
+└── build_psx_db.py  # Fetches live PSX symbols and builds the pre-seeded stock database
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Android Studio Koala (2024.1) or later
 - JDK 17+
 
 ### Build & Run
+
 ```bash
-# Clone
+# Clone the repository
 git clone https://github.com/dev-Aatif/sarmaya.git
 cd sarmaya
 
-# Run tests (48 tests including adversarial scenarios)
+# Run tests (48+ tests including adversarial scenarios)
 ./gradlew test
 
 # Build debug APK
@@ -68,9 +99,19 @@ cd sarmaya
 
 The APK will be at `app/build/outputs/apk/debug/app-debug.apk` (or `release/`).
 
+### Refreshing Stock Data
+
+The stock database is pre-seeded from PSX. To refresh it with the latest symbols:
+
+```bash
+cd scripts
+python3 build_psx_db.py
+```
+
 ## 🧪 Testing
 
 The project includes **48+ unit tests** covering:
+
 - Core `PortfolioCalculator` logic (BUY, SELL, DIVIDEND, BONUS, SPLIT)
 - Realized P/L calculations across multiple sell scenarios
 - `totalReturn` combining unrealized + realized + dividends
@@ -84,6 +125,7 @@ The project includes **48+ unit tests** covering:
 ## 📝 Changelog
 
 ### v1.0.0 (2026-03-08)
+
 - 🎉 Initial release
 - Event-sourced portfolio calculator with realized P/L tracking
 - Dashboard with portfolio summary, top movers, sector allocation
@@ -93,6 +135,18 @@ The project includes **48+ unit tests** covering:
 - Dark/light theme with emerald color palette
 - About & credits page
 - 48+ unit and adversarial tests
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+1. **Fork** the repository
+2. **Create** your feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'feat: add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+Feel free to open an [issue](https://github.com/dev-Aatif/sarmaya/issues) if you find a bug or have a suggestion.
 
 ## 📄 License
 
