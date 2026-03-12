@@ -11,5 +11,9 @@ class SarmayaApplication : Application() {
         
         // Start background sync for price alerts
         container.syncManager.scheduleBackgroundSync()
+        
+        // Start portfolio snapshots for historical charts
+        container.syncManager.scheduleSnapshotWork()
+        container.syncManager.runImmediateSnapshot()
     }
 }

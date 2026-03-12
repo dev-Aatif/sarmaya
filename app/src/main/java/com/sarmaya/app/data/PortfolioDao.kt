@@ -14,6 +14,9 @@ interface PortfolioDao {
     @Query("SELECT * FROM Portfolio ORDER BY isDefault DESC, createdAt ASC")
     fun getAllPortfolios(): Flow<List<Portfolio>>
 
+    @Query("SELECT * FROM Portfolio")
+    suspend fun getAllPortfoliosSync(): List<Portfolio>
+
     @Query("SELECT * FROM Portfolio WHERE id = :id LIMIT 1")
     suspend fun getPortfolioById(id: Long): Portfolio?
 

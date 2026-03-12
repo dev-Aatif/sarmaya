@@ -26,6 +26,9 @@ interface TransactionDao {
     @Query("SELECT * FROM `Transaction` WHERE portfolioId = :portfolioId ORDER BY date DESC")
     fun getTransactionsByPortfolio(portfolioId: Long): Flow<List<Transaction>>
 
+    @Query("SELECT * FROM `Transaction` WHERE portfolioId = :portfolioId")
+    suspend fun getTransactionsByPortfolioSync(portfolioId: Long): List<Transaction>
+
     @Query("SELECT * FROM `Transaction` WHERE stockSymbol = :symbol ORDER BY date ASC, id ASC")
     suspend fun getTransactionsForStock(symbol: String): List<Transaction>
 

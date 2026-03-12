@@ -14,6 +14,9 @@ interface StockQuoteCacheDao {
     @Query("SELECT * FROM StockQuoteCache")
     suspend fun getAll(): List<StockQuoteCache>
 
+    @Query("SELECT * FROM StockQuoteCache")
+    suspend fun getAllCacheSync(): List<StockQuoteCache>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(cache: StockQuoteCache)
 

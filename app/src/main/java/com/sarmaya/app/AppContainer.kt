@@ -33,6 +33,7 @@ class AppContainer(private val context: Context) {
     val stockQuoteCacheDao: StockQuoteCacheDao by lazy { database.stockQuoteCacheDao() }
     val portfolioDao: PortfolioDao by lazy { database.portfolioDao() }
     val priceAlertDao: PriceAlertDao by lazy { database.priceAlertDao() }
+    val portfolioSnapshotDao: PortfolioSnapshotDao by lazy { database.portfolioSnapshotDao() }
 
     // ─── DataStore ───
     val dataStoreManager: DataStoreManager by lazy { DataStoreManager(context) }

@@ -71,4 +71,57 @@ object PortfolioCalculator {
             holdingsMap.values.toList().sortedBy { it.stockSymbol }
         }
     }
+
+    /**
+     * Synchronous version for background workers/snapshots
+     */
+    fun computeSnapshotSynchronous(
+        transactions: List<Transaction>,
+        stocks: List<Stock>
+    ): List<ComputedHolding> {
+        val stockMap = stocks.associateBy { it.symbol }
+        val holdingsMap = mutableMapOf<String, ComputedHolding>()
+        
+        transactions.groupBy { it.stockSymbol }.forEach { (symbol, txList) ->
+            val stock = stockMap[symbol] ?: return@forEach
+            var qty = 0
+            var invested = 0.0
+            var divs = 0.0
+            var realizedPL = 0.0
+            
+            txList.sortedBy { it.date }.forEach { tx ->
+                when (tx.type) {
+                    "BUY" -> {
+                        qty += tx.quantity
+                        invested += (tx.quantity * tx.pricePerShare)
+                    }
+                    "BONUS" -> qty += tx.quantity
+                    "SPLIT" -> qty *= tx.quantity
+                    "SELL" -> {
+                        if (qty > 0) {
+                            val avgCost = invested / qty
+                            realizedPL += (tx.pricePerShare - avgCost) * tx.quantity
+                            qty -= tx.quantity
+                            invested = maxOf(0.0, invested - (tx.quantity * avgCost))
+                        }
+                    }
+                    "DIVIDEND" -> divs += (tx.quantity * tx.pricePerShare)
+                }
+            }
+            
+            if (qty > 0 || invested > 0.0 || divs > 0.0 || realizedPL != 0.0) {
+                holdingsMap[symbol] = ComputedHolding(
+                    stockSymbol = symbol,
+                    name = stock.name,
+                    sector = stock.sector,
+                    currentPrice = stock.currentPrice,
+                    quantity = qty,
+                    totalInvested = invested,
+                    totalDividends = divs,
+                    realizedProfitLoss = realizedPL
+                )
+            }
+        }
+        return holdingsMap.values.toList()
+    }
 }
