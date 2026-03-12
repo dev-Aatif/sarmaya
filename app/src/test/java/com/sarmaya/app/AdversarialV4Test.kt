@@ -84,6 +84,7 @@ class AdversarialV4Test {
         override suspend fun insertStocks(s: List<Stock>) {
             stocks.addAll(s)
         }
+        override suspend fun getStocksBySectorSync(sector: String): List<Stock> = emptyList()
     }
 
     private lateinit var stockDao: FakeStockDao

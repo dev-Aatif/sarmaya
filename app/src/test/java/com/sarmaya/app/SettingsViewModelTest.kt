@@ -1,7 +1,8 @@
 package com.sarmaya.app
 
 import android.content.Context
-import android.content.SharedPreferences
+import com.sarmaya.app.data.DataStoreManager
+import kotlinx.coroutines.flow.flowOf
 import com.sarmaya.app.viewmodel.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -13,13 +14,13 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.*
 import com.sarmaya.app.data.TransactionDao
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
 
     private lateinit var mockContext: Context
-    private lateinit var sharedPrefs: SharedPreferences
-    private lateinit var editor: SharedPreferences.Editor
+    private lateinit var dataStoreManager: DataStoreManager
     private lateinit var transactionDao: TransactionDao
     private lateinit var viewModel: SettingsViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -28,16 +29,16 @@ class SettingsViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         mockContext = mock(Context::class.java)
-        sharedPrefs = mock(SharedPreferences::class.java)
-        editor = mock(SharedPreferences.Editor::class.java)
         transactionDao = mock(TransactionDao::class.java)
+        dataStoreManager = mock(DataStoreManager::class.java)
         
-        `when`(mockContext.getSharedPreferences("sarmaya_settings", Context.MODE_PRIVATE)).thenReturn(sharedPrefs)
-        `when`(sharedPrefs.edit()).thenReturn(editor)
-        `when`(sharedPrefs.getBoolean(eq("dark_theme"), anyBoolean())).thenReturn(true) // Default to true
-        `when`(sharedPrefs.contains("dark_theme")).thenReturn(true)
+        `when`(dataStoreManager.darkThemePreference).thenReturn(flowOf("true"))
+        `when`(dataStoreManager.username).thenReturn(flowOf("TestUser"))
+        `when`(dataStoreManager.notificationsPortfolio).thenReturn(flowOf(true))
+        `when`(dataStoreManager.notificationsMarket).thenReturn(flowOf(true))
+        `when`(dataStoreManager.notificationsUpdates).thenReturn(flowOf(true))
         
-        viewModel = SettingsViewModel(mockContext, transactionDao)
+        viewModel = SettingsViewModel(mockContext, transactionDao, dataStoreManager)
     }
 
     @After
@@ -46,20 +47,18 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `isDarkTheme initializes to SharedPreferences value`() = runTest {
+    fun `isDarkTheme initializes to DataStore value`() = runTest {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.isDarkTheme.collect { }
+        }
+        advanceUntilIdle()
         assertTrue(viewModel.isDarkTheme.value == true)
     }
 
     @Test
-    fun `setTheme updates SharedPreferences and StateFlow`() = runTest {
+    fun `setTheme updates DataStore`() = runTest {
         viewModel.setTheme(false)
-        verify(editor).putBoolean("dark_theme", false)
-        verify(editor).apply()
-        
-        // Emulate the listener callback
-        `when`(sharedPrefs.getBoolean(eq("dark_theme"), anyBoolean())).thenReturn(false)
-        
-        viewModel.setTheme(false) // Trigger StateFlow validation
-        assertFalse(viewModel.isDarkTheme.value == true)
+        advanceUntilIdle()
+        verify(dataStoreManager).setDarkTheme("false")
     }
 }

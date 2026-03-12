@@ -105,7 +105,7 @@ class UpdateViewModel(
         return false // same version
     }
 
-    companion object : ViewModelProvider.Factory {
+    companion object Factory : ViewModelProvider.Factory {
         private const val TAG = "UpdateVM"
 
         @Suppress("UNCHECKED_CAST")

@@ -58,6 +58,7 @@ class AdversarialV3Test {
         override suspend fun updatePrice(sym: String, p: Double, ud: Long) {}
         override suspend fun updateStocks(s: List<Stock>) {}
         override suspend fun insertStocks(s: List<Stock>) {}
+        override suspend fun getStocksBySectorSync(sector: String): List<Stock> = emptyList()
     }
 
     private lateinit var stockDao: FakeStockDao

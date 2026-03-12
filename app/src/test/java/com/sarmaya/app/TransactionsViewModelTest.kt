@@ -30,6 +30,7 @@ class TransactionsViewModelTest {
         override suspend fun insertStocks(s: List<Stock>) {
             insertedStocks.addAll(s)
         }
+        override suspend fun getStocksBySectorSync(sector: String): List<Stock> = emptyList()
     }
 
     class FakeTransactionDao : TransactionDao {
@@ -137,6 +138,7 @@ class TransactionsViewModelTest {
             override suspend fun updatePrice(sym: String, p: Double, ud: Long) {
                 if (sym == "TSLA" && p == 285.0) priceUpdated = true
             }
+            override suspend fun getStocksBySectorSync(sector: String): List<Stock> = emptyList()
         }
         val viewModel2 = TransactionsViewModel(transactionDao, trackingStockDao)
 

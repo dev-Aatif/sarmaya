@@ -13,8 +13,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import com.sarmaya.app.data.Stock
+import com.sarmaya.app.data.DataStoreManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DashboardViewModelTest {
@@ -27,6 +30,7 @@ class DashboardViewModelTest {
         override suspend fun updatePrice(sym: String, p: Double, ud: Long) {}
         override suspend fun updateStocks(s: List<Stock>) {}
         override suspend fun insertStocks(s: List<Stock>) {}
+        override suspend fun getStocksBySectorSync(sector: String): List<Stock> = emptyList()
     }
 
     open class FakeTransactionDao(private val holdings: List<ComputedHolding>) : TransactionDao {
@@ -69,7 +73,10 @@ class DashboardViewModelTest {
             override suspend fun getTransactionsForStock(symbol: String) = tList.filter { it.stockSymbol == symbol }.sortedBy { it.date }
         }
         
-        viewModel = DashboardViewModel(transactionDao, stockDao)
+        val dataStoreManager = mock(DataStoreManager::class.java)
+        `when`(dataStoreManager.username).thenReturn(flowOf(""))
+        
+        viewModel = DashboardViewModel(transactionDao, stockDao, dataStoreManager)
     }
 
     @After
