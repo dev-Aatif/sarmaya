@@ -39,6 +39,7 @@ import java.util.*
 
 @Composable
 fun DashboardScreen(
+    onStockClick: (String) -> Unit,
     viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory),
     updateViewModel: UpdateViewModel = viewModel(factory = UpdateViewModel.Factory)
 ) {
@@ -380,10 +381,10 @@ fun DashboardScreen(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         items(topGainers) { holding ->
-                            MoverChip(holding = holding, isGainer = true, financeColors = financeColors)
+                            MoverChip(holding = holding, isGainer = true, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
                         }
                         items(topLosers) { holding ->
-                            MoverChip(holding = holding, isGainer = false, financeColors = financeColors)
+                            MoverChip(holding = holding, isGainer = false, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
                         }
                     }
                 }
@@ -466,7 +467,7 @@ fun DashboardScreen(
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             recentTransactions.forEachIndexed { index, tx ->
-                                RecentTransactionRow(tx = tx, financeColors = financeColors)
+                                RecentTransactionRow(tx = tx, financeColors = financeColors, onClick = { onStockClick(tx.stockSymbol) })
                                 if (index < recentTransactions.size - 1) {
                                     HorizontalDivider(
                                         modifier = Modifier.padding(vertical = 4.dp),
@@ -557,9 +558,11 @@ fun QuickStatCard(
 fun MoverChip(
     holding: ComputedHolding,
     isGainer: Boolean,
-    financeColors: SarmayaFinanceColors
+    financeColors: SarmayaFinanceColors,
+    onClick: () -> Unit
 ) {
     Card(
+        modifier = Modifier.clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isGainer) financeColors.profitContainer else financeColors.lossContainer
@@ -596,7 +599,8 @@ fun MoverChip(
 @Composable
 fun RecentTransactionRow(
     tx: Transaction,
-    financeColors: SarmayaFinanceColors
+    financeColors: SarmayaFinanceColors,
+    onClick: () -> Unit
 ) {
     val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
     val dateStr = dateFormat.format(Date(tx.date))

@@ -27,6 +27,7 @@ import com.sarmaya.app.viewmodel.WatchlistViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WatchlistScreen(
+    onStockClick: (String) -> Unit,
     viewModel: WatchlistViewModel = viewModel(factory = WatchlistViewModel.Factory)
 ) {
     val watchlistStocks by viewModel.watchlistStocks.collectAsStateWithLifecycle()
@@ -126,7 +127,8 @@ fun WatchlistScreen(
                     WatchlistStockCard(
                         watchlistStock = watchlistStock,
                         financeColors = financeColors,
-                        onRemove = { viewModel.removeFromWatchlist(watchlistStock.stock.symbol) }
+                        onRemove = { viewModel.removeFromWatchlist(watchlistStock.stock.symbol) },
+                        onClick = { onStockClick(watchlistStock.stock.symbol) }
                     )
                 }
             }
@@ -138,13 +140,16 @@ fun WatchlistScreen(
 private fun WatchlistStockCard(
     watchlistStock: WatchlistStock,
     financeColors: SarmayaFinanceColors,
+    onClick: () -> Unit,
     onRemove: () -> Unit
 ) {
     val stock = watchlistStock.stock
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
     ) {

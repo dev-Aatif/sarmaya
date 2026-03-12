@@ -27,6 +27,7 @@ import com.sarmaya.app.viewmodel.HoldingsViewModel
 
 @Composable
 fun HoldingsScreen(
+    onStockClick: (String) -> Unit,
     viewModel: HoldingsViewModel = viewModel(factory = HoldingsViewModel.Factory)
 ) {
     val holdings by viewModel.holdings.collectAsStateWithLifecycle()
@@ -113,7 +114,7 @@ fun HoldingsScreen(
                     HoldingItem(
                         holding = holding,
                         financeColors = financeColors,
-                        onClick = { selectedManageStock = holding.stockSymbol }
+                        onClick = { onStockClick(holding.stockSymbol) }
                     )
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -132,7 +133,7 @@ fun HoldingsScreen(
                     HoldingItem(
                         holding = holding,
                         financeColors = financeColors,
-                        onClick = { selectedManageStock = holding.stockSymbol }
+                        onClick = { onStockClick(holding.stockSymbol) }
                     )
                 }
             }

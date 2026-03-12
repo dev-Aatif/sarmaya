@@ -11,6 +11,7 @@ import com.sarmaya.app.data.WatchlistDao
 import com.sarmaya.app.network.ConnectivityChecker
 import com.sarmaya.app.network.StockDataRepository
 import com.sarmaya.app.network.api.GitHubApi
+import com.sarmaya.app.network.api.PsxApi
 import com.sarmaya.app.network.api.YahooFinanceApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -66,6 +67,15 @@ class AppContainer(private val context: Context) {
             .create(YahooFinanceApi::class.java)
     }
 
+    val psxApi: PsxApi by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://dps.psx.com.pk/")
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(PsxApi::class.java)
+    }
+
     val gitHubApi: GitHubApi by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.github.com")
@@ -82,6 +92,7 @@ class AppContainer(private val context: Context) {
     val stockDataRepository: StockDataRepository by lazy {
         StockDataRepository(
             yahooApi = yahooFinanceApi,
+            psxApi = psxApi,
             stockDao = stockDao,
             quoteCacheDao = stockQuoteCacheDao,
             connectivityChecker = connectivityChecker

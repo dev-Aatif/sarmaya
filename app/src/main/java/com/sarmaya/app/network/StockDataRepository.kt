@@ -4,6 +4,7 @@ import android.util.Log
 import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.StockQuoteCache
 import com.sarmaya.app.data.StockQuoteCacheDao
+import com.sarmaya.app.network.api.PsxApi
 import com.sarmaya.app.network.api.YahooFinanceApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,6 +18,7 @@ import kotlinx.coroutines.withContext
  */
 class StockDataRepository(
     private val yahooApi: YahooFinanceApi,
+    private val psxApi: PsxApi,
     private val stockDao: StockDao,
     private val quoteCacheDao: StockQuoteCacheDao,
     private val connectivityChecker: ConnectivityChecker
@@ -57,7 +59,24 @@ class StockDataRepository(
             return@withContext Result.success(cached.toUnifiedQuote())
         }
 
-        // 2. Try Yahoo Finance API
+        // 2. Try direct PSX Scraper (Faster & more accurate)
+        if (connectivityChecker.isOnline()) {
+            try {
+                // To avoid fetching all stocks for one quote, we could have a single scrip endpoint,
+                // but usually live.json is the way. Let's try batching or bulk sync first.
+                val psxResult = syncPsxQuotes()
+                if (psxResult.isSuccess) {
+                    val freshCached = quoteCacheDao.getCache(psxSymbol)
+                    if (freshCached != null) {
+                        return@withContext Result.success(freshCached.toUnifiedQuote())
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "PSX scraper failed for $psxSymbol: ${e.message}")
+            }
+        }
+
+        // 3. Fallback to Yahoo Finance API
         if (connectivityChecker.isOnline()) {
             try {
                 val yahooSymbol = toYahooSymbol(psxSymbol)
@@ -100,7 +119,18 @@ class StockDataRepository(
     suspend fun getBatchQuotes(psxSymbols: List<String>): Result<List<UnifiedQuote>> = withContext(Dispatchers.IO) {
         if (psxSymbols.isEmpty()) return@withContext Result.success(emptyList())
 
-        // Try Yahoo batch quote
+        // Try PSX Scraper first (Bulk sync)
+        if (connectivityChecker.isOnline()) {
+            val psxResult = syncPsxQuotes()
+            if (psxResult.isSuccess) {
+                val cached = psxSymbols.mapNotNull { symbol ->
+                    quoteCacheDao.getCache(symbol)?.toUnifiedQuote()
+                }
+                if (cached.isNotEmpty()) return@withContext Result.success(cached)
+            }
+        }
+
+        // Try Yahoo batch quote fallback
         if (connectivityChecker.isOnline()) {
             try {
                 val yahooSymbols = psxSymbols.joinToString(",") { toYahooSymbol(it) }
@@ -259,6 +289,53 @@ class StockDataRepository(
                 .map { it.symbol }
 
             Result.success(peers)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Fetch all live quotes from PSX Data Portal and update local DB.
+     * This is the "Scraper" implementation.
+     */
+    suspend fun syncPsxQuotes(): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!connectivityChecker.isOnline()) return@withContext Result.failure(Exception("No internet"))
+        
+        try {
+            val response = psxApi.getLiveQuotes()
+            val stocks = response.stocks ?: return@withContext Result.failure(Exception("No stocks in PSX response"))
+            
+            val quotes = stocks.map { psxStock ->
+                UnifiedQuote(
+                    symbol = psxStock.scrip,
+                    price = psxStock.current,
+                    change = psxStock.change,
+                    changePercent = psxStock.changep,
+                    volume = psxStock.vol,
+                    dayHigh = psxStock.high ?: 0.0,
+                    dayLow = psxStock.low ?: 0.0,
+                    open = psxStock.open ?: 0.0,
+                    previousClose = psxStock.prev ?: 0.0
+                )
+            }
+            
+            // Bulk cache
+            quotes.forEach { cacheQuote(it) }
+            // Bulk update Stock table
+            quotes.forEach { stockDao.updatePrice(it.symbol, it.price) }
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "syncPsxQuotes failed: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getIndices(): Result<List<com.sarmaya.app.network.api.PsxIndex>> = withContext(Dispatchers.IO) {
+        if (!connectivityChecker.isOnline()) return@withContext Result.failure(Exception("No internet"))
+        try {
+            val response = psxApi.getIndices()
+            Result.success(response.indices ?: emptyList())
         } catch (e: Exception) {
             Result.failure(e)
         }

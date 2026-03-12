@@ -36,25 +36,33 @@ import androidx.compose.ui.unit.dp
 import com.sarmaya.app.SarmayaApplication
 import com.sarmaya.app.ui.screens.DashboardScreen
 import com.sarmaya.app.ui.screens.HoldingsScreen
+import com.sarmaya.app.ui.screens.MarketScreen
 import com.sarmaya.app.ui.screens.OnboardingScreen
 import com.sarmaya.app.ui.screens.TransactionsScreen
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.sarmaya.app.ui.screens.DashboardScreen
+import com.sarmaya.app.ui.screens.HoldingsScreen
+import com.sarmaya.app.ui.screens.OnboardingScreen
+import com.sarmaya.app.ui.screens.StockDetailScreen
+import com.sarmaya.app.ui.screens.TransactionsScreen
 import com.sarmaya.app.ui.screens.WatchlistScreen
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Dashboard : Screen("dashboard", "Home", Icons.Filled.Home)
     object Holdings : Screen("holdings", "Portfolio", Icons.AutoMirrored.Filled.List)
     object Watchlist : Screen("watchlist", "Market", Icons.Filled.Star)
     object Transactions : Screen("transactions", "History", Icons.Filled.ShoppingCart)
+    
+    // Non-tab screens
+    object StockDetail : Screen("stock_detail/{symbol}", "Stock Detail", Icons.Filled.Info) {
+        fun createRoute(symbol: String) = "stock_detail/$symbol"
+    }
 }
 
-/**
- * 4-tab bottom navigation:
- *   Home | Portfolio | Market | History
- *
- * Settings is now accessible from a gear icon on Dashboard (not a bottom nav tab).
- */
 val bottomNavItems = listOf(
     Screen.Dashboard,
     Screen.Holdings,
@@ -62,12 +70,12 @@ val bottomNavItems = listOf(
     Screen.Transactions
 )
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SarmayaNavHost() {
     val context = LocalContext.current
     val app = context.applicationContext as SarmayaApplication
     val dataStore = app.container.dataStoreManager
+    val navController = rememberNavController()
 
     // Check onboarding state
     val hasOnboarded by dataStore.hasOnboarded.collectAsState(
@@ -91,14 +99,37 @@ fun SarmayaNavHost() {
                 }
             )
         } else {
-            MainAppContent()
+            NavHost(navController = navController, startDestination = "main") {
+                composable("main") {
+                    MainAppContent(
+                        onStockClick = { symbol ->
+                            navController.navigate(Screen.StockDetail.createRoute(symbol))
+                        }
+                    )
+                }
+                composable(
+                    route = Screen.StockDetail.route,
+                    arguments = listOf(navArgument("symbol") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val symbol = backStackEntry.arguments?.getString("symbol") ?: ""
+                    StockDetailScreen(
+                        symbol = symbol,
+                        onBack = { navController.popBackStack() },
+                        onPeerClick = { peerSymbol ->
+                            navController.navigate(Screen.StockDetail.createRoute(peerSymbol))
+                        }
+                    )
+                }
+            }
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun MainAppContent() {
+private fun MainAppContent(
+    onStockClick: (String) -> Unit
+) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(initialPage = 0) { bottomNavItems.size }
 
@@ -148,9 +179,9 @@ private fun MainAppContent() {
             beyondBoundsPageCount = 1
         ) { page ->
             when (page) {
-                0 -> DashboardScreen()
-                1 -> HoldingsScreen()
-                2 -> WatchlistScreen()
+                0 -> DashboardScreen(onStockClick = onStockClick)
+                1 -> HoldingsScreen(onStockClick = onStockClick)
+                2 -> MarketScreen(onStockClick = onStockClick)
                 3 -> TransactionsScreen()
             }
         }
