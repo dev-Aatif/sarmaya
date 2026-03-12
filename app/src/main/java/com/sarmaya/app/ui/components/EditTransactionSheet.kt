@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.data.Transaction
 import com.sarmaya.app.viewmodel.TransactionsViewModel
+import androidx.compose.ui.window.Dialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,143 +40,169 @@ fun EditTransactionSheet(
     val isQuantityInvalid = quantity.isNotEmpty() && (quantity.toIntOrNull() ?: 0) <= 0
     val isPriceInvalid = pricePerShare.isNotEmpty() && (pricePerShare.toDoubleOrNull() ?: -1.0) < 0.0
 
-    ModalBottomSheet(
+    Dialog(
         onDismissRequest = onDismissRequest,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        properties = androidx.compose.ui.window.DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
     ) {
-        Column(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp)
-                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 32.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            Text("Edit Transaction", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(24.dp))
-
-            OutlinedTextField(
-                value = transaction.stockSymbol,
-                onValueChange = {},
-                label = { Text("Stock Symbol") },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = false
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
             ) {
-                OutlinedTextField(
-                    readOnly = true,
-                    value = selectedType,
-                    onValueChange = { },
-                    label = { Text("Type") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                Text(
+                    "Edit Transaction",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
                 )
-                ExposedDropdownMenu(
+                Spacer(modifier = Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = transaction.stockSymbol,
+                    onValueChange = {},
+                    label = { Text("Stock Symbol") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                ExposedDropdownMenuBox(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onExpandedChange = { expanded = !expanded }
                 ) {
-                    types.forEach { selectionOption ->
-                        DropdownMenuItem(
-                            text = { Text(selectionOption) },
-                            onClick = {
-                                selectedType = selectionOption
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-
-
-            if (errorMessage != null) {
-                Text(errorMessage!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            OutlinedTextField(
-                value = quantity,
-                onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
-                label = { Text("Quantity") },
-                isError = isQuantityInvalid,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = pricePerShare,
-                onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*\$"))) pricePerShare = it },
-                label = { Text("Price Per Share (₨)") },
-                isError = isPriceInvalid,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                label = { Text("Notes (Optional)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    val now = System.currentTimeMillis()
-                    if (now - lastClickTime < 500) return@Button
-                    lastClickTime = now
-
-                    if (quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid) {
-                        isProcessing = true
-                        val qty = quantity.toIntOrNull()
-                        val price = pricePerShare.toDoubleOrNull()
-                        if (qty == null || price == null) {
-                            errorMessage = "Invalid input values"
-                            isProcessing = false
-                            return@Button
-                        }
-                        errorMessage = null
-                        viewModel.updateTransaction(
-                            transactionId = transaction.id,
-                            stockSymbol = transaction.stockSymbol,
-                            type = selectedType,
-                            quantity = qty,
-                            pricePerShare = price,
-                            date = date,
-                            notes = notes,
-                            onSuccess = { 
-                                isProcessing = false
-                                onDismissRequest() 
-                            },
-                            onError = { 
-                                isProcessing = false
-                                errorMessage = it 
-                            }
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid && !isProcessing
-            ) {
-                if (isProcessing) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
+                    OutlinedTextField(
+                        readOnly = true,
+                        value = selectedType,
+                        onValueChange = { },
+                        label = { Text("Type") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
-                } else {
-                    Text("Update Transaction", style = MaterialTheme.typography.titleMedium)
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        types.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption) },
+                                onClick = {
+                                    selectedType = selectionOption
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (errorMessage != null) {
+                    Text(errorMessage!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                OutlinedTextField(
+                    value = quantity,
+                    onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
+                    label = { Text("Quantity") },
+                    isError = isQuantityInvalid,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = pricePerShare,
+                    onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
+                    label = { Text("Price Per Share (₨)") },
+                    isError = isPriceInvalid,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = { Text("Notes (Optional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismissRequest,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            val now = System.currentTimeMillis()
+                            if (now - lastClickTime < 500) return@Button
+                            lastClickTime = now
+
+                            if (quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid) {
+                                isProcessing = true
+                                val qty = quantity.toIntOrNull()
+                                val price = pricePerShare.toDoubleOrNull()
+                                if (qty == null || price == null) {
+                                    errorMessage = "Invalid input values"
+                                    isProcessing = false
+                                    return@Button
+                                }
+                                errorMessage = null
+                                viewModel.updateTransaction(
+                                    transactionId = transaction.id,
+                                    stockSymbol = transaction.stockSymbol,
+                                    type = selectedType,
+                                    quantity = qty,
+                                    pricePerShare = price,
+                                    date = date,
+                                    notes = notes,
+                                    onSuccess = { 
+                                        isProcessing = false
+                                        onDismissRequest() 
+                                    },
+                                    onError = { 
+                                        isProcessing = false
+                                        errorMessage = it 
+                                    }
+                                )
+                            }
+                        },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        enabled = quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid && !isProcessing
+                    ) {
+                        if (isProcessing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Update", style = MaterialTheme.typography.labelLarge)
+                        }
+                    }
                 }
             }
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

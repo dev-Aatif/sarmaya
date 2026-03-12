@@ -72,7 +72,7 @@ fun HoldingsScreen(
                 if (activeHoldings.isNotEmpty()) {
                     val totalActiveValue = activeHoldings.sumOf { it.currentValue }
                     Text(
-                        "₨ ${String.format("%,.0f", totalActiveValue)}",
+                        "₨ ${String.format("%,.2f", totalActiveValue)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -196,9 +196,9 @@ fun HoldingItem(holding: ComputedHolding, financeColors: SarmayaFinanceColors, o
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         holding.stockSymbol,
                         style = MaterialTheme.typography.titleMedium,
@@ -207,15 +207,20 @@ fun HoldingItem(holding: ComputedHolding, financeColors: SarmayaFinanceColors, o
                     Text(
                         holding.name,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
                     )
                 }
                 if (!isClosed) {
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
                         Text(
                             "₨ ${String.format("%,.2f", holding.currentValue)}",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
                         )
                         // P/L Badge
                         Surface(
@@ -268,21 +273,21 @@ fun HoldingItem(holding: ComputedHolding, financeColors: SarmayaFinanceColors, o
                 ) {
                     DetailLabel(
                         label = "Unrealized P/L",
-                        value = "${if (isProfit) "+" else ""}₨ ${String.format("%,.0f", holding.profitLossAmount)}",
+                        value = "${if (isProfit) "+" else ""}₨ ${String.format("%,.2f", holding.profitLossAmount)}",
                         valueColor = if (isProfit) financeColors.profit else financeColors.loss
                     )
                     if (holding.realizedProfitLoss != 0.0) {
                         val realizedIsProfit = holding.realizedProfitLoss >= 0
                         DetailLabel(
                             label = "Realized P/L",
-                            value = "${if (realizedIsProfit) "+" else ""}₨ ${String.format("%,.0f", holding.realizedProfitLoss)}",
+                            value = "${if (realizedIsProfit) "+" else ""}₨ ${String.format("%,.2f", holding.realizedProfitLoss)}",
                             valueColor = if (realizedIsProfit) financeColors.profit else financeColors.loss
                         )
                     }
                     if (holding.totalDividends > 0) {
                         DetailLabel(
                             label = "Dividends",
-                            value = "₨ ${String.format("%,.0f", holding.totalDividends)}",
+                            value = "₨ ${String.format("%,.2f", holding.totalDividends)}",
                             valueColor = financeColors.dividend
                         )
                     }
@@ -297,14 +302,14 @@ fun HoldingItem(holding: ComputedHolding, financeColors: SarmayaFinanceColors, o
                         val realizedIsProfit = holding.realizedProfitLoss >= 0
                         DetailLabel(
                             label = "Realized P/L",
-                            value = "${if (realizedIsProfit) "+" else ""}₨ ${String.format("%,.0f", holding.realizedProfitLoss)}",
+                            value = "${if (realizedIsProfit) "+" else ""}₨ ${String.format("%,.2f", holding.realizedProfitLoss)}",
                             valueColor = if (realizedIsProfit) financeColors.profit else financeColors.loss
                         )
                     }
                     if (holding.totalDividends > 0) {
                         DetailLabel(
                             label = "Dividends",
-                            value = "₨ ${String.format("%,.0f", holding.totalDividends)}",
+                            value = "₨ ${String.format("%,.2f", holding.totalDividends)}",
                             valueColor = financeColors.dividend
                         )
                     }

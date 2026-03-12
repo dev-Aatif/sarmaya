@@ -9,13 +9,17 @@ import androidx.compose.runtime.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.DashboardViewModel
-import kotlinx.coroutines.launch
+import androidx.compose.ui.window.Dialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,90 +28,195 @@ fun UpdatePricesSheet(
     viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
 ) {
     val holdings by viewModel.computedHoldings.collectAsStateWithLifecycle()
-    // Just keeping local state for the editable fields
-    val priceMap = remember { mutableStateMapOf<String, String>() }
+    val financeColors = LocalSarmayaColors.current
+    
+    // Use TextFieldValue for proper cursor/selection control
+    val priceFields = remember { mutableStateMapOf<String, TextFieldValue>() }
 
     LaunchedEffect(holdings) {
         holdings.forEach { h ->
-            if (!priceMap.containsKey(h.stockSymbol)) {
-                priceMap[h.stockSymbol] = h.currentPrice.toString()
+            if (!priceFields.containsKey(h.stockSymbol)) {
+                val text = String.format("%.2f", h.currentPrice)
+                priceFields[h.stockSymbol] = TextFieldValue(text)
             }
         }
     }
 
-    ModalBottomSheet(
+    Dialog(
         onDismissRequest = onDismissRequest,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        properties = androidx.compose.ui.window.DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
     ) {
-        Column(
+        Card(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 32.dp)
+                .fillMaxHeight(0.85f),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            Text("Update Current Prices", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(24.dp))
-
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(holdings) { holding ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(holding.stockSymbol, fontWeight = FontWeight.Bold)
-                            Text(holding.name, style = MaterialTheme.typography.bodySmall)
-                        }
-                        
-                        OutlinedTextField(
-                            value = priceMap[holding.stockSymbol] ?: "",
-                            onValueChange = { priceMap[holding.stockSymbol] = it },
-                            modifier = Modifier.width(120.dp),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            singleLine = true
-                        )
-                    }
-                    HorizontalDivider()
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Header
+                Column(
+                    modifier = Modifier.padding(24.dp, 24.dp, 24.dp, 8.dp)
+                ) {
+                    Text(
+                        "Update Prices",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "${holdings.filter { it.quantity > 0 }.size} active stocks",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = {
-                    val updates = priceMap.mapNotNull { (symbol, priceStr) ->
-                        // Standardize string mapping: replace commas with dots, and strip all non-digit/dot characters
-                        val cleanStr = priceStr.replace(',', '.').replace(Regex("[^\\d.]"), "")
-                        
-                        // Handle multiple dots by keeping only the first one
-                        val safeStr = buildString {
-                            var dotSeen = false
-                            for (c in cleanStr) {
-                                if (c == '.') {
-                                    if (!dotSeen) {
-                                        append(c)
-                                        dotSeen = true
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+
+                // Scrollable stock list
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp)
+                ) {
+                    items(holdings.filter { it.quantity > 0 }) { holding ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = financeColors.cardSurface
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            holding.stockSymbol,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            holding.name,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1
+                                        )
                                     }
-                                } else {
-                                    append(c)
+                                    
+                                    val isProfit = holding.profitLossPercentage >= 0
+                                    Surface(
+                                        color = if (isProfit) financeColors.profitContainer else financeColors.lossContainer,
+                                        shape = RoundedCornerShape(6.dp)
+                                    ) {
+                                        Text(
+                                            "${if (isProfit) "+" else ""}${String.format("%.1f", holding.profitLossPercentage)}%",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isProfit) financeColors.onProfitContainer else financeColors.onLossContainer,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                        )
+                                    }
                                 }
+                                
+                                Spacer(modifier = Modifier.height(10.dp))
+                                
+                                OutlinedTextField(
+                                    value = priceFields[holding.stockSymbol] ?: TextFieldValue(""),
+                                    onValueChange = { newValue ->
+                                        // Filter to allow only digits and one decimal point
+                                        val filtered = newValue.text.replace(',', '.')
+                                        val dotCount = filtered.count { it == '.' }
+                                        if (filtered.isEmpty() || (filtered.all { it.isDigit() || it == '.' } && dotCount <= 1)) {
+                                            priceFields[holding.stockSymbol] = newValue.copy(text = filtered)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .onFocusChanged { focusState ->
+                                            if (focusState.isFocused) {
+                                                // Select all text on focus for easy replacement
+                                                val current = priceFields[holding.stockSymbol]
+                                                if (current != null) {
+                                                    priceFields[holding.stockSymbol] = current.copy(
+                                                        selection = TextRange(0, current.text.length)
+                                                    )
+                                                }
+                                            }
+                                        },
+                                    label = { Text("Price (₨)") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
                             }
                         }
-                        
-                        val parsed = safeStr.toDoubleOrNull()
-                        if (parsed != null) symbol to parsed else null
-                    }.toMap()
-                    viewModel.updatePrices(updates)
-                    onDismissRequest()
-                },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Save Prices", style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+
+                // Sticky footer with action buttons
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp, 12.dp, 16.dp, 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismissRequest,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            val updates = priceFields.mapNotNull { (symbol, fieldValue) ->
+                                val cleanStr = fieldValue.text.replace(',', '.').replace(Regex("[^\\d.]"), "")
+                                val safeStr = buildString {
+                                    var dotSeen = false
+                                    for (c in cleanStr) {
+                                        if (c == '.') {
+                                            if (!dotSeen) { append(c); dotSeen = true }
+                                        } else { append(c) }
+                                    }
+                                }
+                                val parsed = safeStr.toDoubleOrNull()
+                                if (parsed != null) symbol to parsed else null
+                            }.toMap()
+                            viewModel.updatePrices(updates)
+                            onDismissRequest()
+                        },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Save Prices", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

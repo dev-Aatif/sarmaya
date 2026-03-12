@@ -49,6 +49,7 @@ fun DashboardScreen(
     val topGainers by viewModel.topGainers.collectAsStateWithLifecycle()
     val topLosers by viewModel.topLosers.collectAsStateWithLifecycle()
     val recentTransactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
+    val lastPriceUpdate by viewModel.lastPriceUpdate.collectAsStateWithLifecycle()
 
     var showUpdatePricesSheet by remember { mutableStateOf(false) }
     var showAddTransactionSheet by remember { mutableStateOf(false) }
@@ -126,6 +127,43 @@ fun DashboardScreen(
                 }
             }
 
+            // ─── Market Status ───
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Market Status",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        val dateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+                        val lastUpdatedStr = if (lastPriceUpdate != null) {
+                            dateFormat.format(Date(lastPriceUpdate!!))
+                        } else {
+                            "Not updated yet"
+                        }
+                        Text(
+                            "Last updated: $lastUpdatedStr",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+
             // ─── Portfolio Value Card (Gradient) ───
             item {
                 Card(
@@ -153,7 +191,7 @@ fun DashboardScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                "₨ ${String.format("%,.0f", totalValue)}",
+                                "₨ ${String.format("%,.2f", totalValue)}",
                                 style = MaterialTheme.typography.displayMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = androidx.compose.ui.graphics.Color.White
@@ -172,7 +210,7 @@ fun DashboardScreen(
                                 )
                                 Spacer(modifier = Modifier.width(2.dp))
                                 Text(
-                                    "${if (isProfit) "+" else ""}₨ ${String.format("%,.0f", totalProfitLoss)}",
+                                    "${if (isProfit) "+" else ""}₨ ${String.format("%,.2f", totalProfitLoss)}",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isProfit) ProfitGreenLight else LossRedLight
@@ -207,21 +245,21 @@ fun DashboardScreen(
                 ) {
                     QuickStatCard(
                         label = "Invested",
-                        value = "₨ ${String.format("%,.0f", totalInvested)}",
+                        value = "₨ ${String.format("%,.2f", totalInvested)}",
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
                     QuickStatCard(
                         label = "Realized P/L",
-                        value = "${if (totalRealizedPL >= 0) "+" else ""}₨ ${String.format("%,.0f", totalRealizedPL)}",
+                        value = "${if (totalRealizedPL >= 0) "+" else ""}₨ ${String.format("%,.2f", totalRealizedPL)}",
                         containerColor = if (totalRealizedPL >= 0) financeColors.profitContainer else financeColors.lossContainer,
                         contentColor = if (totalRealizedPL >= 0) financeColors.onProfitContainer else financeColors.onLossContainer,
                         modifier = Modifier.weight(1f)
                     )
                     QuickStatCard(
                         label = "Dividends",
-                        value = "₨ ${String.format("%,.0f", totalDividends)}",
+                        value = "₨ ${String.format("%,.2f", totalDividends)}",
                         containerColor = financeColors.dividendContainer,
                         contentColor = DividendBlue,
                         modifier = Modifier.weight(1f)
@@ -258,7 +296,7 @@ fun DashboardScreen(
                             )
                         }
                         Text(
-                            "${if (totalReturn >= 0) "+" else ""}₨ ${String.format("%,.0f", totalReturn)}",
+                            "${if (totalReturn >= 0) "+" else ""}₨ ${String.format("%,.2f", totalReturn)}",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer
@@ -324,13 +362,13 @@ fun DashboardScreen(
                                         modifier = Modifier.weight(1f)
                                     )
                                     Text(
-                                        "${String.format("%.0f", percentage * 100)}%",
+                                        "${String.format("%.1f", percentage * 100)}%",
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(horizontal = 8.dp)
                                     )
                                     Text(
-                                        "₨ ${String.format("%,.0f", value)}",
+                                        "₨ ${String.format("%,.2f", value)}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.SemiBold
                                     )

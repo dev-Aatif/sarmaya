@@ -55,58 +55,52 @@ fun SettingsScreen(
                 Text("Appearance", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Text("Theme", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    "Choose your preferred appearance",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                var expanded by remember { mutableStateOf(false) }
+                val currentLabel = when (isDarkTheme) {
+                    true -> "Dark"
+                    false -> "Light"
+                    null -> "System Default"
+                }
+                
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
                 ) {
-                    Column {
-                        Text("Theme", style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            "Choose your preferred appearance",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    
-                    var expanded by remember { mutableStateOf(false) }
-                    val currentLabel = when (isDarkTheme) {
-                        true -> "Dark"
-                        false -> "Light"
-                        null -> "System"
-                    }
-                    
-                    ExposedDropdownMenuBox(
+                    OutlinedTextField(
+                        value = currentLabel,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    ExposedDropdownMenu(
                         expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
+                        onDismissRequest = { expanded = false }
                     ) {
-                        OutlinedTextField(
-                            value = currentLabel,
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .width(140.dp),
-                            shape = RoundedCornerShape(12.dp)
+                        DropdownMenuItem(
+                            text = { Text("System Default") },
+                            onClick = { viewModel.setTheme(null); expanded = false }
                         )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("System Default") },
-                                onClick = { viewModel.setTheme(null); expanded = false }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Light") },
-                                onClick = { viewModel.setTheme(false); expanded = false }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Dark") },
-                                onClick = { viewModel.setTheme(true); expanded = false }
-                            )
-                        }
+                        DropdownMenuItem(
+                            text = { Text("Light") },
+                            onClick = { viewModel.setTheme(false); expanded = false }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Dark") },
+                            onClick = { viewModel.setTheme(true); expanded = false }
+                        )
                     }
                 }
             }

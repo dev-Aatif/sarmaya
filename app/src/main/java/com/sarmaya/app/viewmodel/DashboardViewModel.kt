@@ -80,6 +80,10 @@ class DashboardViewModel(
         .map { it.take(5) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val lastPriceUpdate = stockDao.getAllStocks()
+        .map { stocks -> stocks.mapNotNull { it.priceUpdatedAt }.maxOrNull() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     fun updatePrices(prices: Map<String, Double>) {
         viewModelScope.launch {
             if (prices.isEmpty()) return@launch

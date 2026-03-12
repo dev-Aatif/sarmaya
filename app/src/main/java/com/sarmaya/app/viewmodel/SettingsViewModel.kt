@@ -17,6 +17,9 @@ import com.sarmaya.app.data.TransactionDao
 import com.sarmaya.app.SarmayaApplication
 import java.io.File
 import java.io.FileWriter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SettingsViewModel(
     private val context: Context,
@@ -61,12 +64,14 @@ class SettingsViewModel(
         viewModelScope.launch {
             try {
                 val transactions = transactionDao.getAllTransactions().first()
+                val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
                 val csvHeader = "ID,StockSymbol,Type,Quantity,PricePerShare,Date,Notes\n"
                 val sb = java.lang.StringBuilder(csvHeader)
                 
                 for (t in transactions) {
                     val formattedNotes = t.notes.replace("\"", "\"\"")
-                    sb.append("${t.id},${t.stockSymbol},${t.type},${t.quantity},${t.pricePerShare},${t.date},\"${formattedNotes}\"\n")
+                    val formattedDate = isoFormat.format(Date(t.date))
+                    sb.append("${t.id},${t.stockSymbol},${t.type},${t.quantity},${t.pricePerShare},${formattedDate},\"${formattedNotes}\"\n")
                 }
                 
                 val exportDir = File(context.cacheDir, "exports")
