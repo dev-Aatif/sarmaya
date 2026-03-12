@@ -8,15 +8,19 @@ import com.sarmaya.app.data.Transaction
  */
 data class TransactionDomainModel(
     val id: Long = 0,
+    val portfolioId: Long = 1,
     val stockSymbol: String,
     val type: String,
     val quantity: Int,
     val pricePerShare: Double,
     val date: Long,
-    val notes: String = ""
+    val notes: String = "",
+    val commissionType: String = "FLAT",
+    val commissionAmount: Double = 0.0
 ) {
     companion object {
         val VALID_TYPES = listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
+        val VALID_COMMISSION_TYPES = listOf("FLAT", "PER_SHARE")
     }
 
     /**
@@ -45,18 +49,30 @@ data class TransactionDomainModel(
         if (notes.length > 500) {
             return "Notes cannot exceed 500 characters"
         }
+        if (commissionType !in VALID_COMMISSION_TYPES) {
+            return "Invalid commission type: $commissionType"
+        }
+        if (commissionAmount < 0.0) {
+            return "Commission amount cannot be negative"
+        }
+        if (commissionAmount.isNaN() || commissionAmount.isInfinite()) {
+            return "Commission amount cannot be NaN or Infinite"
+        }
         return null
     }
 
     fun toEntity(): Transaction {
         return Transaction(
             id = id,
+            portfolioId = portfolioId,
             stockSymbol = stockSymbol,
             type = type,
             quantity = quantity,
             pricePerShare = pricePerShare,
             date = date,
-            notes = notes
+            notes = notes,
+            commissionType = commissionType,
+            commissionAmount = commissionAmount
         )
     }
 }

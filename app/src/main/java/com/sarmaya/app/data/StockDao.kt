@@ -28,4 +28,7 @@ interface StockDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStocks(stocks: List<Stock>)
+
+    @Query("SELECT * FROM Stock WHERE sector = :sector ORDER BY symbol ASC")
+    suspend fun getStocksBySectorSync(sector: String): List<Stock>
 }

@@ -7,11 +7,23 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Stock::class, Transaction::class, WatchlistItem::class], version = 2, exportSchema = false)
+@Database(
+    entities = [
+        Stock::class,
+        Transaction::class,
+        WatchlistItem::class,
+        StockQuoteCache::class,
+        Portfolio::class
+    ],
+    version = 3,
+    exportSchema = true
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun stockDao(): StockDao
     abstract fun transactionDao(): TransactionDao
     abstract fun watchlistDao(): WatchlistDao
+    abstract fun stockQuoteCacheDao(): StockQuoteCacheDao
+    abstract fun portfolioDao(): PortfolioDao
 
     companion object {
         @Volatile
@@ -30,6 +42,42 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Add new columns to Transaction table
+                db.execSQL("ALTER TABLE `Transaction` ADD COLUMN portfolioId INTEGER NOT NULL DEFAULT 1")
+                db.execSQL("ALTER TABLE `Transaction` ADD COLUMN commissionType TEXT NOT NULL DEFAULT 'FLAT'")
+                db.execSQL("ALTER TABLE `Transaction` ADD COLUMN commissionAmount REAL NOT NULL DEFAULT 0.0")
+
+                // 2. Create StockQuoteCache table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS StockQuoteCache (
+                        symbol TEXT NOT NULL PRIMARY KEY,
+                        price REAL NOT NULL,
+                        change REAL NOT NULL,
+                        changePercent REAL NOT NULL,
+                        volume INTEGER NOT NULL,
+                        high REAL NOT NULL,
+                        low REAL NOT NULL,
+                        cachedAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+
+                // 3. Create Portfolio table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS Portfolio (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        isDefault INTEGER NOT NULL
+                    )
+                """.trimIndent())
+
+                // 4. Insert default portfolio
+                db.execSQL("INSERT INTO Portfolio (id, name, createdAt, isDefault) VALUES (1, 'My Portfolio', ${System.currentTimeMillis()}, 1)")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -38,7 +86,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "sarmaya_database"
                 )
                 .createFromAsset("database/sarmaya.db")
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
                 INSTANCE = instance
                 instance
