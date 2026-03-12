@@ -6,11 +6,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,9 +32,14 @@ fun TransactionsScreen(
     viewModel: TransactionsViewModel = viewModel(factory = TransactionsViewModel.Factory)
 ) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
+    val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
+    val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
+    
     var showAddSheet by remember { mutableStateOf(false) }
     var transactionToEdit by remember { mutableStateOf<Transaction?>(null) }
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
+    var showPortfolioMenu by remember { mutableStateOf(false) }
+
     var selectedFilter by remember { mutableStateOf("All") }
 
     val filterOptions = listOf("All", "BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
@@ -102,13 +110,54 @@ fun TransactionsScreen(
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold
             )
-            if (transactions.isNotEmpty()) {
-                Text(
-                    "${transactions.size} total transactions",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Box {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { showPortfolioMenu = true }
+                        .padding(vertical = 2.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val label = if (activePortfolio != null) activePortfolio!!.name else "All Portfolios"
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Icon(
+                        androidx.compose.material.icons.Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                DropdownMenu(
+                    expanded = showPortfolioMenu,
+                    onDismissRequest = { showPortfolioMenu = false }
+                ) {
+                    allPortfolios.forEach { portfolio ->
+                        DropdownMenuItem(
+                            text = { Text(portfolio.name) },
+                            onClick = {
+                                viewModel.selectPortfolio(portfolio.id)
+                                showPortfolioMenu = false
+                            },
+                            trailingIcon = {
+                                if (portfolio.id == activePortfolio?.id) {
+                                    Icon(
+                                        androidx.compose.material.icons.Icons.Default.Refresh,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
             }
+
             Spacer(modifier = Modifier.height(12.dp))
 
             // ─── Filter Chips (static row, no nested scroll) ───

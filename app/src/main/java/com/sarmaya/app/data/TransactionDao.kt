@@ -23,8 +23,14 @@ interface TransactionDao {
     @Query("SELECT * FROM `Transaction` ORDER BY date DESC")
     fun getAllTransactions(): Flow<List<Transaction>>
 
+    @Query("SELECT * FROM `Transaction` WHERE portfolioId = :portfolioId ORDER BY date DESC")
+    fun getTransactionsByPortfolio(portfolioId: Long): Flow<List<Transaction>>
+
     @Query("SELECT * FROM `Transaction` WHERE stockSymbol = :symbol ORDER BY date ASC, id ASC")
     suspend fun getTransactionsForStock(symbol: String): List<Transaction>
+
+    @Query("SELECT * FROM `Transaction` WHERE stockSymbol = :symbol AND portfolioId = :portfolioId ORDER BY date ASC, id ASC")
+    suspend fun getTransactionsForStockInPortfolio(symbol: String, portfolioId: Long): List<Transaction>
 
     @Query("""
         SELECT SUM(CASE WHEN type IN ('BUY','BONUS','SPLIT') THEN quantity 
@@ -32,5 +38,11 @@ interface TransactionDao {
         FROM `Transaction` WHERE stockSymbol = :symbol
     """)
     suspend fun getStockQuantity(symbol: String): Int?
+
+    @Query("""
+        SELECT SUM(CASE WHEN type IN ('BUY','BONUS','SPLIT') THEN quantity 
+                        WHEN type = 'SELL' THEN -quantity ELSE 0 END) 
+        FROM `Transaction` WHERE stockSymbol = :symbol AND portfolioId = :portfolioId""")
+    suspend fun getStockQuantityInPortfolio(symbol: String, portfolioId: Long): Int?
 
 }

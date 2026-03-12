@@ -1,17 +1,16 @@
 package com.sarmaya.app.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.foundation.clickable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
@@ -31,11 +30,15 @@ fun HoldingsScreen(
     viewModel: HoldingsViewModel = viewModel(factory = HoldingsViewModel.Factory)
 ) {
     val holdings by viewModel.holdings.collectAsStateWithLifecycle()
+    val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
+    val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
+    
     val activeHoldings = holdings.filter { it.quantity > 0 }
     val closedHoldings = holdings.filter { it.quantity == 0 }
 
     var selectedManageStock by remember { mutableStateOf<String?>(null) }
     var showUpdatePricesSheet by remember { mutableStateOf(false) }
+    var showPortfolioMenu by remember { mutableStateOf(false) }
 
     val financeColors = LocalSarmayaColors.current
 
@@ -70,13 +73,51 @@ fun HoldingsScreen(
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold
                 )
-                if (activeHoldings.isNotEmpty()) {
-                    val totalActiveValue = activeHoldings.sumOf { it.currentValue }
-                    Text(
-                        "₨ ${String.format("%,.2f", totalActiveValue)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Box {
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { showPortfolioMenu = true }
+                            .padding(vertical = 2.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            activePortfolio?.name ?: "All Portfolios",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Icon(
+                            androidx.compose.material.icons.Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showPortfolioMenu,
+                        onDismissRequest = { showPortfolioMenu = false }
+                    ) {
+                        allPortfolios.forEach { portfolio ->
+                            DropdownMenuItem(
+                                text = { Text(portfolio.name) },
+                                onClick = {
+                                    viewModel.selectPortfolio(portfolio.id)
+                                    showPortfolioMenu = false
+                                },
+                                trailingIcon = {
+                                    if (portfolio.id == activePortfolio?.id) {
+                                        Icon(
+                                            androidx.compose.material.icons.Icons.Default.Refresh, // Dot or checkmark
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
                 }
             }
             Button(

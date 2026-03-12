@@ -4,17 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.sarmaya.app.SarmayaApplication
+import com.sarmaya.app.data.DataStoreManager
+import com.sarmaya.app.data.Portfolio
+import com.sarmaya.app.data.PortfolioDao
 import com.sarmaya.app.data.Stock
 import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.Transaction
 import com.sarmaya.app.data.TransactionDao
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import androidx.room.withTransaction
@@ -23,13 +21,36 @@ import kotlinx.coroutines.sync.withLock
 class TransactionsViewModel(
     private val transactionDao: TransactionDao,
     private val stockDao: StockDao,
+    private val portfolioDao: PortfolioDao,
+    private val dataStoreManager: DataStoreManager,
     private val dbTransactionRunner: suspend (suspend () -> Unit) -> Unit = { it() }
 ) : ViewModel() {
 
     private val mutex = Mutex()
 
-    val transactions = transactionDao.getAllTransactions()
+    val allPortfolios: StateFlow<List<Portfolio>> = portfolioDao.getAllPortfolios()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _activePortfolioId = dataStoreManager.activePortfolioId
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val activePortfolio: StateFlow<Portfolio?> = _activePortfolioId.flatMapLatest { id ->
+        if (id != null) {
+            flow { emit(portfolioDao.getPortfolioById(id)) }
+        } else {
+            flow { emit(portfolioDao.getDefaultPortfolio()) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val transactions = activePortfolio.flatMapLatest { portfolio ->
+        if (portfolio != null) {
+            transactionDao.getTransactionsByPortfolio(portfolio.id)
+        } else {
+            flowOf(emptyList())
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
 
     // Stock picker context
     private val _searchQuery = MutableStateFlow("")
@@ -60,7 +81,9 @@ class TransactionsViewModel(
     ) {
         viewModelScope.launch {
             mutex.withLock {
+                val currentPortfolioId = activePortfolio.value?.id ?: 1L
                 val domainModel = com.sarmaya.app.domain.TransactionDomainModel(
+                    portfolioId = currentPortfolioId,
                     stockSymbol = stockSymbol,
                     type = type,
                     quantity = quantity,
@@ -76,7 +99,7 @@ class TransactionsViewModel(
                 val t = domainModel.toEntity()
 
                 if (type != "DIVIDEND") {
-                    val allTxs = transactionDao.getTransactionsForStock(stockSymbol).toMutableList()
+                    val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, currentPortfolioId).toMutableList()
                     allTxs.add(t)
                     allTxs.sortBy { it.date }
                     var runningBalance = 0
@@ -152,7 +175,7 @@ class TransactionsViewModel(
                 val t = domainModel.toEntity()
 
                 if (type != "DIVIDEND" || oldTx.type != "DIVIDEND") {
-                    val allTxs = transactionDao.getTransactionsForStock(stockSymbol).toMutableList()
+                    val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, oldTx.portfolioId).toMutableList()
                     val index = allTxs.indexOfFirst { it.id == transactionId }
                     if (index != -1) {
                         allTxs[index] = t
@@ -197,7 +220,7 @@ class TransactionsViewModel(
         viewModelScope.launch {
             mutex.withLock {
                 if (transaction.type != "DIVIDEND") {
-                    val allTxs = transactionDao.getTransactionsForStock(transaction.stockSymbol).toMutableList()
+                    val allTxs = transactionDao.getTransactionsForStockInPortfolio(transaction.stockSymbol, transaction.portfolioId).toMutableList()
                     allTxs.removeIf { it.id == transaction.id }
                     // We sort and recalculate running balance to prevent deleting 
                     // a BUY that subsequent SELLs depend on, avoiding state corruption.
@@ -224,6 +247,12 @@ class TransactionsViewModel(
         }
     }
 
+    fun selectPortfolio(portfolioId: Long) {
+        viewModelScope.launch {
+            dataStoreManager.setActivePortfolioId(portfolioId)
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -235,6 +264,8 @@ class TransactionsViewModel(
                 return TransactionsViewModel(
                     application.container.transactionDao,
                     application.container.stockDao,
+                    application.container.portfolioDao,
+                    application.container.dataStoreManager,
                     { block -> application.container.database.withTransaction { block() } }
                 ) as T
             }

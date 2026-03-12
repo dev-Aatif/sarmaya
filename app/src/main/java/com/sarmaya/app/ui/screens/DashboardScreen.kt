@@ -56,6 +56,9 @@ fun DashboardScreen(
     val recentTransactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
     val lastPriceUpdate by viewModel.lastPriceUpdate.collectAsStateWithLifecycle()
     val username by viewModel.username.collectAsStateWithLifecycle()
+    val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
+    val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
+
 
     // Update notifier
     val latestRelease by updateViewModel.latestRelease.collectAsStateWithLifecycle()
@@ -64,6 +67,8 @@ fun DashboardScreen(
     var showUpdatePricesSheet by remember { mutableStateOf(false) }
     var showAddTransactionSheet by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
+    var showPortfolioMenu by remember { mutableStateOf(false) }
+
 
     val financeColors = LocalSarmayaColors.current
 
@@ -117,11 +122,53 @@ fun DashboardScreen(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Text(
-                            "Portfolio Overview",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Box {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { showPortfolioMenu = true }
+                                    .padding(vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    activePortfolio?.name ?: "All Portfolios",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Icon(
+                                    Icons.Filled.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showPortfolioMenu,
+                                onDismissRequest = { showPortfolioMenu = false },
+                                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                            ) {
+                                allPortfolios.forEach { portfolio ->
+                                    DropdownMenuItem(
+                                        text = { Text(portfolio.name) },
+                                        onClick = {
+                                            viewModel.selectPortfolio(portfolio.id)
+                                            showPortfolioMenu = false
+                                        },
+                                        trailingIcon = {
+                                            if (portfolio.id == activePortfolio?.id) {
+                                                Icon(
+                                                    androidx.compose.material.icons.Icons.Default.Add, // Using Add as a placeholder for checkmark if not available
+                                                    contentDescription = "Selected",
+                                                    modifier = Modifier.size(16.dp),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         IconButton(

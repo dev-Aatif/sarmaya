@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.sarmaya.app.SarmayaApplication
-import com.sarmaya.app.data.DataStoreManager
+import com.sarmaya.app.data.Portfolio
+import com.sarmaya.app.data.PortfolioDao
 import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.TransactionDao
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 import com.sarmaya.app.data.PortfolioCalculator
@@ -18,11 +18,35 @@ import com.sarmaya.app.data.PortfolioCalculator
 class DashboardViewModel(
     private val transactionDao: TransactionDao,
     private val stockDao: StockDao,
+    private val portfolioDao: PortfolioDao,
     private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
+    val allPortfolios: StateFlow<List<Portfolio>> = portfolioDao.getAllPortfolios()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _activePortfolioId = dataStoreManager.activePortfolioId
+    
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val activePortfolio: StateFlow<Portfolio?> = _activePortfolioId.flatMapLatest { id ->
+        if (id != null) {
+            flow { emit(portfolioDao.getPortfolioById(id)) }
+        } else {
+            flow { emit(portfolioDao.getDefaultPortfolio()) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val transactions = activePortfolio.flatMapLatest { portfolio ->
+        if (portfolio != null) {
+            transactionDao.getTransactionsByPortfolio(portfolio.id)
+        } else {
+            flowOf(emptyList())
+        }
+    }
+
     val computedHoldings = PortfolioCalculator.getEventSourcedHoldings(
-        transactionDao.getAllTransactions(),
+        transactions,
         stockDao.getAllStocks()
     ).stateIn(
         viewModelScope,
@@ -78,7 +102,7 @@ class DashboardViewModel(
             .take(3)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val recentTransactions = transactionDao.getAllTransactions()
+    val recentTransactions = transactions
         .map { it.take(5) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -98,6 +122,12 @@ class DashboardViewModel(
         }
     }
 
+    fun selectPortfolio(portfolioId: Long) {
+        viewModelScope.launch {
+            dataStoreManager.setActivePortfolioId(portfolioId)
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -109,6 +139,7 @@ class DashboardViewModel(
                 return DashboardViewModel(
                     application.container.transactionDao,
                     application.container.stockDao,
+                    application.container.portfolioDao,
                     application.container.dataStoreManager
                 ) as T
             }

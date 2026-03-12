@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +28,7 @@ class DataStoreManager(private val context: Context) {
         val KEY_NOTIFICATIONS_PORTFOLIO = booleanPreferencesKey("notif_portfolio")
         val KEY_NOTIFICATIONS_MARKET = booleanPreferencesKey("notif_market")
         val KEY_NOTIFICATIONS_UPDATES = booleanPreferencesKey("notif_updates")
+        val KEY_ACTIVE_PORTFOLIO_ID = longPreferencesKey("active_portfolio_id")
     }
 
     // ─── Username ───
@@ -107,6 +109,18 @@ class DataStoreManager(private val context: Context) {
     suspend fun setNotificationPreference(key: Preferences.Key<Boolean>, enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[key] = enabled
+        }
+    }
+
+    // ─── Active Portfolio ───
+
+    val activePortfolioId: Flow<Long?> = context.dataStore.data.map { prefs ->
+        prefs[KEY_ACTIVE_PORTFOLIO_ID]
+    }
+
+    suspend fun setActivePortfolioId(id: Long) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_ACTIVE_PORTFOLIO_ID] = id
         }
     }
 }
