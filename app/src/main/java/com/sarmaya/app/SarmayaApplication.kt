@@ -8,5 +8,8 @@ class SarmayaApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        
+        // Start background sync for price alerts
+        container.syncManager.scheduleBackgroundSync()
     }
 }

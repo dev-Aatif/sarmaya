@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -40,6 +41,7 @@ import java.util.*
 @Composable
 fun DashboardScreen(
     onStockClick: (String) -> Unit,
+    onAlertsClick: () -> Unit,
     viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory),
     updateViewModel: UpdateViewModel = viewModel(factory = UpdateViewModel.Factory)
 ) {
@@ -171,6 +173,15 @@ fun DashboardScreen(
                         }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        IconButton(
+                            onClick = onAlertsClick
+                        ) {
+                            Icon(
+                                Icons.Filled.Notifications,
+                                contentDescription = "Price Alerts",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                         IconButton(
                             onClick = { showSettingsSheet = true }
                         ) {

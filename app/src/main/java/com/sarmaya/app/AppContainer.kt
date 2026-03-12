@@ -4,6 +4,7 @@ import android.content.Context
 import com.sarmaya.app.data.AppDatabase
 import com.sarmaya.app.data.DataStoreManager
 import com.sarmaya.app.data.PortfolioDao
+import com.sarmaya.app.data.PriceAlertDao
 import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.StockQuoteCacheDao
 import com.sarmaya.app.data.TransactionDao
@@ -13,6 +14,7 @@ import com.sarmaya.app.network.StockDataRepository
 import com.sarmaya.app.network.api.GitHubApi
 import com.sarmaya.app.network.api.PsxApi
 import com.sarmaya.app.network.api.YahooFinanceApi
+import com.sarmaya.app.worker.SyncManager
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
@@ -30,6 +32,7 @@ class AppContainer(private val context: Context) {
     val watchlistDao: WatchlistDao by lazy { database.watchlistDao() }
     val stockQuoteCacheDao: StockQuoteCacheDao by lazy { database.stockQuoteCacheDao() }
     val portfolioDao: PortfolioDao by lazy { database.portfolioDao() }
+    val priceAlertDao: PriceAlertDao by lazy { database.priceAlertDao() }
 
     // ─── DataStore ───
     val dataStoreManager: DataStoreManager by lazy { DataStoreManager(context) }
@@ -98,4 +101,7 @@ class AppContainer(private val context: Context) {
             connectivityChecker = connectivityChecker
         )
     }
+
+    // ─── Workers ───
+    val syncManager: SyncManager by lazy { SyncManager(context) }
 }

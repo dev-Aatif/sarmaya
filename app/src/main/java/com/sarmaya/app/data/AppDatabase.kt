@@ -13,9 +13,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         Transaction::class,
         WatchlistItem::class,
         StockQuoteCache::class,
-        Portfolio::class
+        Portfolio::class,
+        PriceAlert::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,6 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun watchlistDao(): WatchlistDao
     abstract fun stockQuoteCacheDao(): StockQuoteCacheDao
     abstract fun portfolioDao(): PortfolioDao
+    abstract fun priceAlertDao(): PriceAlertDao
 
     companion object {
         @Volatile
@@ -78,6 +80,22 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS PriceAlert (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        stockSymbol TEXT NOT NULL,
+                        targetPrice REAL NOT NULL,
+                        alertType TEXT NOT NULL,
+                        isActive INTEGER NOT NULL,
+                        isTriggered INTEGER NOT NULL,
+                        createdAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -86,7 +104,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "sarmaya_database"
                 )
                 .createFromAsset("database/sarmaya.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
                 INSTANCE = instance
                 instance

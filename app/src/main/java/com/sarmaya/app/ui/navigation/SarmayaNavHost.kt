@@ -12,6 +12,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -38,6 +40,7 @@ import com.sarmaya.app.ui.screens.DashboardScreen
 import com.sarmaya.app.ui.screens.HoldingsScreen
 import com.sarmaya.app.ui.screens.MarketScreen
 import com.sarmaya.app.ui.screens.OnboardingScreen
+import com.sarmaya.app.ui.screens.PriceAlertsScreen
 import com.sarmaya.app.ui.screens.TransactionsScreen
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -61,6 +64,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object StockDetail : Screen("stock_detail/{symbol}", "Stock Detail", Icons.Filled.Info) {
         fun createRoute(symbol: String) = "stock_detail/$symbol"
     }
+    object PriceAlerts : Screen("price_alerts", "Price Alerts", Icons.Filled.Notifications)
 }
 
 val bottomNavItems = listOf(
@@ -104,6 +108,9 @@ fun SarmayaNavHost() {
                     MainAppContent(
                         onStockClick = { symbol ->
                             navController.navigate(Screen.StockDetail.createRoute(symbol))
+                        },
+                        onAlertsClick = {
+                            navController.navigate(Screen.PriceAlerts.route)
                         }
                     )
                 }
@@ -120,6 +127,11 @@ fun SarmayaNavHost() {
                         }
                     )
                 }
+                composable(Screen.PriceAlerts.route) {
+                    PriceAlertsScreen(
+                        onDismiss = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }
@@ -128,7 +140,8 @@ fun SarmayaNavHost() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MainAppContent(
-    onStockClick: (String) -> Unit
+    onStockClick: (String) -> Unit,
+    onAlertsClick: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(initialPage = 0) { bottomNavItems.size }
@@ -179,7 +192,7 @@ private fun MainAppContent(
             beyondBoundsPageCount = 1
         ) { page ->
             when (page) {
-                0 -> DashboardScreen(onStockClick = onStockClick)
+                0 -> DashboardScreen(onStockClick = onStockClick, onAlertsClick = { onAlertsClick() })
                 1 -> HoldingsScreen(onStockClick = onStockClick)
                 2 -> MarketScreen(onStockClick = onStockClick)
                 3 -> TransactionsScreen()

@@ -10,10 +10,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,6 +41,7 @@ import com.sarmaya.app.network.CompanyProfile
 import com.sarmaya.app.network.UnifiedQuote
 import com.sarmaya.app.ui.theme.LocalSarmayaColors
 import com.sarmaya.app.ui.theme.SarmayaFinanceColors
+import com.sarmaya.app.viewmodel.PriceAlertViewModel
 import com.sarmaya.app.viewmodel.StockDetailUiState
 import com.sarmaya.app.viewmodel.StockDetailViewModel
 
@@ -57,6 +59,9 @@ fun StockDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val chartRange by viewModel.chartRange.collectAsStateWithLifecycle()
     val financeColors = LocalSarmayaColors.current
+    
+    val alertViewModel: PriceAlertViewModel = viewModel(factory = PriceAlertViewModel.Factory)
+    var showAddAlertSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -84,6 +89,9 @@ fun StockDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showAddAlertSheet = true }) {
+                        Icon(Icons.Default.Notifications, contentDescription = "Add Price Alert")
+                    }
                     IconButton(onClick = { viewModel.refreshAll() }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
@@ -142,8 +150,14 @@ fun StockDetailScreen(
                         onPeerClick = onPeerClick
                     )
                 }
+    if (showAddAlertSheet) {
+        AddPriceAlertSheet(
+            onDismiss = { showAddAlertSheet = false },
+            onAdd = { sym, price, type ->
+                alertViewModel.addAlert(sym, price, type)
+                showAddAlertSheet = false
             }
-        }
+        )
     }
 }
 
