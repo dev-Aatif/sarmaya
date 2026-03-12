@@ -35,6 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import com.sarmaya.app.SarmayaApplication
 import com.sarmaya.app.ui.screens.DashboardScreen
 import com.sarmaya.app.ui.screens.HoldingsScreen
@@ -94,9 +98,10 @@ fun SarmayaNavHost() {
         label = "onboarding_transition"
     ) { onboarded ->
         if (!onboarded) {
+            val scope = rememberCoroutineScope()
             OnboardingScreen(
                 onComplete = { username ->
-                    runBlocking {
+                    scope.launch {
                         dataStore.setUsername(username)
                         dataStore.setOnboarded(true)
                     }

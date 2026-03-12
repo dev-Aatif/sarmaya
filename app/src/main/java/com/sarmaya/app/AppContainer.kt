@@ -4,6 +4,7 @@ import android.content.Context
 import com.sarmaya.app.data.AppDatabase
 import com.sarmaya.app.data.DataStoreManager
 import com.sarmaya.app.data.PortfolioDao
+import com.sarmaya.app.data.PortfolioSnapshotDao
 import com.sarmaya.app.data.PriceAlertDao
 import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.StockQuoteCacheDao

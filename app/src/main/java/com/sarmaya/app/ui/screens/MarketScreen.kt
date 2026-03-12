@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -264,9 +263,9 @@ fun MoverMiniCard(
                     modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
-                        imageVector = if (mover.isWatched) Icons.Default.Star else Icons.Default.StarBorder,
+                        imageVector = Icons.Default.Star,
                         contentDescription = "Watchlist",
-                        tint = if (mover.isWatched) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = if (mover.isWatched) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -316,9 +315,9 @@ fun MarketStockItem(
             modifier = Modifier.size(40.dp)
         ) {
             Icon(
-                imageVector = if (marketStock.isWatched) Icons.Default.Star else Icons.Default.StarBorder,
+                imageVector = Icons.Default.Star,
                 contentDescription = "Watchlist",
-                tint = if (marketStock.isWatched) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (marketStock.isWatched) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
             )
         }
 

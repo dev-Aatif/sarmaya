@@ -10,11 +10,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -150,6 +151,10 @@ fun StockDetailScreen(
                         onPeerClick = onPeerClick
                     )
                 }
+            }
+        }
+    }
+
     if (showAddAlertSheet) {
         AddPriceAlertSheet(
             onDismiss = { showAddAlertSheet = false },
@@ -241,16 +246,16 @@ private fun StockDetailContent(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 if (chartData.isNotEmpty()) {
-                    val model = entryModelOf(chartData.map { it.close.toFloat() })
+                    val model = entryModelOf(*chartData.map { it.close.toFloat() }.toTypedArray())
                     Chart(
                         chart = lineChart(
                             lines = listOf(
                                 lineSpec(
-                                    lineColor = if (isProfit) financeColors.profit.toArgb() else financeColors.loss.toArgb(),
+                                    lineColor = if (isProfit) financeColors.profit else financeColors.loss,
                                     lineBackgroundShader = verticalGradient(
                                         arrayOf(
-                                            (if (isProfit) financeColors.profit else financeColors.loss).copy(alpha = 0.4f).toArgb(),
-                                            (if (isProfit) financeColors.profit else financeColors.loss).copy(alpha = 0f).toArgb()
+                                            (if (isProfit) financeColors.profit else financeColors.loss).copy(alpha = 0.4f),
+                                            (if (isProfit) financeColors.profit else financeColors.loss).copy(alpha = 0f)
                                         )
                                     )
                                 )

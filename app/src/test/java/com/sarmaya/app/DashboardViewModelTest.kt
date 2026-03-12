@@ -38,8 +38,12 @@ class DashboardViewModelTest {
         override suspend fun update(transaction: com.sarmaya.app.data.Transaction) {}
         override suspend fun delete(t: com.sarmaya.app.data.Transaction) {}
         override fun getAllTransactions() = flowOf(emptyList<com.sarmaya.app.data.Transaction>())
+        override fun getTransactionsByPortfolio(portfolioId: Long) = flowOf(emptyList<com.sarmaya.app.data.Transaction>())
+        override suspend fun getTransactionsByPortfolioSync(portfolioId: Long) = emptyList<com.sarmaya.app.data.Transaction>()
         override suspend fun getTransactionsForStock(symbol: String) = emptyList<com.sarmaya.app.data.Transaction>()
+        override suspend fun getTransactionsForStockInPortfolio(symbol: String, portfolioId: Long) = emptyList<com.sarmaya.app.data.Transaction>()
         override suspend fun getStockQuantity(s: String) = 0
+        override suspend fun getStockQuantityInPortfolio(s: String, p: Long) = 0
         override suspend fun getTransactionById(id: Long): com.sarmaya.app.data.Transaction? = null
     }
 
@@ -70,13 +74,18 @@ class DashboardViewModelTest {
         
         transactionDao = object: FakeTransactionDao(emptyList()) {
             override fun getAllTransactions() = flowOf(tList)
+            override fun getTransactionsByPortfolio(portfolioId: Long) = flowOf(tList)
             override suspend fun getTransactionsForStock(symbol: String) = tList.filter { it.stockSymbol == symbol }.sortedBy { it.date }
         }
         
         val dataStoreManager = mock(DataStoreManager::class.java)
         `when`(dataStoreManager.username).thenReturn(flowOf(""))
+        `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(null))
         
-        viewModel = DashboardViewModel(transactionDao, stockDao, dataStoreManager)
+        val portfolioDao = mock(com.sarmaya.app.data.PortfolioDao::class.java)
+        `when`(portfolioDao.getAllPortfolios()).thenReturn(flowOf(emptyList()))
+        
+        viewModel = DashboardViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager)
     }
 
     @After

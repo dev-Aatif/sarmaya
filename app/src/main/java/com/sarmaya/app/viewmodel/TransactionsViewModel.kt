@@ -17,6 +17,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import androidx.room.withTransaction
 import kotlinx.coroutines.sync.withLock
+import com.sarmaya.app.SarmayaApplication
+import com.sarmaya.app.data.AppDatabase
 
 class TransactionsViewModel(
     private val transactionDao: TransactionDao,
@@ -266,7 +268,7 @@ class TransactionsViewModel(
                     application.container.stockDao,
                     application.container.portfolioDao,
                     application.container.dataStoreManager,
-                    { block -> application.container.database.withTransaction { block() } }
+                    { block: suspend () -> Unit -> application.container.database.withTransaction { block() } }
                 ) as T
             }
         }

@@ -5,10 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.sarmaya.app.SarmayaApplication
-import com.sarmaya.app.data.Portfolio
-import com.sarmaya.app.data.PortfolioDao
-import com.sarmaya.app.data.StockDao
-import com.sarmaya.app.data.TransactionDao
+import com.sarmaya.app.data.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -28,7 +25,7 @@ class DashboardViewModel(
     private val _activePortfolioId = dataStoreManager.activePortfolioId
     
     @OptIn(ExperimentalCoroutinesApi::class)
-    val activePortfolio: StateFlow<Portfolio?> = _activePortfolioId.flatMapLatest { id ->
+    val activePortfolio: StateFlow<Portfolio?> = _activePortfolioId.flatMapLatest { id: Long? ->
         if (id != null) {
             flow { emit(portfolioDao.getPortfolioById(id)) }
         } else {
