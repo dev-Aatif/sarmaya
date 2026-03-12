@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.sarmaya.app.SarmayaApplication
+import com.sarmaya.app.data.DataStoreManager
 import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.TransactionDao
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,7 +17,8 @@ import com.sarmaya.app.data.PortfolioCalculator
 
 class DashboardViewModel(
     private val transactionDao: TransactionDao,
-    private val stockDao: StockDao
+    private val stockDao: StockDao,
+    private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
     val computedHoldings = PortfolioCalculator.getEventSourcedHoldings(
@@ -84,6 +86,9 @@ class DashboardViewModel(
         .map { stocks -> stocks.mapNotNull { it.priceUpdatedAt }.maxOrNull() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val username = dataStoreManager.username
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
     fun updatePrices(prices: Map<String, Double>) {
         viewModelScope.launch {
             if (prices.isEmpty()) return@launch
@@ -103,7 +108,8 @@ class DashboardViewModel(
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as SarmayaApplication
                 return DashboardViewModel(
                     application.container.transactionDao,
-                    application.container.stockDao
+                    application.container.stockDao,
+                    application.container.dataStoreManager
                 ) as T
             }
         }

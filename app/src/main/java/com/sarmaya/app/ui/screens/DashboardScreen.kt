@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,14 +30,17 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.data.ComputedHolding
 import com.sarmaya.app.data.Transaction
+import com.sarmaya.app.ui.components.UpdateBanner
 import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.DashboardViewModel
+import com.sarmaya.app.viewmodel.UpdateViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
+    viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory),
+    updateViewModel: UpdateViewModel = viewModel(factory = UpdateViewModel.Factory)
 ) {
     val totalValue by viewModel.totalPortfolioValue.collectAsStateWithLifecycle()
     val totalInvested by viewModel.totalInvested.collectAsStateWithLifecycle()
@@ -50,9 +54,15 @@ fun DashboardScreen(
     val topLosers by viewModel.topLosers.collectAsStateWithLifecycle()
     val recentTransactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
     val lastPriceUpdate by viewModel.lastPriceUpdate.collectAsStateWithLifecycle()
+    val username by viewModel.username.collectAsStateWithLifecycle()
+
+    // Update notifier
+    val latestRelease by updateViewModel.latestRelease.collectAsStateWithLifecycle()
+    val showUpdateBanner by updateViewModel.showUpdateBanner.collectAsStateWithLifecycle()
 
     var showUpdatePricesSheet by remember { mutableStateOf(false) }
     var showAddTransactionSheet by remember { mutableStateOf(false) }
+    var showSettingsSheet by remember { mutableStateOf(false) }
 
     val financeColors = LocalSarmayaColors.current
 
@@ -64,6 +74,11 @@ fun DashboardScreen(
     if (showAddTransactionSheet) {
         com.sarmaya.app.ui.components.AddTransactionSheet(
             onDismissRequest = { showAddTransactionSheet = false }
+        )
+    }
+    if (showSettingsSheet) {
+        SettingsScreen(
+            onDismiss = { showSettingsSheet = false }
         )
     }
 
@@ -96,7 +111,7 @@ fun DashboardScreen(
                 ) {
                     Column {
                         Text(
-                            "Sarmaya",
+                            if (username.isNotBlank()) "Welcome back, $username" else "Sarmaya",
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -107,23 +122,29 @@ fun DashboardScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Button(
-                        onClick = { showUpdatePricesSheet = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.Refresh,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Update Prices", style = MaterialTheme.typography.labelLarge)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        IconButton(
+                            onClick = { showSettingsSheet = true }
+                        ) {
+                            Icon(
+                                Icons.Filled.Settings,
+                                contentDescription = "Settings",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
+                }
+            }
+
+            // ─── Update Banner ───
+            val release = latestRelease
+            if (release != null) {
+                item {
+                    UpdateBanner(
+                        release = release,
+                        visible = showUpdateBanner,
+                        onDismiss = { updateViewModel.dismissUpdate() }
+                    )
                 }
             }
 
@@ -153,7 +174,7 @@ fun DashboardScreen(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Market Status",
+                                "PSX Market",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -172,17 +193,33 @@ fun DashboardScreen(
                                 )
                             }
                         }
-                        val dateFormat = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
-                        val lastUpdatedStr = if (lastPriceUpdate != null) {
-                            dateFormat.format(Date(lastPriceUpdate!!))
-                        } else {
-                            "Never"
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            val dateFormat = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
+                            val lastUpdatedStr = if (lastPriceUpdate != null) {
+                                dateFormat.format(Date(lastPriceUpdate!!))
+                            } else {
+                                "Never"
+                            }
+                            Text(
+                                lastUpdatedStr,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                            IconButton(
+                                onClick = { showUpdatePricesSheet = true },
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(
+                                    Icons.Filled.Refresh,
+                                    contentDescription = "Refresh Prices",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
-                        Text(
-                            "Updated: $lastUpdatedStr",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
                     }
                 }
             }

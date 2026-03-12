@@ -25,10 +25,6 @@ class UpdateViewModel(
     private val connectivityChecker: ConnectivityChecker
 ) : ViewModel() {
 
-    companion object {
-        private const val TAG = "UpdateVM"
-    }
-
     private val _latestRelease = MutableStateFlow<GitHubRelease?>(null)
     val latestRelease: StateFlow<GitHubRelease?> = _latestRelease.asStateFlow()
 
@@ -109,7 +105,9 @@ class UpdateViewModel(
         return false // same version
     }
 
-    companion object Factory : ViewModelProvider.Factory {
+    companion object : ViewModelProvider.Factory {
+        private const val TAG = "UpdateVM"
+
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(
             modelClass: Class<T>,

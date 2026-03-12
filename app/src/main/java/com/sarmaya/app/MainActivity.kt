@@ -22,10 +22,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        
+
+        // Migrate old SharedPreferences theme to DataStore (one-time)
+        migrateThemePreference()
+
         setContent {
             val isDarkTheme by settingsViewModel.isDarkTheme.collectAsState()
-            
+
             SarmayaTheme(
                 darkTheme = isDarkTheme ?: isSystemInDarkTheme()
             ) {
@@ -36,6 +39,24 @@ class MainActivity : ComponentActivity() {
                     SarmayaNavHost()
                 }
             }
+        }
+    }
+
+    /**
+     * One-time migration from old SharedPreferences ("sarmaya_settings") to DataStore.
+     * After migration, the old prefs key is removed so this runs only once.
+     */
+    private fun migrateThemePreference() {
+        val oldPrefs = getSharedPreferences("sarmaya_settings", MODE_PRIVATE)
+        if (oldPrefs.contains("dark_theme")) {
+            val wasDark = oldPrefs.getBoolean("dark_theme", false)
+            val app = application as SarmayaApplication
+            kotlinx.coroutines.runBlocking {
+                app.container.dataStoreManager.setDarkTheme(
+                    if (wasDark) "true" else "false"
+                )
+            }
+            oldPrefs.edit().remove("dark_theme").apply()
         }
     }
 }

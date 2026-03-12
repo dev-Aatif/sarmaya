@@ -12,8 +12,7 @@ def main():
     with urllib.request.urlopen(req) as response:
         data = json.loads(response.read().decode())
     
-    # Filter out debt and ETFs, and GEM boards if we just want main equity. 
-    # Or keep GEM. The user said ~561 equities, filtered from debt.
+    # Filter out debt and ETFs
     equities = [item for item in data if not item.get("isDebt", False) and not item.get("isETF", False)]
     print(f"Found {len(equities)} equity symbols.")
 
@@ -26,7 +25,7 @@ def main():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Create the Stock table matching Room's schema exactly
+    # ─── Stock table (matches Room v3 schema) ───
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS Stock (
         symbol TEXT NOT NULL,
@@ -38,14 +37,66 @@ def main():
     )
     ''')
     
-    # Create room master table (optional, but good practice if you know the hash, 
-    # but Room will auto-generate it if missing and schema matches).
-    # We will just rely on schema matching. Room compares columns perfectly.
+    # ─── Transaction table ───
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS `Transaction` (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        portfolioId INTEGER NOT NULL DEFAULT 1,
+        stockSymbol TEXT NOT NULL,
+        type TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        pricePerShare REAL NOT NULL,
+        date INTEGER NOT NULL,
+        notes TEXT NOT NULL DEFAULT '',
+        commissionType TEXT NOT NULL DEFAULT 'FLAT',
+        commissionAmount REAL NOT NULL DEFAULT 0.0
+    )
+    ''')
     
-    # Insert data
+    # ─── WatchlistItem table ───
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS WatchlistItem (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        stockSymbol TEXT NOT NULL,
+        addedAt INTEGER NOT NULL,
+        notes TEXT NOT NULL DEFAULT ''
+    )
+    ''')
+    
+    # ─── StockQuoteCache table ───
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS StockQuoteCache (
+        symbol TEXT NOT NULL PRIMARY KEY,
+        price REAL NOT NULL,
+        change REAL NOT NULL,
+        changePercent REAL NOT NULL,
+        volume INTEGER NOT NULL,
+        high REAL NOT NULL,
+        low REAL NOT NULL,
+        cachedAt INTEGER NOT NULL
+    )
+    ''')
+    
+    # ─── Portfolio table ───
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS Portfolio (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        name TEXT NOT NULL,
+        createdAt INTEGER NOT NULL,
+        isDefault INTEGER NOT NULL
+    )
+    ''')
+    
+    # Insert default portfolio
+    import time
+    cursor.execute('''
+        INSERT INTO Portfolio (id, name, createdAt, isDefault) 
+        VALUES (1, 'My Portfolio', ?, 1)
+    ''', (int(time.time() * 1000),))
+    
+    # Insert stock data
     inserted = 0
     for stock in equities:
-        # symbol, name, sectorName
         symbol = stock.get("symbol", "").strip()
         name = stock.get("name", "").strip()
         sector = stock.get("sectorName", "").strip()
