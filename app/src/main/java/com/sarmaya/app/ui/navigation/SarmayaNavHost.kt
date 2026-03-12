@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -31,10 +32,12 @@ import com.sarmaya.app.ui.screens.DashboardScreen
 import com.sarmaya.app.ui.screens.HoldingsScreen
 import com.sarmaya.app.ui.screens.SettingsScreen
 import com.sarmaya.app.ui.screens.TransactionsScreen
+import com.sarmaya.app.ui.screens.WatchlistScreen
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Dashboard : Screen("dashboard", "Home", Icons.Filled.Home)
     object Holdings : Screen("holdings", "Portfolio", Icons.AutoMirrored.Filled.List)
+    object Watchlist : Screen("watchlist", "Watchlist", Icons.Filled.Star)
     object Transactions : Screen("transactions", "History", Icons.Filled.ShoppingCart)
     object Settings : Screen("settings", "Settings", Icons.Filled.Settings)
 }
@@ -42,6 +45,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 val bottomNavItems = listOf(
     Screen.Dashboard,
     Screen.Holdings,
+    Screen.Watchlist,
     Screen.Transactions,
     Screen.Settings
 )
@@ -100,8 +104,9 @@ fun SarmayaNavHost() {
             when (page) {
                 0 -> DashboardScreen()
                 1 -> HoldingsScreen()
-                2 -> TransactionsScreen()
-                3 -> SettingsScreen()
+                2 -> WatchlistScreen()
+                3 -> TransactionsScreen()
+                4 -> SettingsScreen()
             }
         }
     }
