@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,9 +28,6 @@ fun AddTransactionSheet(
     var isProcessing by remember { mutableStateOf(false) }
     var lastClickTime by remember { mutableStateOf(0L) }
 
-    var expanded by remember { mutableStateOf(false) }
-    val types = listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
-    var selectedType by remember { mutableStateOf(types[0]) }
     var quantity by remember { mutableStateOf("") }
     var pricePerShare by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -73,13 +71,13 @@ fun AddTransactionSheet(
                     .padding(24.dp)
             ) {
                 Text(
-                    "Log Transaction",
+                    "Buy Stock",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Stock Selector
+                // Stock Selector — full width
                 OutlinedButton(
                     onClick = { showStockPicker = true },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -92,69 +90,48 @@ fun AddTransactionSheet(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Transaction Type Dropdown
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
-                    OutlinedTextField(
-                        readOnly = true,
-                        value = selectedType,
-                        onValueChange = { },
-                        label = { Text("Type") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        types.forEach { selectionOption ->
-                            DropdownMenuItem(
-                                text = { Text(selectionOption) },
-                                onClick = {
-                                    selectedType = selectionOption
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-
                 if (errorMessage != null) {
                     Text(errorMessage!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
-                    label = { Text("Quantity") },
-                    isError = isQuantityInvalid,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                // Grid row: Quantity + Price
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = quantity,
+                        onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
+                        label = { Text("Quantity") },
+                        isError = isQuantityInvalid,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = pricePerShare,
+                        onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
+                        label = { Text("Price (₨)") },
+                        isError = isPriceInvalid,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
-                    value = pricePerShare,
-                    onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
-                    label = { Text("Price Per Share (₨)") },
-                    isError = isPriceInvalid,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
+                // Notes — full width
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
                     label = { Text("Notes (Optional)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
                 Spacer(modifier = Modifier.height(20.dp))
 
+                // Action buttons — grid row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -184,7 +161,7 @@ fun AddTransactionSheet(
                                 errorMessage = null
                                 viewModel.addTransaction(
                                     stockSymbol = selectedStock!!.symbol,
-                                    type = selectedType,
+                                    type = "BUY",
                                     quantity = qty,
                                     pricePerShare = price,
                                     date = date,
@@ -211,7 +188,7 @@ fun AddTransactionSheet(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Save", style = MaterialTheme.typography.labelLarge)
+                            Text("Buy", style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }

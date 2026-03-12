@@ -32,7 +32,7 @@ fun ManagePositionSheet(
     
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
-    val types = listOf("BUY", "SELL", "DIVIDEND", "BONUS")
+    val types = listOf("SELL", "DIVIDEND", "BONUS", "SPLIT")
     var expanded by remember { mutableStateOf(false) }
     
     val isQuantityInvalid = quantity.isNotEmpty() && (quantity.toIntOrNull() ?: 0) <= 0
@@ -67,6 +67,7 @@ fun ManagePositionSheet(
                 )
                 Spacer(modifier = Modifier.height(20.dp))
 
+                // Action type dropdown — full width
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { expanded = !expanded }
@@ -77,7 +78,8 @@ fun ManagePositionSheet(
                         onValueChange = { },
                         label = { Text("Action") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        singleLine = true
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
@@ -101,36 +103,46 @@ fun ManagePositionSheet(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
-                    label = { Text(if (selectedType == "DIVIDEND") "Shares Paying Dividend" else "Quantity") },
-                    isError = isQuantityInvalid,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (selectedType != "BONUS") {
+                // Grid row: Quantity + Price side by side
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     OutlinedTextField(
-                        value = pricePerShare,
-                        onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
-                        label = { Text(if (selectedType == "DIVIDEND") "Dividend Per Share (₨)" else "Price Per Share (₨)") },
-                        isError = isPriceInvalid,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth()
+                        value = quantity,
+                        onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
+                        label = { Text(if (selectedType == "DIVIDEND") "Shares" else "Qty") },
+                        isError = isQuantityInvalid,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
 
+                    if (selectedType != "BONUS") {
+                        OutlinedTextField(
+                            value = pricePerShare,
+                            onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
+                            label = { Text(if (selectedType == "DIVIDEND") "Per Share (₨)" else "Price (₨)") },
+                            isError = isPriceInvalid,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f),
+                            singleLine = true
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Notes — full width
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
                     label = { Text("Notes (Optional)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
                 Spacer(modifier = Modifier.height(20.dp))
 
+                // Action buttons — grid row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -182,7 +194,7 @@ fun ManagePositionSheet(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Confirm $selectedType", style = MaterialTheme.typography.labelLarge)
+                            Text("Confirm", style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }

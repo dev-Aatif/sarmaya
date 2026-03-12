@@ -1,9 +1,10 @@
 package com.sarmaya.app.ui.navigation
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
@@ -17,10 +18,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -43,9 +46,25 @@ val bottomNavItems = listOf(
     Screen.Settings
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SarmayaNavHost() {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    val pagerState = rememberPagerState(initialPage = 0) { bottomNavItems.size }
+
+    // Sync bottom bar tap → pager
+    LaunchedEffect(selectedTab) {
+        if (pagerState.currentPage != selectedTab) {
+            pagerState.animateScrollToPage(selectedTab)
+        }
+    }
+
+    // Sync pager swipe → bottom bar
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            selectedTab = page
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -71,13 +90,12 @@ fun SarmayaNavHost() {
             }
         }
     ) { innerPadding ->
-        Crossfade(
-            targetState = selectedTab,
-            animationSpec = tween(durationMillis = 250),
+        HorizontalPager(
+            state = pagerState,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            label = "tab_crossfade"
+            beyondBoundsPageCount = 1
         ) { page ->
             when (page) {
                 0 -> DashboardScreen()

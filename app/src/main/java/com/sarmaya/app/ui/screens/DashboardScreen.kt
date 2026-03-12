@@ -129,6 +129,14 @@ fun DashboardScreen(
 
             // ─── Market Status ───
             item {
+                val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Karachi"))
+                val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+                val hour = calendar.get(Calendar.HOUR_OF_DAY)
+                val minute = calendar.get(Calendar.MINUTE)
+                val timeInMinutes = hour * 60 + minute
+                val isWeekday = dayOfWeek in Calendar.MONDAY..Calendar.FRIDAY
+                val isMarketOpen = isWeekday && timeInMinutes in (9 * 60 + 30)..(15 * 60 + 30)
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -143,20 +151,35 @@ fun DashboardScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            "Market Status",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        val dateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "Market Status",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                color = if (isMarketOpen) ProfitGreenLight.copy(alpha = 0.15f) else LossRedLight.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(6.dp)
+                            ) {
+                                Text(
+                                    if (isMarketOpen) "Open" else "Closed",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isMarketOpen) ProfitGreenLight else LossRedLight,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        val dateFormat = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
                         val lastUpdatedStr = if (lastPriceUpdate != null) {
                             dateFormat.format(Date(lastPriceUpdate!!))
                         } else {
-                            "Not updated yet"
+                            "Never"
                         }
                         Text(
-                            "Last updated: $lastUpdatedStr",
+                            "Updated: $lastUpdatedStr",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )

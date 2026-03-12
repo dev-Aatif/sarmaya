@@ -69,40 +69,47 @@ fun EditTransactionSheet(
                 )
                 Spacer(modifier = Modifier.height(20.dp))
 
-                OutlinedTextField(
-                    value = transaction.stockSymbol,
-                    onValueChange = {},
-                    label = { Text("Stock Symbol") },
-                    readOnly = true,
+                // Grid row: Stock Symbol + Type
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = false
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedTextField(
+                        value = transaction.stockSymbol,
+                        onValueChange = {},
+                        label = { Text("Stock") },
                         readOnly = true,
-                        value = selectedType,
-                        onValueChange = { },
-                        label = { Text("Type") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                        modifier = Modifier.weight(1f),
+                        enabled = false,
+                        singleLine = true
                     )
-                    ExposedDropdownMenu(
+                    ExposedDropdownMenuBox(
                         expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        onExpandedChange = { expanded = !expanded },
+                        modifier = Modifier.weight(1f)
                     ) {
-                        types.forEach { selectionOption ->
-                            DropdownMenuItem(
-                                text = { Text(selectionOption) },
-                                onClick = {
-                                    selectedType = selectionOption
-                                    expanded = false
-                                }
-                            )
+                        OutlinedTextField(
+                            readOnly = true,
+                            value = selectedType,
+                            onValueChange = { },
+                            label = { Text("Type") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            singleLine = true
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            types.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(selectionOption) },
+                                    onClick = {
+                                        selectedType = selectionOption
+                                        expanded = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -113,24 +120,30 @@ fun EditTransactionSheet(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
-                    label = { Text("Quantity") },
-                    isError = isQuantityInvalid,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = pricePerShare,
-                    onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
-                    label = { Text("Price Per Share (₨)") },
-                    isError = isPriceInvalid,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // Grid row: Quantity + Price
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = quantity,
+                        onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
+                        label = { Text("Qty") },
+                        isError = isQuantityInvalid,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = pricePerShare,
+                        onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
+                        label = { Text("Price (₨)") },
+                        isError = isPriceInvalid,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
