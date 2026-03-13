@@ -8,6 +8,10 @@ import com.sarmaya.app.viewmodel.TransactionsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
+import com.sarmaya.app.data.PortfolioDao
+import com.sarmaya.app.data.DataStoreManager
 import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Assert.*
@@ -15,6 +19,7 @@ import org.junit.Before
 import org.junit.Test
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AdversarialV3Test {
@@ -45,8 +50,20 @@ class AdversarialV3Test {
         override suspend fun getTransactionById(id: Long): Transaction? {
             return insertedTransactions.find { it.id == id }
         }
-        override suspend fun getStockQuantity(s: String): Int {
+        override suspend fun getStockQuantity(s: String): Int? {
             return mockQuantity
+        }
+        override fun getTransactionsByPortfolio(portfolioId: Long) = flowOf(insertedTransactions.filter { it.portfolioId == portfolioId })
+        override suspend fun getTransactionsByPortfolioSync(portfolioId: Long) = insertedTransactions.filter { it.portfolioId == portfolioId }
+        override suspend fun getTransactionsForStockInPortfolio(symbol: String, portfolioId: Long) = insertedTransactions.filter { it.stockSymbol == symbol && it.portfolioId == portfolioId }.sortedBy { it.date }
+        override suspend fun getStockQuantityInPortfolio(s: String, p: Long): Int? {
+            return insertedTransactions.filter { it.stockSymbol == s && it.portfolioId == p }.sumOf { 
+                when (it.type) {
+                    "BUY", "BONUS", "SPLIT" -> it.quantity
+                    "SELL" -> -it.quantity
+                    else -> 0
+                }
+            }
         }
     }
 
@@ -71,7 +88,18 @@ class AdversarialV3Test {
         Dispatchers.setMain(testDispatcher)
         stockDao = FakeStockDao()
         transactionDao = LatencyFakeTransactionDao()
-        viewModel = TransactionsViewModel(transactionDao, stockDao)
+        
+        val defaultPortfolio = com.sarmaya.app.data.Portfolio(id = 1L, name = "Default", isDefault = true)
+        val portfolioDao = mock(PortfolioDao::class.java)
+        `when`(portfolioDao.getAllPortfolios()).thenReturn(flowOf(listOf(defaultPortfolio)))
+        runBlocking {
+            `when`(portfolioDao.getDefaultPortfolio()).thenReturn(defaultPortfolio)
+        }
+
+        val dataStoreManager = mock(DataStoreManager::class.java)
+        `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(1L))
+
+        viewModel = TransactionsViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager)
     }
 
     @After
@@ -82,11 +110,11 @@ class AdversarialV3Test {
     @Test
     fun testEditBuyTransactionBypass_NegativeBalanceCorruption() = runTest {
         // Step 1: User buys 100 shares of AAPL
-        val initialBuy = Transaction(id = 1L, stockSymbol = "AAPL", type = "BUY", quantity = 100, pricePerShare = 150.0, date = 0L)
+        val initialBuy = Transaction(id = 1L, stockSymbol = "AAPL", type = "BUY", quantity = 100, pricePerShare = 150.0, date = 0L, portfolioId = 1L)
         transactionDao.insertedTransactions.add(initialBuy)
         
         // Step 2: User sells 90 shares of AAPL
-        val subsequentSell = Transaction(id = 2L, stockSymbol = "AAPL", type = "SELL", quantity = 90, pricePerShare = 160.0, date = 1L)
+        val subsequentSell = Transaction(id = 2L, stockSymbol = "AAPL", type = "SELL", quantity = 90, pricePerShare = 160.0, date = 1L, portfolioId = 1L)
         transactionDao.insertedTransactions.add(subsequentSell)
         
         // Set mock quantity to 10 (100 - 90)

@@ -13,8 +13,13 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 import com.sarmaya.app.data.ComputedHolding
 import kotlinx.coroutines.flow.Flow
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
+import com.sarmaya.app.data.PortfolioDao
+import com.sarmaya.app.data.DataStoreManager
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TransactionsViewModelTest {
@@ -41,10 +46,14 @@ class TransactionsViewModelTest {
         override suspend fun update(transaction: Transaction) {}
         override suspend fun delete(t: Transaction) {}
         override fun getAllTransactions() = flowOf(emptyList<Transaction>())
+        override fun getTransactionsByPortfolio(portfolioId: Long) = flowOf(emptyList<Transaction>())
+        override suspend fun getTransactionsByPortfolioSync(portfolioId: Long) = emptyList<Transaction>()
         override suspend fun getTransactionsForStock(symbol: String): List<Transaction> {
             return insertedTransactions.filter { it.stockSymbol == symbol }.sortedBy { it.date }
         }
-        override suspend fun getStockQuantity(s: String) = 0
+        override suspend fun getTransactionsForStockInPortfolio(symbol: String, portfolioId: Long) = emptyList<Transaction>()
+        override suspend fun getStockQuantity(s: String): Int? = 0
+        override suspend fun getStockQuantityInPortfolio(s: String, p: Long): Int? = 0
         override suspend fun getTransactionById(id: Long): Transaction? = insertedTransactions.find { it.id == id }
     }
 
@@ -58,7 +67,18 @@ class TransactionsViewModelTest {
         Dispatchers.setMain(testDispatcher)
         stockDao = FakeStockDao()
         transactionDao = FakeTransactionDao()
-        viewModel = TransactionsViewModel(transactionDao, stockDao)
+        
+        val defaultPortfolio = com.sarmaya.app.data.Portfolio(id = 1L, name = "Default", isDefault = true)
+        val portfolioDao = mock(PortfolioDao::class.java)
+        `when`(portfolioDao.getAllPortfolios()).thenReturn(flowOf(listOf(defaultPortfolio)))
+        runBlocking {
+            `when`(portfolioDao.getDefaultPortfolio()).thenReturn(defaultPortfolio)
+        }
+
+        val dataStoreManager = mock(DataStoreManager::class.java)
+        `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(1L))
+
+        viewModel = TransactionsViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager)
     }
 
     @After
@@ -138,9 +158,18 @@ class TransactionsViewModelTest {
             override suspend fun updatePrice(sym: String, p: Double, ud: Long) {
                 if (sym == "TSLA" && p == 285.0) priceUpdated = true
             }
-            override suspend fun getStocksBySectorSync(sector: String): List<Stock> = emptyList()
         }
-        val viewModel2 = TransactionsViewModel(transactionDao, trackingStockDao)
+        val defaultPortfolio = com.sarmaya.app.data.Portfolio(id = 1L, name = "Default", isDefault = true)
+        val portfolioDao = mock(PortfolioDao::class.java)
+        `when`(portfolioDao.getAllPortfolios()).thenReturn(flowOf(listOf(defaultPortfolio)))
+        runBlocking {
+            `when`(portfolioDao.getDefaultPortfolio()).thenReturn(defaultPortfolio)
+        }
+
+        val dataStoreManager = mock(DataStoreManager::class.java)
+        `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(1L))
+
+        val viewModel2 = TransactionsViewModel(transactionDao, trackingStockDao, portfolioDao, dataStoreManager)
 
         viewModel2.updateTransaction(
             transactionId = insertedTx.id,

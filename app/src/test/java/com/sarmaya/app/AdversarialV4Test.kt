@@ -12,12 +12,17 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
+import com.sarmaya.app.data.PortfolioDao
+import com.sarmaya.app.data.DataStoreManager
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AdversarialV4Test {
@@ -51,12 +56,30 @@ class AdversarialV4Test {
             return insertedTransactions.find { it.id == id }
         }
         
-        override suspend fun getStockQuantity(s: String): Int {
+        override suspend fun getStockQuantity(s: String): Int? {
             // Replicate the actual DB behavior (in the real app it's a SUM query)
             // BUY, BONUS, SPLIT add, SELL subtracts
             var total = 0
             for (tx in insertedTransactions) {
                 if (tx.stockSymbol == s) {
+                    if (tx.type == "BUY" || tx.type == "BONUS" || tx.type == "SPLIT") {
+                        total += tx.quantity
+                    } else if (tx.type == "SELL") {
+                        total -= tx.quantity
+                    }
+                }
+            }
+            return total
+        }
+        override fun getTransactionsByPortfolio(portfolioId: Long) = flowOf(insertedTransactions.filter { it.portfolioId == portfolioId })
+        override suspend fun getTransactionsByPortfolioSync(portfolioId: Long) = insertedTransactions.filter { it.portfolioId == portfolioId }
+        override suspend fun getTransactionsForStockInPortfolio(symbol: String, portfolioId: Long) = insertedTransactions.filter { it.stockSymbol == symbol && it.portfolioId == portfolioId }.sortedBy { it.date }
+        override suspend fun getStockQuantityInPortfolio(s: String, p: Long): Int? {
+            // Replicate the actual DB behavior (in the real app it's a SUM query)
+            // BUY, BONUS, SPLIT add, SELL subtracts
+            var total = 0
+            for (tx in insertedTransactions) {
+                if (tx.stockSymbol == s && tx.portfolioId == p) {
                     if (tx.type == "BUY" || tx.type == "BONUS" || tx.type == "SPLIT") {
                         total += tx.quantity
                     } else if (tx.type == "SELL") {
@@ -97,7 +120,18 @@ class AdversarialV4Test {
         Dispatchers.setMain(testDispatcher)
         stockDao = FakeStockDao()
         transactionDao = LatencyFakeTransactionDao()
-        viewModel = TransactionsViewModel(transactionDao, stockDao)
+        
+        val defaultPortfolio = com.sarmaya.app.data.Portfolio(id = 1L, name = "Default", isDefault = true)
+        val portfolioDao = mock(PortfolioDao::class.java)
+        `when`(portfolioDao.getAllPortfolios()).thenReturn(flowOf(listOf(defaultPortfolio)))
+        runBlocking {
+            `when`(portfolioDao.getDefaultPortfolio()).thenReturn(defaultPortfolio)
+        }
+
+        val dataStoreManager = mock(DataStoreManager::class.java)
+        `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(1L))
+
+        viewModel = TransactionsViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager)
     }
 
     @After

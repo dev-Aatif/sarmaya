@@ -16,6 +16,7 @@ import com.sarmaya.app.data.Stock
 import com.sarmaya.app.data.DataStoreManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
@@ -42,8 +43,8 @@ class DashboardViewModelTest {
         override suspend fun getTransactionsByPortfolioSync(portfolioId: Long) = emptyList<com.sarmaya.app.data.Transaction>()
         override suspend fun getTransactionsForStock(symbol: String) = emptyList<com.sarmaya.app.data.Transaction>()
         override suspend fun getTransactionsForStockInPortfolio(symbol: String, portfolioId: Long) = emptyList<com.sarmaya.app.data.Transaction>()
-        override suspend fun getStockQuantity(s: String) = 0
-        override suspend fun getStockQuantityInPortfolio(s: String, p: Long) = 0
+        override suspend fun getStockQuantity(s: String): Int? = 0
+        override suspend fun getStockQuantityInPortfolio(s: String, p: Long): Int? = 0
         override suspend fun getTransactionById(id: Long): com.sarmaya.app.data.Transaction? = null
     }
 
@@ -82,8 +83,13 @@ class DashboardViewModelTest {
         `when`(dataStoreManager.username).thenReturn(flowOf(""))
         `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(null))
         
+        val defaultPortfolio = com.sarmaya.app.data.Portfolio(id = 1L, name = "Default", isDefault = true)
         val portfolioDao = mock(com.sarmaya.app.data.PortfolioDao::class.java)
-        `when`(portfolioDao.getAllPortfolios()).thenReturn(flowOf(emptyList()))
+        `when`(portfolioDao.getAllPortfolios()).thenReturn(flowOf(listOf(defaultPortfolio)))
+        runBlocking {
+            `when`(portfolioDao.getDefaultPortfolio()).thenReturn(defaultPortfolio)
+            `when`(portfolioDao.getPortfolioById(1L)).thenReturn(defaultPortfolio)
+        }
         
         viewModel = DashboardViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager)
     }
