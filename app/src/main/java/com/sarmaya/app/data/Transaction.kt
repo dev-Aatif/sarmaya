@@ -9,7 +9,7 @@ data class Transaction(
     val id: Long = 0,
     val portfolioId: Long = 1, // default portfolio for backwards compatibility
     val stockSymbol: String,
-    val type: String,  // "BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT"
+    val type: String,  // "BUY", "SELL", "DIVIDEND", "BONUS"
     val quantity: Int,
     val pricePerShare: Double,
     val date: Long,

@@ -38,8 +38,9 @@ fun TransactionsScreen(
     val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
     
-    var showAddSheet by remember { mutableStateOf(false) }
-    var transactionToEdit by remember { mutableStateOf<Transaction?>(null) }
+    var showTypeSelection by remember { mutableStateOf(false) }
+    var showTransactionForm by remember { mutableStateOf<Pair<String, Transaction?>?>(null) }
+    var selectedStockForForm by remember { mutableStateOf<String?>(null) }
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
     var showPortfolioMenu by remember { mutableStateOf(false) }
 
@@ -54,15 +55,25 @@ fun TransactionsScreen(
 
     val financeColors = LocalSarmayaColors.current
 
-    if (showAddSheet) {
-        com.sarmaya.app.ui.components.AddTransactionSheet(
-            onDismissRequest = { showAddSheet = false }
+    if (showTypeSelection) {
+        com.sarmaya.app.ui.components.TransactionTypeSelectionSheet(
+            onDismissRequest = { showTypeSelection = false },
+            onTypeSelected = { type ->
+                showTypeSelection = false
+                showTransactionForm = type to null
+            }
         )
     }
-    if (transactionToEdit != null) {
-        com.sarmaya.app.ui.components.EditTransactionSheet(
-            transaction = transactionToEdit!!,
-            onDismissRequest = { transactionToEdit = null }
+
+    if (showTransactionForm != null) {
+        com.sarmaya.app.ui.components.TransactionFormSheet(
+            type = showTransactionForm!!.first,
+            existingTransaction = showTransactionForm!!.second,
+            preselectedSymbol = selectedStockForForm,
+            onDismissRequest = {
+                showTransactionForm = null
+                selectedStockForForm = null
+            }
         )
     }
     if (transactionToDelete != null) {
@@ -90,12 +101,12 @@ fun TransactionsScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddSheet = true },
+                onClick = { showTypeSelection = true },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = androidx.compose.foundation.shape.CircleShape
             ) {
-                Icon(Icons.Filled.Add, "Add Transaction")
+                Icon(Icons.Filled.Add, "Add Options")
             }
         }
     ) { paddingValues ->
@@ -198,7 +209,7 @@ fun TransactionsScreen(
                     TransactionItem(
                         tx = tx,
                         financeColors = financeColors,
-                        onEdit = { transactionToEdit = it },
+                        onEdit = { showTransactionForm = tx.type to tx },
                         onDelete = { transactionToDelete = it }
                     )
                 }

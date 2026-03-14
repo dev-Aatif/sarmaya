@@ -34,7 +34,7 @@ fun EditTransactionSheet(
     
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
-    val types = listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
+    val types = listOf("BUY", "SELL", "DIVIDEND", "BONUS")
     var expanded by remember { mutableStateOf(false) }
 
     val isQuantityInvalid = quantity.isNotEmpty() && (quantity.toIntOrNull() ?: 0) <= 0

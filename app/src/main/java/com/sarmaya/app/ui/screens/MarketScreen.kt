@@ -313,8 +313,9 @@ fun MoverMiniCard(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(8.dp))
+            val displayPrice = if (mover.quote != null && mover.quote.price > 0) mover.quote.price else mover.stock.currentPrice
             Text(
-                "₨ ${String.format("%.2f", mover.quote?.price ?: 0.0)}",
+                "₨ ${String.format("%.2f", displayPrice)}",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -374,8 +375,9 @@ fun MarketStockItem(
         }
 
         Column(horizontalAlignment = Alignment.End) {
+            val displayPrice = if (quote != null && quote.price > 0) quote.price else marketStock.stock.currentPrice
             Text(
-                "₨ ${String.format("%.2f", quote?.price ?: 0.0)}",
+                "₨ ${String.format("%.2f", displayPrice)}",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )

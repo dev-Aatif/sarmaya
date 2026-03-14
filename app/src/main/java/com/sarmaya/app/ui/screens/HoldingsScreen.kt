@@ -42,19 +42,14 @@ fun HoldingsScreen(
     val activeHoldings = holdings.filter { it.quantity > 0 }
     val closedHoldings = holdings.filter { it.quantity == 0 }
 
-    var selectedManageStock by remember { mutableStateOf<String?>(null) }
     var showUpdatePricesSheet by remember { mutableStateOf(false) }
+    var showTypeSelection by remember { mutableStateOf(false) }
+    var showTransactionForm by remember { mutableStateOf<String?>(null) }
+    var selectedStockForForm by remember { mutableStateOf<String?>(null) }
+    
     var showPortfolioMenu by remember { mutableStateOf(false) }
     var showCreatePortfolioDialog by remember { mutableStateOf(false) }
     var newPortfolioName by remember { mutableStateOf("") }
-    
-    var showFabChoiceSheet by remember { mutableStateOf(false) }
-    var showStockPickerForBuy by remember { mutableStateOf(false) }
-    var selectedStockForBuy by remember { mutableStateOf<String?>(null) }
-    var showStockPickerForManage by remember { mutableStateOf(false) }
-    var selectedStockForManage by remember { mutableStateOf<String?>(null) }
-    var showAddTransactionSheet by remember { mutableStateOf(false) }
-    var showManagePositionSheet by remember { mutableStateOf(false) }
 
     val financeColors = LocalSarmayaColors.current
 
@@ -64,50 +59,24 @@ fun HoldingsScreen(
         )
     }
 
-    if (showAddTransactionSheet) {
-        com.sarmaya.app.ui.components.AddTransactionSheet(
-            preselectedSymbol = selectedStockForBuy,
-            onDismissRequest = { 
-                showAddTransactionSheet = false
-                selectedStockForBuy = null
+    if (showTypeSelection) {
+        com.sarmaya.app.ui.components.TransactionTypeSelectionSheet(
+            onDismissRequest = { showTypeSelection = false },
+            onTypeSelected = { type ->
+                showTypeSelection = false
+                showTransactionForm = type
             }
         )
     }
 
-    if (showStockPickerForBuy) {
-        com.sarmaya.app.ui.components.StockPickerSheet(
-            onDismissRequest = { showStockPickerForBuy = false },
-            onStockSelected = { stock ->
-                showStockPickerForBuy = false
-                selectedStockForBuy = stock.symbol
-                showAddTransactionSheet = true
+    if (showTransactionForm != null) {
+        com.sarmaya.app.ui.components.TransactionFormSheet(
+            type = showTransactionForm!!,
+            preselectedSymbol = selectedStockForForm,
+            onDismissRequest = {
+                showTransactionForm = null
+                selectedStockForForm = null
             }
-        )
-    }
-
-    if (showStockPickerForManage) {
-        com.sarmaya.app.ui.components.StockPickerSheet(
-            onDismissRequest = { showStockPickerForManage = false },
-            onStockSelected = { stock ->
-                showStockPickerForManage = false
-                selectedStockForManage = stock.symbol
-                showManagePositionSheet = true
-            }
-        )
-    }
-
-    if (showManagePositionSheet && selectedStockForManage != null) {
-        com.sarmaya.app.ui.components.ManagePositionSheet(
-            stockSymbol = selectedStockForManage!!,
-            onDismissRequest = { 
-                showManagePositionSheet = false
-                selectedStockForManage = null
-            }
-        )
-    } else if (selectedManageStock != null) {
-        com.sarmaya.app.ui.components.ManagePositionSheet(
-            stockSymbol = selectedManageStock!!,
-            onDismissRequest = { selectedManageStock = null }
         )
     }
 
@@ -145,100 +114,11 @@ fun HoldingsScreen(
         )
     }
 
-    if (showFabChoiceSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showFabChoiceSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-                    .padding(bottom = 32.dp)
-            ) {
-                Text(
-                    "Add New Transaction",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 20.dp)
-                )
-                
-                Surface(
-                    onClick = {
-                        showFabChoiceSheet = false
-                        showStockPickerForBuy = true
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    color = financeColors.profitContainer.copy(alpha = 0.5f),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = financeColors.profit,
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.padding(8.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text("Add Buy", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text("Record a new stock purchase", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Surface(
-                    onClick = {
-                        showFabChoiceSheet = false
-                        showStockPickerForManage = true
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    color = financeColors.dividendContainer.copy(alpha = 0.5f),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = DividendBlue,
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.KeyboardArrowUp,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.padding(8.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text("Add Dividend", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text("Record income from dividends", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showFabChoiceSheet = true },
+                onClick = { showTypeSelection = true },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = CircleShape
@@ -360,7 +240,10 @@ fun HoldingsScreen(
                         HoldingItem(
                             holding = holding,
                             financeColors = financeColors,
-                            onClick = { onStockClick(holding.stockSymbol) }
+                            onClick = { 
+                                selectedStockForForm = holding.stockSymbol
+                                showTypeSelection = true
+                            }
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -379,7 +262,10 @@ fun HoldingsScreen(
                         HoldingItem(
                             holding = holding,
                             financeColors = financeColors,
-                            onClick = { onStockClick(holding.stockSymbol) }
+                            onClick = { 
+                                selectedStockForForm = holding.stockSymbol
+                                showTypeSelection = true
+                            }
                         )
                     }
                 }

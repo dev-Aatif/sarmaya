@@ -29,9 +29,6 @@ object PortfolioCalculator {
                         "BONUS" -> {
                             qty += tx.quantity
                         }
-                        "SPLIT" -> {
-                            qty *= tx.quantity
-                        }
                         "SELL" -> {
                             if (qty > 0) {
                                 val avgCost = invested / qty
@@ -96,7 +93,6 @@ object PortfolioCalculator {
                         invested += (tx.quantity * tx.pricePerShare)
                     }
                     "BONUS" -> qty += tx.quantity
-                    "SPLIT" -> qty *= tx.quantity
                     "SELL" -> {
                         if (qty > 0) {
                             val avgCost = invested / qty

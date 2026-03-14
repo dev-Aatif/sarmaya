@@ -108,7 +108,6 @@ class TransactionsViewModel(
                     for (txn in allTxs) {
                         when (txn.type) {
                             "BUY", "BONUS" -> runningBalance += txn.quantity
-                            "SPLIT" -> runningBalance *= txn.quantity
                             "SELL" -> runningBalance -= txn.quantity
                         }
                         if (runningBalance < 0) {
@@ -191,7 +190,6 @@ class TransactionsViewModel(
                     for (txn in allTxs) {
                         when (txn.type) {
                             "BUY", "BONUS" -> runningBalance += txn.quantity
-                            "SPLIT" -> runningBalance *= txn.quantity
                             "SELL" -> runningBalance -= txn.quantity
                         }
                         if (runningBalance < 0) {
@@ -231,7 +229,6 @@ class TransactionsViewModel(
                     for (txn in allTxs) {
                         when (txn.type) {
                             "BUY", "BONUS" -> runningBalance += txn.quantity
-                            "SPLIT" -> runningBalance *= txn.quantity
                             "SELL" -> runningBalance -= txn.quantity
                         }
                         if (runningBalance < 0) {
