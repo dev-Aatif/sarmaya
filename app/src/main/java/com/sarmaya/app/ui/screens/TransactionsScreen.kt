@@ -45,7 +45,7 @@ fun TransactionsScreen(
 
     var selectedFilter by remember { mutableStateOf("All") }
 
-    val filterOptions = listOf("All", "BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
+    val filterOptions = listOf("All", "BUY", "SELL", "DIVIDEND", "BONUS")
     val filteredTransactions = if (selectedFilter == "All") {
         transactions
     } else {
@@ -256,7 +256,6 @@ fun TransactionItem(
         "SELL" -> financeColors.lossContainer to financeColors.onLossContainer
         "DIVIDEND" -> financeColors.dividendContainer to financeColors.dividend
         "BONUS" -> financeColors.warningContainer to financeColors.warning
-        "SPLIT" -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
         else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
     }
 

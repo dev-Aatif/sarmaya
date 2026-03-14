@@ -32,7 +32,7 @@ fun ManagePositionSheet(
     
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
-    val types = listOf("SELL", "DIVIDEND", "BONUS", "SPLIT")
+    val types = listOf("SELL", "DIVIDEND", "BONUS")
     var expanded by remember { mutableStateOf(false) }
     
     val isQuantityInvalid = quantity.isNotEmpty() && (quantity.toIntOrNull() ?: 0) <= 0

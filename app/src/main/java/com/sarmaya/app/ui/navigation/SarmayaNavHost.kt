@@ -117,6 +117,9 @@ fun SarmayaNavHost() {
                         },
                         onAlertsClick = {
                             navController.navigate(Screen.PriceAlerts.route)
+                        },
+                        onTotalValueClick = {
+                            navController.navigate(Screen.PortfolioSummary.route)
                         }
                     )
                 }
@@ -152,7 +155,8 @@ fun SarmayaNavHost() {
 @Composable
 private fun MainAppContent(
     onStockClick: (String) -> Unit,
-    onAlertsClick: () -> Unit
+    onAlertsClick: () -> Unit,
+    onTotalValueClick: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(initialPage = 0) { bottomNavItems.size }
@@ -206,9 +210,7 @@ private fun MainAppContent(
                 0 -> DashboardScreen(
                     onStockClick = onStockClick,
                     onAlertsClick = onAlertsClick,
-                    onTotalValueClick = {
-                        navController.navigate(Screen.PortfolioSummary.route)
-                    },
+                    onTotalValueClick = onTotalValueClick,
                     onViewAllTransactions = { selectedTab = 3 }
                 )
                 1 -> HoldingsScreen(onStockClick = onStockClick)

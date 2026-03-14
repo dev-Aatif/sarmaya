@@ -57,8 +57,10 @@ class MarketViewModel(
     private val allStocksFlow = stockDao.getAllStocks()
     private val watchlistFlow = watchlistDao.getAllItems()
     
-    val marketStocks: StateFlow<List<MarketStock>> = combine(allStocksFlow, watchlistFlow, _searchQuery, _selectedSector, _isOnlyWatchlist) { stocks, watchlist, query, sector, onlyWatchlist ->
-        val caches = quoteCacheDao.getAll().associateBy { it.symbol }
+    private val quoteFlow = quoteCacheDao.getAll()
+    
+    val marketStocks: StateFlow<List<MarketStock>> = combine(allStocksFlow, watchlistFlow, quoteFlow, _searchQuery, _selectedSector, _isOnlyWatchlist) { stocks, watchlist, caches, query, sector, onlyWatchlist ->
+        val cacheMap = caches.associateBy { it.symbol }
         val watchedSymbols = watchlist.map { it.stockSymbol }.toSet()
         
         stocks
@@ -67,7 +69,7 @@ class MarketViewModel(
                 (sector == null || stock.sector == sector) &&
                 (!onlyWatchlist || stock.symbol in watchedSymbols)
             }
-            .map { MarketStock(it, caches[it.symbol], it.symbol in watchedSymbols) }
+            .map { MarketStock(it, cacheMap[it.symbol], it.symbol in watchedSymbols) }
             .sortedBy { it.stock.symbol }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -82,7 +84,7 @@ class MarketViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList<MarketStock>() to emptyList<MarketStock>())
 
     val sectors: StateFlow<List<String>> = allStocksFlow.map { stocks ->
-         stocks.map { it.sector }.distinct().sorted()
+         stocks.map { it.sector }.filter { it.isNotBlank() }.distinct().sorted()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {

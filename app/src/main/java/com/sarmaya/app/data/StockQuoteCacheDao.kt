@@ -12,7 +12,7 @@ interface StockQuoteCacheDao {
     suspend fun getCache(symbol: String): StockQuoteCache?
 
     @Query("SELECT * FROM StockQuoteCache")
-    suspend fun getAll(): List<StockQuoteCache>
+    fun getAll(): kotlinx.coroutines.flow.Flow<List<StockQuoteCache>>
 
     @Query("SELECT * FROM StockQuoteCache")
     suspend fun getAllCacheSync(): List<StockQuoteCache>
