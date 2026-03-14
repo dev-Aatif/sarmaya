@@ -111,6 +111,17 @@ class DashboardViewModel(
     val username = dataStoreManager.username
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading = _isLoading.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            // Give Room a moment to emit initial values
+            kotlinx.coroutines.delay(300)
+            _isLoading.value = false
+        }
+    }
+
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 

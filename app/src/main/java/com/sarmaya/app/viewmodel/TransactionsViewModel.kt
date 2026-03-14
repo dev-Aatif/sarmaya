@@ -252,6 +252,14 @@ class TransactionsViewModel(
         }
     }
 
+    fun createPortfolio(name: String) {
+        viewModelScope.launch {
+            val newPortfolio = Portfolio(name = name)
+            val id = portfolioDao.insert(newPortfolio)
+            dataStoreManager.setActivePortfolioId(id)
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

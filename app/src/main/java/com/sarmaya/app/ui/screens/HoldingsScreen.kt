@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.data.ComputedHolding
+import com.sarmaya.app.ui.components.PortfolioSelector
+import com.sarmaya.app.ui.components.TransactionFlow
 import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.HoldingsViewModel
 
@@ -36,8 +38,8 @@ fun HoldingsScreen(
     viewModel: HoldingsViewModel = viewModel(factory = HoldingsViewModel.Factory)
 ) {
     val holdings by viewModel.holdings.collectAsStateWithLifecycle()
-    val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     
     val activeHoldings = holdings.filter { it.quantity > 0 }
     val closedHoldings = holdings.filter { it.quantity == 0 }
@@ -46,10 +48,6 @@ fun HoldingsScreen(
     var showTypeSelection by remember { mutableStateOf(false) }
     var showTransactionForm by remember { mutableStateOf<String?>(null) }
     var selectedStockForForm by remember { mutableStateOf<String?>(null) }
-    
-    var showPortfolioMenu by remember { mutableStateOf(false) }
-    var showCreatePortfolioDialog by remember { mutableStateOf(false) }
-    var newPortfolioName by remember { mutableStateOf("") }
 
     val financeColors = LocalSarmayaColors.current
 
@@ -59,60 +57,21 @@ fun HoldingsScreen(
         )
     }
 
-    if (showTypeSelection) {
-        com.sarmaya.app.ui.components.TransactionTypeSelectionSheet(
-            onDismissRequest = { showTypeSelection = false },
-            onTypeSelected = { type ->
-                showTypeSelection = false
-                showTransactionForm = type
-            }
-        )
-    }
+    TransactionFlow(
+        showTypeSelection = showTypeSelection,
+        showTransactionForm = showTransactionForm,
+        preselectedSymbol = selectedStockForForm,
+        onTypeSelected = { type ->
+            showTypeSelection = false
+            showTransactionForm = type
+        },
+        onDismissTypeSelection = { showTypeSelection = false },
+        onDismissForm = {
+            showTransactionForm = null
+            selectedStockForForm = null
+        }
+    )
 
-    if (showTransactionForm != null) {
-        com.sarmaya.app.ui.components.TransactionFormSheet(
-            type = showTransactionForm!!,
-            preselectedSymbol = selectedStockForForm,
-            onDismissRequest = {
-                showTransactionForm = null
-                selectedStockForForm = null
-            }
-        )
-    }
-
-    if (showCreatePortfolioDialog) {
-        AlertDialog(
-            onDismissRequest = { showCreatePortfolioDialog = false },
-            title = { Text("Create Portfolio") },
-            text = {
-                OutlinedTextField(
-                    value = newPortfolioName,
-                    onValueChange = { newPortfolioName = it },
-                    label = { Text("Portfolio Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (newPortfolioName.isNotBlank()) {
-                            viewModel.createPortfolio(newPortfolioName)
-                            newPortfolioName = ""
-                            showCreatePortfolioDialog = false
-                        }
-                    }
-                ) {
-                    Text("Create")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCreatePortfolioDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
 
 
     Scaffold(
@@ -147,82 +106,35 @@ fun HoldingsScreen(
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold
                     )
-                    Box {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { showPortfolioMenu = true }
-                                .padding(vertical = 2.dp, horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                activePortfolio?.name ?: "All Portfolios",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Icon(
-                                Icons.Default.KeyboardArrowDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = showPortfolioMenu,
-                            onDismissRequest = { showPortfolioMenu = false }
-                        ) {
-                            allPortfolios.forEach { portfolio ->
-                                DropdownMenuItem(
-                                    text = { Text(portfolio.name) },
-                                    onClick = {
-                                        viewModel.selectPortfolio(portfolio.id)
-                                        showPortfolioMenu = false
-                                    },
-                                    trailingIcon = {
-                                        if (portfolio.id == activePortfolio?.id) {
-                                            Icon(
-                                                Icons.Default.Check,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                )
-                            }
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            DropdownMenuItem(
-                                text = { Text("Create New Portfolio", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
-                                onClick = {
-                                    showPortfolioMenu = false
-                                    showCreatePortfolioDialog = true
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                }
-                            )
-                        }
-                    }
+                    PortfolioSelector(
+                        activePortfolio = activePortfolio,
+                        allPortfolios = allPortfolios,
+                        onPortfolioSelected = { viewModel.selectPortfolio(it) },
+                        onCreatePortfolio = { viewModel.createPortfolio(it) }
+                    )
                 }
                 Button(
                     onClick = { showUpdatePricesSheet = true },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(
-                        Icons.Filled.Refresh,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Update Prices", style = MaterialTheme.typography.labelLarge)
+                    Icon(androidx.compose.material.icons.Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Sync", fontWeight = FontWeight.Bold)
                 }
             }
+
+            if (isLoading) {
+                Spacer(modifier = Modifier.height(16.dp))
+                com.sarmaya.app.ui.components.ShimmerCard(height = 120.dp)
+                Spacer(modifier = Modifier.height(16.dp))
+                com.sarmaya.app.ui.components.ShimmerCard(height = 80.dp)
+                Spacer(modifier = Modifier.height(16.dp))
+                com.sarmaya.app.ui.components.ShimmerCard(height = 80.dp)
+            } else {
             Spacer(modifier = Modifier.height(16.dp))
             
             LazyColumn(Modifier.fillMaxSize()) {
@@ -306,6 +218,7 @@ fun HoldingsScreen(
         }
     }
 }
+}
 
 @Composable
 fun HoldingItem(holding: ComputedHolding, financeColors: SarmayaFinanceColors, onClick: () -> Unit) {
@@ -330,7 +243,7 @@ fun HoldingItem(holding: ComputedHolding, financeColors: SarmayaFinanceColors, o
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -345,44 +258,50 @@ fun HoldingItem(holding: ComputedHolding, financeColors: SarmayaFinanceColors, o
                         maxLines = 1
                     )
                 }
-                if (!isClosed) {
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        modifier = Modifier.padding(start = 8.dp)
-                    ) {
-                        Text(
-                            "₨ ${String.format("%,.2f", holding.currentValue)}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
-                        )
-                        // P/L Badge
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (!isClosed) {
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                "₨ ${String.format("%,.2f", holding.currentValue)}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
+                            )
+                            Surface(
+                                color = if (isProfit) financeColors.profitContainer else financeColors.lossContainer,
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    "${if (isProfit) "+" else ""}${String.format("%.1f", holding.profitLossPercentage)}%  ${if (isProfit) "▲" else "▼"}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isProfit) financeColors.onProfitContainer else financeColors.onLossContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    } else {
                         Surface(
-                            color = if (isProfit) financeColors.profitContainer else financeColors.lossContainer,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                "${if (isProfit) "+" else ""}${String.format("%.1f", holding.profitLossPercentage)}%  ${if (isProfit) "▲" else "▼"}",
+                                "CLOSED",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isProfit) financeColors.onProfitContainer else financeColors.onLossContainer,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                             )
                         }
                     }
-                } else {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            "CLOSED",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                        )
-                    }
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Icon(
+                        androidx.compose.material.icons.Icons.Default.KeyboardArrowRight,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
                 }
             }
 

@@ -31,14 +31,13 @@ object PortfolioCalculator {
                         }
                         "SELL" -> {
                             if (qty > 0) {
+                                val sellQty = minOf(tx.quantity, qty)
                                 val avgCost = invested / qty
                                 // Realized P/L = (sell price - avg cost) * quantity sold
-                                realizedPL += (tx.pricePerShare - avgCost) * tx.quantity
-                                qty -= tx.quantity
+                                realizedPL += (tx.pricePerShare - avgCost) * sellQty
+                                qty -= sellQty
                                 // Proportional reduction of cost basis, floored at 0
-                                invested = maxOf(0.0, invested - (tx.quantity * avgCost))
-                            } else {
-                                qty -= tx.quantity
+                                invested = maxOf(0.0, invested - (sellQty * avgCost))
                             }
                         }
                         "DIVIDEND" -> {

@@ -111,26 +111,47 @@ class StockDataRepository(
         }
 
         // 4. Ultimate fallback: last known price from Stock table
+        var lastKnownPrice: Double? = null
         try {
             val lastStock = stockDao.getStocksSync(listOf(psxSymbol)).firstOrNull()
             if (lastStock != null) {
-                return@withContext Result.success(UnifiedQuote(
-                    symbol = psxSymbol,
-                    price = lastStock.currentPrice,
-                    change = 0.0,
-                    changePercent = 0.0,
-                    volume = 0L,
-                    dayHigh = 0.0,
-                    dayLow = 0.0,
-                    open = 0.0,
-                    previousClose = 0.0
-                ))
+                lastKnownPrice = lastStock.currentPrice
+                return@withContext Result.success(
+                    UnifiedQuote(
+                        symbol = psxSymbol,
+                        price = lastKnownPrice,
+                        change = 0.0,
+                        changePercent = 0.0,
+                        volume = 0L,
+                        dayHigh = 0.0,
+                        dayLow = 0.0,
+                        open = 0.0,
+                        previousClose = 0.0
+                    )
+                )
             }
         } catch (e: Exception) {
             Log.w(TAG, "Fallback to Stock table failed for $psxSymbol: ${e.message}")
         }
 
-        Result.failure(Exception("No data available for $psxSymbol"))
+        // 5. As a last resort, return a placeholder quote instead of failing.
+        // This prevents the detail screen from showing a hard error like
+        // "No data available for XYZ" when the symbol is missing from both
+        // remote sources and the local DB (e.g. newly listed or not yet seeded).
+        Log.w(TAG, "No remote or cached data for $psxSymbol, returning placeholder quote")
+        Result.success(
+            UnifiedQuote(
+                symbol = psxSymbol,
+                price = lastKnownPrice ?: 0.0,
+                change = 0.0,
+                changePercent = 0.0,
+                volume = 0L,
+                dayHigh = 0.0,
+                dayLow = 0.0,
+                open = 0.0,
+                previousClose = 0.0
+            )
+        )
     }
 
     /**
@@ -340,9 +361,23 @@ class StockDataRepository(
             }
             
             // Bulk cache
-            quotes.forEach { cacheQuote(it) }
-            // Bulk update Stock table
-            quotes.forEach { stockDao.updatePrice(it.symbol, it.price) }
+            val cacheEntities = quotes.map { quote ->
+                StockQuoteCache(
+                    symbol = quote.symbol,
+                    price = quote.price,
+                    change = quote.change,
+                    changePercent = quote.changePercent,
+                    volume = quote.volume,
+                    high = quote.dayHigh,
+                    low = quote.dayLow,
+                    cachedAt = System.currentTimeMillis()
+                )
+            }
+            quoteCacheDao.upsertAll(cacheEntities)
+
+            // Bulk update Stock table prices
+            val priceUpdates = quotes.associate { it.symbol to it.price }
+            stockDao.updatePrices(priceUpdates)
             
             Result.success(Unit)
         } catch (e: Exception) {

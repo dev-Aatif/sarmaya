@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
         if (oldPrefs.contains("dark_theme")) {
             val wasDark = oldPrefs.getBoolean("dark_theme", false)
             val app = application as SarmayaApplication
-            kotlinx.coroutines.runBlocking {
+            androidx.lifecycle.lifecycleScope.launch {
                 app.container.dataStoreManager.setDarkTheme(
                     if (wasDark) "true" else "false"
                 )

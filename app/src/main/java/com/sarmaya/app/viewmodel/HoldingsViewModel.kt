@@ -54,6 +54,16 @@ class HoldingsViewModel(
         list.sortedByDescending { it.currentValue }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading = _isLoading.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(300)
+            _isLoading.value = false
+        }
+    }
+
     fun selectPortfolio(portfolioId: Long) {
         viewModelScope.launch {
             dataStoreManager.setActivePortfolioId(portfolioId)

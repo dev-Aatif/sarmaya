@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -84,7 +85,7 @@ fun MarketScreen(
                         label = { Text("Watchlist") },
                         leadingIcon = { 
                             Icon(
-                                if (isOnlyWatchlist) Icons.Default.Star else Icons.Default.Star, // Could use a different icon for unfilled star
+                                if (isOnlyWatchlist) Icons.Default.Star else Icons.Outlined.Star,
                                 contentDescription = null, 
                                 modifier = Modifier.size(18.dp)
                             ) 
@@ -298,9 +299,9 @@ fun MoverMiniCard(
                     modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Star,
+                        imageVector = if (mover.isWatched) Icons.Default.Star else Icons.Outlined.Star,
                         contentDescription = "Watchlist",
-                        tint = if (mover.isWatched) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                        tint = if (mover.isWatched) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -351,9 +352,9 @@ fun MarketStockItem(
             modifier = Modifier.size(40.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Star,
+                imageVector = if (marketStock.isWatched) Icons.Default.Star else Icons.Outlined.Star,
                 contentDescription = "Watchlist",
-                tint = if (marketStock.isWatched) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                tint = if (marketStock.isWatched) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
             )
         }
 

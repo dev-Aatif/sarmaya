@@ -3,13 +3,13 @@ package com.sarmaya.app.data
 import androidx.room.ColumnInfo
 
 data class ComputedHolding(
-    @ColumnInfo(name = "stockSymbol") val stockSymbol: String,
-    @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "sector") val sector: String,
-    @ColumnInfo(name = "currentPrice") val currentPrice: Double,
-    @ColumnInfo(name = "quantity") val quantity: Int,
-    @ColumnInfo(name = "totalInvested") val totalInvested: Double,
-    @ColumnInfo(name = "totalDividends") val totalDividends: Double,
+    val stockSymbol: String,
+    val name: String,
+    val sector: String,
+    val currentPrice: Double,
+    val quantity: Int,
+    val totalInvested: Double,
+    val totalDividends: Double,
     val realizedProfitLoss: Double = 0.0
 ) {
     val avgBuyPrice: Double

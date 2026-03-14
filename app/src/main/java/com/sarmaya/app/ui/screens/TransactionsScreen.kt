@@ -8,14 +8,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Check
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.data.Transaction
+import com.sarmaya.app.ui.components.PortfolioSelector
+import com.sarmaya.app.ui.components.TransactionFlow
 import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.TransactionsViewModel
 import java.text.SimpleDateFormat
@@ -42,7 +40,6 @@ fun TransactionsScreen(
     var showTransactionForm by remember { mutableStateOf<Pair<String, Transaction?>?>(null) }
     var selectedStockForForm by remember { mutableStateOf<String?>(null) }
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
-    var showPortfolioMenu by remember { mutableStateOf(false) }
 
     var selectedFilter by remember { mutableStateOf("All") }
 
@@ -55,27 +52,21 @@ fun TransactionsScreen(
 
     val financeColors = LocalSarmayaColors.current
 
-    if (showTypeSelection) {
-        com.sarmaya.app.ui.components.TransactionTypeSelectionSheet(
-            onDismissRequest = { showTypeSelection = false },
-            onTypeSelected = { type ->
-                showTypeSelection = false
-                showTransactionForm = type to null
-            }
-        )
-    }
-
-    if (showTransactionForm != null) {
-        com.sarmaya.app.ui.components.TransactionFormSheet(
-            type = showTransactionForm!!.first,
-            existingTransaction = showTransactionForm!!.second,
-            preselectedSymbol = selectedStockForForm,
-            onDismissRequest = {
-                showTransactionForm = null
-                selectedStockForForm = null
-            }
-        )
-    }
+    TransactionFlow(
+        showTypeSelection = showTypeSelection,
+        showTransactionForm = showTransactionForm?.first,
+        existingTransaction = showTransactionForm?.second,
+        preselectedSymbol = selectedStockForForm,
+        onTypeSelected = { type ->
+            showTypeSelection = false
+            showTransactionForm = type to null
+        },
+        onDismissTypeSelection = { showTypeSelection = false },
+        onDismissForm = {
+            showTransactionForm = null
+            selectedStockForForm = null
+        }
+    )
     if (transactionToDelete != null) {
         AlertDialog(
             onDismissRequest = { transactionToDelete = null },
@@ -124,53 +115,12 @@ fun TransactionsScreen(
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold
             )
-            Box {
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { showPortfolioMenu = true }
-                        .padding(vertical = 2.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val label = if (activePortfolio != null) activePortfolio!!.name else "All Portfolios"
-                    Text(
-                        label,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Icon(
-                        androidx.compose.material.icons.Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                DropdownMenu(
-                    expanded = showPortfolioMenu,
-                    onDismissRequest = { showPortfolioMenu = false }
-                ) {
-                    allPortfolios.forEach { portfolio ->
-                        DropdownMenuItem(
-                            text = { Text(portfolio.name) },
-                            onClick = {
-                                viewModel.selectPortfolio(portfolio.id)
-                                showPortfolioMenu = false
-                            },
-                            trailingIcon = {
-                                if (portfolio.id == activePortfolio?.id) {
-                                    Icon(
-                                        androidx.compose.material.icons.Icons.Default.Refresh,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                        )
-                    }
-                }
-            }
+            PortfolioSelector(
+                activePortfolio = activePortfolio,
+                allPortfolios = allPortfolios,
+                onPortfolioSelected = { viewModel.selectPortfolio(it) },
+                onCreatePortfolio = { viewModel.createPortfolio(it) }
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 

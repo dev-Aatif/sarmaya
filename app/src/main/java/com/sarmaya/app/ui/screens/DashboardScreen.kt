@@ -32,9 +32,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sarmaya.app.data.ComputedHolding
-import com.sarmaya.app.data.Transaction
+import com.sarmaya.app.ui.components.PortfolioSelector
+import com.sarmaya.app.ui.components.TransactionFlow
 import com.sarmaya.app.ui.components.UpdateBanner
+import com.sarmaya.app.ui.screens.dashboard.*
 import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.DashboardViewModel
 import com.sarmaya.app.viewmodel.UpdateViewModel
@@ -66,6 +67,7 @@ fun DashboardScreen(
     val username by viewModel.username.collectAsStateWithLifecycle()
     val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
 
     // Update notifier
@@ -73,13 +75,10 @@ fun DashboardScreen(
     val showUpdateBanner by updateViewModel.showUpdateBanner.collectAsStateWithLifecycle()
 
     var showUpdatePricesSheet by remember { mutableStateOf(false) }
-    var showTransactionForm by remember { mutableStateOf<String?>(null) } // "BUY", "SELL", etc.
     var showTypeSelection by remember { mutableStateOf(false) }
+    var showTransactionForm by remember { mutableStateOf<String?>(null) } // "BUY", "SELL", etc.
     var selectedStockForForm by remember { mutableStateOf<String?>(null) }
     var showSettingsSheet by remember { mutableStateOf(false) }
-    var showPortfolioMenu by remember { mutableStateOf(false) }
-    var showCreatePortfolioDialog by remember { mutableStateOf(false) }
-    var newPortfolioName by remember { mutableStateOf("") }
 
 
     val financeColors = LocalSarmayaColors.current
@@ -89,26 +88,20 @@ fun DashboardScreen(
             onDismissRequest = { showUpdatePricesSheet = false }
         )
     }
-    if (showTypeSelection) {
-        com.sarmaya.app.ui.components.TransactionTypeSelectionSheet(
-            onDismissRequest = { showTypeSelection = false },
-            onTypeSelected = { type ->
-                showTypeSelection = false
-                showTransactionForm = type
-            }
-        )
-    }
-
-    if (showTransactionForm != null) {
-        com.sarmaya.app.ui.components.TransactionFormSheet(
-            type = showTransactionForm!!,
-            preselectedSymbol = selectedStockForForm,
-            onDismissRequest = { 
-                showTransactionForm = null
-                selectedStockForForm = null
-            }
-        )
-    }
+    TransactionFlow(
+        showTypeSelection = showTypeSelection,
+        showTransactionForm = showTransactionForm,
+        preselectedSymbol = selectedStockForForm,
+        onTypeSelected = { type ->
+            showTypeSelection = false
+            showTransactionForm = type
+        },
+        onDismissTypeSelection = { showTypeSelection = false },
+        onDismissForm = {
+            showTransactionForm = null
+            selectedStockForForm = null
+        }
+    )
 
     if (showSettingsSheet) {
         SettingsScreen(
@@ -116,39 +109,6 @@ fun DashboardScreen(
         )
     }
 
-    if (showCreatePortfolioDialog) {
-        AlertDialog(
-            onDismissRequest = { showCreatePortfolioDialog = false },
-            title = { Text("Create Portfolio") },
-            text = {
-                OutlinedTextField(
-                    value = newPortfolioName,
-                    onValueChange = { newPortfolioName = it },
-                    label = { Text("Portfolio Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (newPortfolioName.isNotBlank()) {
-                            viewModel.createPortfolio(newPortfolioName)
-                            newPortfolioName = ""
-                            showCreatePortfolioDialog = false
-                        }
-                    }
-                ) {
-                    Text("Create")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCreatePortfolioDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
 
     Scaffold(
         floatingActionButton = {
@@ -184,507 +144,279 @@ fun DashboardScreen(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Box {
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { showPortfolioMenu = true }
-                                    .padding(vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    activePortfolio?.name ?: "All Portfolios",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Icon(
-                                    Icons.Filled.KeyboardArrowDown,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = showPortfolioMenu,
-                                onDismissRequest = { showPortfolioMenu = false },
-                                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-                            ) {
-                                allPortfolios.forEach { portfolio ->
-                                    DropdownMenuItem(
-                                        text = { Text(portfolio.name) },
-                                        onClick = {
-                                            viewModel.selectPortfolio(portfolio.id)
-                                            showPortfolioMenu = false
-                                        },
-                                        trailingIcon = {
-                                            if (portfolio.id == activePortfolio?.id) {
-                                                Icon(
-                                                    Icons.Default.Check, // Changed from Add to Check for selection
-                                                    contentDescription = "Selected",
-                                                    modifier = Modifier.size(16.dp),
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                                DropdownMenuItem(
-                                    text = { Text("Create New Portfolio", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
-                                    onClick = {
-                                        showPortfolioMenu = false
-                                        showCreatePortfolioDialog = true
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    }
-                                )
-                            }
-                        }
+                        PortfolioSelector(
+                            activePortfolio = activePortfolio,
+                            allPortfolios = allPortfolios,
+                            onPortfolioSelected = { viewModel.selectPortfolio(it) },
+                            onCreatePortfolio = { viewModel.createPortfolio(it) }
+                        )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        IconButton(
-                            onClick = onAlertsClick
-                        ) {
-                            Icon(
-                                Icons.Filled.Notifications,
-                                contentDescription = "Price Alerts",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        IconButton(onClick = onAlertsClick) {
+                            Icon(androidx.compose.material.icons.Icons.Default.Notifications, "Alerts", tint = MaterialTheme.colorScheme.primary)
                         }
-                        IconButton(
-                            onClick = { showSettingsSheet = true }
-                        ) {
-                            Icon(
-                                Icons.Filled.Settings,
-                                contentDescription = "Settings",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        IconButton(onClick = { showSettingsSheet = true }) {
+                            Icon(androidx.compose.material.icons.Icons.Default.Settings, "Settings", tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
             }
 
-            // ─── Update Banner ───
-            val release = latestRelease
-            if (release != null) {
-                item {
-                    UpdateBanner(
-                        release = release,
-                        visible = showUpdateBanner,
-                        onDismiss = { updateViewModel.dismissUpdate() }
-                    )
-                }
-            }
-
-            // ─── Market Status ───
-            item {
-                val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Karachi"))
-                val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-                val hour = calendar.get(Calendar.HOUR_OF_DAY)
-                val minute = calendar.get(Calendar.MINUTE)
-                val timeInMinutes = hour * 60 + minute
-                val isWeekday = dayOfWeek in Calendar.MONDAY..Calendar.FRIDAY
-                val isMarketOpen = isWeekday && timeInMinutes in (9 * 60 + 30)..(15 * 60 + 30)
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "PSX Market",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Surface(
-                                color = if (isMarketOpen) ProfitGreenLight.copy(alpha = 0.15f) else LossRedLight.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(6.dp)
-                            ) {
-                                Text(
-                                    if (isMarketOpen) "Open" else "Closed",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isMarketOpen) ProfitGreenLight else LossRedLight,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            val dateFormat = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
-                            val lastUpdatedStr = if (lastPriceUpdate != null) {
-                                dateFormat.format(Date(lastPriceUpdate!!))
-                            } else {
-                                "Never"
-                            }
-                            Text(
-                                lastUpdatedStr,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
-                            IconButton(
-                                onClick = { showUpdatePricesSheet = true },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Icon(
-                                    Icons.Filled.Refresh,
-                                    contentDescription = "Refresh Prices",
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ─── Portfolio Value Card (Gradient) ───
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onTotalValueClick() },
-                    shape = RoundedCornerShape(20.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(GradientEmeraldStart, GradientEmeraldEnd)
-                                ),
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .padding(24.dp)
-                    ) {
-                        Column {
-                            Text(
-                                "Total Portfolio Value",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                "₨ ${String.format("%,.2f", totalValue)}",
-                                style = MaterialTheme.typography.displayMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = androidx.compose.ui.graphics.Color.White
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val isProfit = totalProfitLoss >= 0
-                                Icon(
-                                    if (isProfit) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                    contentDescription = null,
-                                    tint = if (isProfit) ProfitGreenLight else LossRedLight,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(2.dp))
-                                Text(
-                                    "${if (isProfit) "+" else ""}₨ ${String.format("%,.2f", totalProfitLoss)}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isProfit) ProfitGreenLight else LossRedLight
-                                )
-                                if (totalInvested > 0) {
-                                    val plPercent = (totalProfitLoss / totalInvested) * 100
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        "(${String.format("%.1f", plPercent)}%)",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.75f)
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                "${holdingsCount} active holdings",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.65f)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // ─── Quick Stats Row ───
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    QuickStatCard(
-                        label = "Invested",
-                        value = "₨ ${String.format("%,.2f", totalInvested)}",
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                    QuickStatCard(
-                        label = "Realized P/L",
-                        value = "${if (totalRealizedPL >= 0) "+" else ""}₨ ${String.format("%,.2f", totalRealizedPL)}",
-                        containerColor = if (totalRealizedPL >= 0) financeColors.profitContainer else financeColors.lossContainer,
-                        contentColor = if (totalRealizedPL >= 0) financeColors.onProfitContainer else financeColors.onLossContainer,
-                        modifier = Modifier.weight(1f)
-                    )
-                    QuickStatCard(
-                        label = "Dividends",
-                        value = "₨ ${String.format("%,.2f", totalDividends)}",
-                        containerColor = financeColors.dividendContainer,
-                        contentColor = DividendBlue,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            // ─── Total Return Card ───
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (totalReturn >= 0) financeColors.profitContainer else financeColors.lossContainer
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                "Total Return",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer
-                            )
-                            Text(
-                                "Unrealized + Realized + Dividends",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = (if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer).copy(alpha = 0.7f)
-                            )
-                        }
-                        Text(
-                            "${if (totalReturn >= 0) "+" else ""}₨ ${String.format("%,.2f", totalReturn)}",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer
+            if (isLoading) {
+                item { com.sarmaya.app.ui.components.ShimmerCard(height = 160.dp) }
+                item { com.sarmaya.app.ui.components.ShimmerCard(height = 100.dp) }
+                item { com.sarmaya.app.ui.components.ShimmerCard(height = 200.dp) }
+            } else {
+                // ─── Update Banner ───
+                val release = latestRelease
+                if (release != null) {
+                    item {
+                        UpdateBanner(
+                            release = release,
+                            visible = showUpdateBanner,
+                            onDismiss = { updateViewModel.dismissUpdate() }
                         )
                     }
                 }
-            }
 
-            // ─── Top Movers ───
-            if (topGainers.isNotEmpty() || topLosers.isNotEmpty()) {
+                // ─── Market Status ───
                 item {
-                    Text(
-                        "Top Movers",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 4.dp)
+                    MarketStatusCard(
+                        lastPriceUpdate = lastPriceUpdate,
+                        onRefreshClick = { showUpdatePricesSheet = true }
                     )
                 }
+
+                // ─── Portfolio Value Card ───
                 item {
-                    LazyRow(
+                    PortfolioValueCard(
+                        totalValue = totalValue,
+                        totalProfitLoss = totalProfitLoss,
+                        totalInvested = totalInvested,
+                        holdingsCount = holdingsCount,
+                        financeColors = financeColors,
+                        onClick = onTotalValueClick
+                    )
+                }
+
+                // ─── Quick Stats ───
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(topGainers) { holding ->
-                            MoverChip(holding = holding, isGainer = true, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
-                        }
-                        items(topLosers) { holding ->
-                            MoverChip(holding = holding, isGainer = false, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
-                        }
-                    }
-                }
-            }
-
-            // ─── Quick Actions (Buy / Sell) ───
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Button(
-                        onClick = { showTransactionForm = "BUY" },
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = financeColors.profitContainer,
-                            contentColor = financeColors.onProfitContainer
+                        QuickStatCard(
+                            label = "Invested",
+                            value = "₨ ${String.format("%,.2f", totalInvested)}",
+                            containerColor = financeColors.cardSurface,
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
                         )
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Buy", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    }
-                    Button(
-                        onClick = { showTypeSelection = true },
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = financeColors.lossContainer,
-                            contentColor = financeColors.onLossContainer
+                        QuickStatCard(
+                            label = "Realized P/L",
+                            value = "${if (totalRealizedPL >= 0) "+" else ""}₨ ${String.format("%,.2f", totalRealizedPL)}",
+                            containerColor = if (totalRealizedPL >= 0) financeColors.profitContainer else financeColors.lossContainer,
+                            contentColor = if (totalRealizedPL >= 0) financeColors.onProfitContainer else financeColors.onLossContainer,
+                            modifier = Modifier.weight(1f)
                         )
-                    ) {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Sell / More", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        QuickStatCard(
+                            label = "Dividends",
+                            value = "₨ ${String.format("%,.2f", totalDividends)}",
+                            containerColor = financeColors.dividendContainer,
+                            contentColor = DividendBlue,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
-            }
 
-            // ─── Sector Allocation ───
-            if (sectorAllocation.isNotEmpty()) {
-                item {
-                    Text(
-                        "Sector Allocation",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+                // ─── Total Return Card ───
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (totalReturn >= 0) financeColors.profitContainer else financeColors.lossContainer
+                        )
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            sectorAllocation.forEach { (sector, value) ->
-                                val percentage = if (totalValue > 0) (value / totalValue).toFloat() else 0f
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 6.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        sector,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Medium,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Text(
-                                        "${String.format("%.1f", percentage * 100)}%",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(horizontal = 8.dp)
-                                    )
-                                    Text(
-                                        "₨ ${String.format("%,.2f", value)}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
-                                LinearProgressIndicator(
-                                    progress = { percentage },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(6.dp)
-                                        .clip(RoundedCornerShape(3.dp)),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    "Total Return",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer
+                                )
+                                Text(
+                                    "Unrealized + Realized + Dividends",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = (if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer).copy(alpha = 0.7f)
                                 )
                             }
+                            Text(
+                                "${if (totalReturn >= 0) "+" else ""}₨ ${String.format("%,.2f", totalReturn)}",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer
+                            )
                         }
                     }
                 }
-            }
 
-            // ─── Recent Transactions ───
-            if (recentTransactions.isNotEmpty()) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                // ─── Top Movers ───
+                if (topGainers.isNotEmpty() || topLosers.isNotEmpty()) {
+                    item {
                         Text(
-                            "Recent Activity",
+                            "Top Movers",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(top = 4.dp)
                         )
-                        TextButton(onClick = onViewAllTransactions) {
-                            Text("View all")
+                    }
+                    item {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(topGainers) { holding ->
+                                MoverChip(holding = holding, isGainer = true, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
+                            }
+                            items(topLosers) { holding ->
+                                MoverChip(holding = holding, isGainer = false, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
+                            }
                         }
                     }
                 }
+
+                // ─── Quick Actions (Buy / Sell) ───
                 item {
-                    Card(
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            recentTransactions.forEachIndexed { index, tx ->
-                                RecentTransactionRow(tx = tx, financeColors = financeColors, onClick = { onStockClick(tx.stockSymbol) })
-                                if (index < recentTransactions.size - 1) {
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(vertical = 4.dp),
-                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                                    )
+                        Button(
+                            onClick = { showTransactionForm = "BUY" },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = financeColors.profitContainer,
+                                contentColor = financeColors.onProfitContainer
+                            )
+                        ) {
+                            Icon(androidx.compose.material.icons.Icons.Default.Add, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Buy", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = { showTypeSelection = true },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = financeColors.lossContainer,
+                                contentColor = financeColors.onLossContainer
+                            )
+                        ) {
+                            Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.List, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Quick Actions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // ─── Sector Allocation ───
+                if (sectorAllocation.isNotEmpty()) {
+                    item {
+                        Text(
+                            "Sector Allocation",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                    item {
+                        SectorAllocationCard(
+                            sectorAllocation = sectorAllocation,
+                            totalValue = totalValue,
+                            financeColors = financeColors
+                        )
+                    }
+                }
+
+                // ─── Recent Activity ───
+                if (recentTransactions.isNotEmpty()) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Recent Activity",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            TextButton(onClick = onViewAllTransactions) {
+                                Text("View All")
+                            }
+                        }
+                    }
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                recentTransactions.forEachIndexed { index, tx ->
+                                    RecentTransactionRow(tx = tx, financeColors = financeColors, onClick = { onStockClick(tx.stockSymbol) })
+                                    if (index < recentTransactions.size - 1) {
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(vertical = 4.dp),
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            // ─── Empty State ───
-            if (holdingsCount == 0 && recentTransactions.isEmpty()) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                // ─── Empty State ───
+                if (holdingsCount == 0 && recentTransactions.isEmpty()) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
                         ) {
-                            Text(
-                                "📊",
-                                fontSize = 48.sp
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                "Start tracking your portfolio",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                "Tap + to add your first stock transaction",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    "📊",
+                                    fontSize = 48.sp
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    "Start tracking your portfolio",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    "Tap + to add your first stock transaction",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -696,135 +428,3 @@ fun DashboardScreen(
     }
 }
 
-@Composable
-fun QuickStatCard(
-    label: String,
-    value: String,
-    containerColor: androidx.compose.ui.graphics.Color,
-    contentColor: androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Text(
-                label,
-                style = MaterialTheme.typography.labelSmall,
-                color = contentColor.copy(alpha = 0.75f)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                value,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = contentColor,
-                maxLines = 1
-            )
-        }
-    }
-}
-
-@Composable
-fun MoverChip(
-    holding: ComputedHolding,
-    isGainer: Boolean,
-    financeColors: SarmayaFinanceColors,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.clickable { onClick() },
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isGainer) financeColors.profitContainer else financeColors.lossContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .width(140.dp)
-                .padding(14.dp)
-        ) {
-            Text(
-                holding.stockSymbol,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (isGainer) financeColors.onProfitContainer else financeColors.onLossContainer
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                "₨ ${String.format("%,.2f", holding.currentPrice)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = (if (isGainer) financeColors.onProfitContainer else financeColors.onLossContainer).copy(alpha = 0.8f)
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                "${if (isGainer) "▲" else "▼"} ${String.format("%.1f", holding.profitLossPercentage)}%",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = if (isGainer) financeColors.profit else financeColors.loss
-            )
-        }
-    }
-}
-
-@Composable
-fun RecentTransactionRow(
-    tx: Transaction,
-    financeColors: SarmayaFinanceColors,
-    onClick: () -> Unit
-) {
-    val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
-    val dateStr = dateFormat.format(Date(tx.date))
-
-    val (badgeColor, badgeTextColor) = when (tx.type) {
-        "BUY" -> financeColors.profitContainer to financeColors.onProfitContainer
-        "SELL" -> financeColors.lossContainer to financeColors.onLossContainer
-        "DIVIDEND" -> financeColors.dividendContainer to financeColors.dividend
-        else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp, horizontal = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                color = badgeColor,
-                shape = RoundedCornerShape(6.dp)
-            ) {
-                Text(
-                    tx.type,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = badgeTextColor,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Column {
-                Text(
-                    tx.stockSymbol,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    "${tx.quantity} shares @ ₨ ${String.format("%,.2f", tx.pricePerShare)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        Text(
-            dateStr,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}

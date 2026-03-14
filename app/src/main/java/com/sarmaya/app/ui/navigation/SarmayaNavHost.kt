@@ -40,12 +40,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import com.sarmaya.app.SarmayaApplication
-import com.sarmaya.app.ui.screens.DashboardScreen
-import com.sarmaya.app.ui.screens.HoldingsScreen
-import com.sarmaya.app.ui.screens.MarketScreen
-import com.sarmaya.app.ui.screens.OnboardingScreen
-import com.sarmaya.app.ui.screens.PriceAlertsScreen
-import com.sarmaya.app.ui.screens.TransactionsScreen
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -57,6 +51,9 @@ import com.sarmaya.app.ui.screens.OnboardingScreen
 import com.sarmaya.app.ui.screens.StockDetailScreen
 import com.sarmaya.app.ui.screens.TransactionsScreen
 import com.sarmaya.app.ui.screens.WatchlistScreen
+import com.sarmaya.app.ui.screens.MarketScreen
+import com.sarmaya.app.ui.screens.PriceAlertsScreen
+import com.sarmaya.app.ui.screens.PortfolioSummaryScreen
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Dashboard : Screen("dashboard", "Home", Icons.Filled.Home)
@@ -87,9 +84,9 @@ fun SarmayaNavHost() {
     val navController = rememberNavController()
 
     // Check onboarding state
-    val hasOnboarded by dataStore.hasOnboarded.collectAsState(
-        initial = runBlocking { dataStore.hasOnboarded.first() }
-    )
+    val hasOnboarded by dataStore.hasOnboarded.collectAsState(initial = null)
+
+    if (hasOnboarded == null) return // Or show a splash/loading
 
     AnimatedContent(
         targetState = hasOnboarded,
