@@ -59,7 +59,12 @@ class MarketViewModel(
     
     private val quoteFlow = quoteCacheDao.getAll()
     
-    val marketStocks: StateFlow<List<MarketStock>> = combine(allStocksFlow, watchlistFlow, quoteFlow, _searchQuery, _selectedSector, _isOnlyWatchlist) { stocks, watchlist, caches, query, sector, onlyWatchlist ->
+    private val filterFlow = combine(_searchQuery, _selectedSector, _isOnlyWatchlist) { query, sector, onlyWatchlist ->
+        Triple(query, sector, onlyWatchlist)
+    }
+
+    val marketStocks: StateFlow<List<MarketStock>> = combine(allStocksFlow, watchlistFlow, quoteFlow, filterFlow) { stocks, watchlist, caches, filter ->
+        val (query, sector, onlyWatchlist) = filter
         val cacheMap = caches.associateBy { it.symbol }
         val watchedSymbols = watchlist.map { it.stockSymbol }.toSet()
         

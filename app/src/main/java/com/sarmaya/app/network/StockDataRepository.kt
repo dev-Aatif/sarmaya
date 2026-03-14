@@ -110,6 +110,26 @@ class StockDataRepository(
             return@withContext Result.success(cached.toUnifiedQuote())
         }
 
+        // 4. Ultimate fallback: last known price from Stock table
+        try {
+            val lastStock = stockDao.getStocksSync(listOf(psxSymbol)).firstOrNull()
+            if (lastStock != null) {
+                return@withContext Result.success(UnifiedQuote(
+                    symbol = psxSymbol,
+                    price = lastStock.currentPrice,
+                    change = 0.0,
+                    changePercent = 0.0,
+                    volume = 0L,
+                    dayHigh = 0.0,
+                    dayLow = 0.0,
+                    open = 0.0,
+                    previousClose = 0.0
+                ))
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Fallback to Stock table failed for $psxSymbol: ${e.message}")
+        }
+
         Result.failure(Exception("No data available for $psxSymbol"))
     }
 
