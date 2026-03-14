@@ -50,6 +50,8 @@ signing.properties
 
 # Logs
 *.log
+.vscode/settings.json
+.vscode/
 
 # macOS
 .DS_Store
