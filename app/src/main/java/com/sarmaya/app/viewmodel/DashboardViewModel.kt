@@ -16,7 +16,8 @@ class DashboardViewModel(
     private val transactionDao: TransactionDao,
     private val stockDao: StockDao,
     private val portfolioDao: PortfolioDao,
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    private val sarmayaRepository: com.sarmaya.app.network.StockDataRepository
 ) : ViewModel() {
 
     val allPortfolios: StateFlow<List<Portfolio>> = portfolioDao.getAllPortfolios()
@@ -110,6 +111,17 @@ class DashboardViewModel(
     val username = dataStoreManager.username
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
+    fun refreshPrices() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            sarmayaRepository.syncPsxQuotes()
+            _isRefreshing.value = false
+        }
+    }
+
     fun updatePrices(prices: Map<String, Double>) {
         viewModelScope.launch {
             if (prices.isEmpty()) return@launch
@@ -125,6 +137,14 @@ class DashboardViewModel(
         }
     }
 
+    fun createPortfolio(name: String) {
+        viewModelScope.launch {
+            val newPortfolio = Portfolio(name = name)
+            val id = portfolioDao.insert(newPortfolio)
+            dataStoreManager.setActivePortfolioId(id)
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -137,7 +157,8 @@ class DashboardViewModel(
                     application.container.transactionDao,
                     application.container.stockDao,
                     application.container.portfolioDao,
-                    application.container.dataStoreManager
+                    application.container.dataStoreManager,
+                    application.container.stockDataRepository
                 ) as T
             }
         }

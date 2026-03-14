@@ -69,6 +69,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
         fun createRoute(symbol: String) = "stock_detail/$symbol"
     }
     object PriceAlerts : Screen("price_alerts", "Price Alerts", Icons.Filled.Notifications)
+    object PortfolioSummary : Screen("portfolio_summary", "Portfolio Summary", Icons.Filled.Info)
 }
 
 val bottomNavItems = listOf(
@@ -137,6 +138,11 @@ fun SarmayaNavHost() {
                         onDismiss = { navController.popBackStack() }
                     )
                 }
+                composable(Screen.PortfolioSummary.route) {
+                    com.sarmaya.app.ui.screens.PortfolioSummaryScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }
@@ -197,7 +203,14 @@ private fun MainAppContent(
             beyondBoundsPageCount = 1
         ) { page ->
             when (page) {
-                0 -> DashboardScreen(onStockClick = onStockClick, onAlertsClick = { onAlertsClick() })
+                0 -> DashboardScreen(
+                    onStockClick = onStockClick,
+                    onAlertsClick = onAlertsClick,
+                    onTotalValueClick = {
+                        navController.navigate(Screen.PortfolioSummary.route)
+                    },
+                    onViewAllTransactions = { selectedTab = 3 }
+                )
                 1 -> HoldingsScreen(onStockClick = onStockClick)
                 2 -> MarketScreen(onStockClick = onStockClick)
                 3 -> TransactionsScreen()

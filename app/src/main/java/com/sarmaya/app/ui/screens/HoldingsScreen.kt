@@ -5,25 +5,31 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.foundation.clickable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.data.ComputedHolding
 import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.HoldingsViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HoldingsScreen(
     onStockClick: (String) -> Unit,
@@ -39,178 +45,378 @@ fun HoldingsScreen(
     var selectedManageStock by remember { mutableStateOf<String?>(null) }
     var showUpdatePricesSheet by remember { mutableStateOf(false) }
     var showPortfolioMenu by remember { mutableStateOf(false) }
+    var showCreatePortfolioDialog by remember { mutableStateOf(false) }
+    var newPortfolioName by remember { mutableStateOf("") }
+    
+    var showFabChoiceSheet by remember { mutableStateOf(false) }
+    var showStockPickerForBuy by remember { mutableStateOf(false) }
+    var selectedStockForBuy by remember { mutableStateOf<String?>(null) }
+    var showStockPickerForManage by remember { mutableStateOf(false) }
+    var selectedStockForManage by remember { mutableStateOf<String?>(null) }
+    var showAddTransactionSheet by remember { mutableStateOf(false) }
+    var showManagePositionSheet by remember { mutableStateOf(false) }
 
     val financeColors = LocalSarmayaColors.current
 
-    if (selectedManageStock != null) {
-        com.sarmaya.app.ui.components.ManagePositionSheet(
-            stockSymbol = selectedManageStock!!,
-            onDismissRequest = { selectedManageStock = null }
-        )
-    }
     if (showUpdatePricesSheet) {
         com.sarmaya.app.ui.components.UpdatePricesSheet(
             onDismissRequest = { showUpdatePricesSheet = false }
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
+    if (showAddTransactionSheet) {
+        com.sarmaya.app.ui.components.AddTransactionSheet(
+            preselectedSymbol = selectedStockForBuy,
+            onDismissRequest = { 
+                showAddTransactionSheet = false
+                selectedStockForBuy = null
+            }
+        )
+    }
 
-        // ─── Header ───
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    "Portfolio",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
+    if (showStockPickerForBuy) {
+        com.sarmaya.app.ui.components.StockPickerSheet(
+            onDismissRequest = { showStockPickerForBuy = false },
+            onStockSelected = { stock ->
+                showStockPickerForBuy = false
+                selectedStockForBuy = stock.symbol
+                showAddTransactionSheet = true
+            }
+        )
+    }
+
+    if (showStockPickerForManage) {
+        com.sarmaya.app.ui.components.StockPickerSheet(
+            onDismissRequest = { showStockPickerForManage = false },
+            onStockSelected = { stock ->
+                showStockPickerForManage = false
+                selectedStockForManage = stock.symbol
+                showManagePositionSheet = true
+            }
+        )
+    }
+
+    if (showManagePositionSheet && selectedStockForManage != null) {
+        com.sarmaya.app.ui.components.ManagePositionSheet(
+            stockSymbol = selectedStockForManage!!,
+            onDismissRequest = { 
+                showManagePositionSheet = false
+                selectedStockForManage = null
+            }
+        )
+    } else if (selectedManageStock != null) {
+        com.sarmaya.app.ui.components.ManagePositionSheet(
+            stockSymbol = selectedManageStock!!,
+            onDismissRequest = { selectedManageStock = null }
+        )
+    }
+
+    if (showCreatePortfolioDialog) {
+        AlertDialog(
+            onDismissRequest = { showCreatePortfolioDialog = false },
+            title = { Text("Create Portfolio") },
+            text = {
+                OutlinedTextField(
+                    value = newPortfolioName,
+                    onValueChange = { newPortfolioName = it },
+                    label = { Text("Portfolio Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                Box {
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (newPortfolioName.isNotBlank()) {
+                            viewModel.createPortfolio(newPortfolioName)
+                            newPortfolioName = ""
+                            showCreatePortfolioDialog = false
+                        }
+                    }
+                ) {
+                    Text("Create")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCreatePortfolioDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showFabChoiceSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showFabChoiceSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    "Add New Transaction",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+                
+                Surface(
+                    onClick = {
+                        showFabChoiceSheet = false
+                        showStockPickerForBuy = true
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    color = financeColors.profitContainer.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { showPortfolioMenu = true }
-                            .padding(vertical = 2.dp, horizontal = 4.dp),
+                        modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            activePortfolio?.name ?: "All Portfolios",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Icon(
-                            androidx.compose.material.icons.Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = financeColors.profit,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Add Buy", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text("Record a new stock purchase", style = MaterialTheme.typography.bodySmall)
+                        }
                     }
-                    DropdownMenu(
-                        expanded = showPortfolioMenu,
-                        onDismissRequest = { showPortfolioMenu = false }
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Surface(
+                    onClick = {
+                        showFabChoiceSheet = false
+                        showStockPickerForManage = true
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    color = financeColors.dividendContainer.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        allPortfolios.forEach { portfolio ->
-                            DropdownMenuItem(
-                                text = { Text(portfolio.name) },
-                                onClick = {
-                                    viewModel.selectPortfolio(portfolio.id)
-                                    showPortfolioMenu = false
-                                },
-                                trailingIcon = {
-                                    if (portfolio.id == activePortfolio?.id) {
-                                        Icon(
-                                            androidx.compose.material.icons.Icons.Default.Refresh, // Dot or checkmark
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = DividendBlue,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.KeyboardArrowUp,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Add Dividend", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text("Record income from dividends", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showFabChoiceSheet = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Add, "Add Options")
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // ─── Header ───
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        "Portfolio",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Box {
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { showPortfolioMenu = true }
+                                .padding(vertical = 2.dp, horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                activePortfolio?.name ?: "All Portfolios",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Icon(
+                                Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showPortfolioMenu,
+                            onDismissRequest = { showPortfolioMenu = false }
+                        ) {
+                            allPortfolios.forEach { portfolio ->
+                                DropdownMenuItem(
+                                    text = { Text(portfolio.name) },
+                                    onClick = {
+                                        viewModel.selectPortfolio(portfolio.id)
+                                        showPortfolioMenu = false
+                                    },
+                                    trailingIcon = {
+                                        if (portfolio.id == activePortfolio?.id) {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
+                                )
+                            }
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            DropdownMenuItem(
+                                text = { Text("Create New Portfolio", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
+                                onClick = {
+                                    showPortfolioMenu = false
+                                    showCreatePortfolioDialog = true
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 }
                             )
                         }
                     }
                 }
-            }
-            Button(
-                onClick = { showUpdatePricesSheet = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
-            ) {
-                Icon(
-                    Icons.Filled.Refresh,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Update Prices", style = MaterialTheme.typography.labelLarge)
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        LazyColumn(Modifier.fillMaxSize()) {
-            if (activeHoldings.isNotEmpty()) {
-                item {
-                    Text(
-                        "Active Positions",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                Button(
+                    onClick = { showUpdatePricesSheet = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
                     )
-                }
-                items(activeHoldings) { holding ->
-                    HoldingItem(
-                        holding = holding,
-                        financeColors = financeColors,
-                        onClick = { onStockClick(holding.stockSymbol) }
-                    )
-                }
-                item { Spacer(modifier = Modifier.height(16.dp)) }
-            }
-            if (closedHoldings.isNotEmpty()) {
-                item {
-                    Text(
-                        "Closed Positions",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                items(closedHoldings) { holding ->
-                    HoldingItem(
-                        holding = holding,
-                        financeColors = financeColors,
-                        onClick = { onStockClick(holding.stockSymbol) }
-                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Update Prices", style = MaterialTheme.typography.labelLarge)
                 }
             }
-            if (holdings.isEmpty()) {
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 24.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
-                    ) {
-                        Column(
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            LazyColumn(Modifier.fillMaxSize()) {
+                if (activeHoldings.isNotEmpty()) {
+                    item {
+                        Text(
+                            "Active Positions",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                    items(activeHoldings) { holding ->
+                        HoldingItem(
+                            holding = holding,
+                            financeColors = financeColors,
+                            onClick = { onStockClick(holding.stockSymbol) }
+                        )
+                    }
+                    item { Spacer(modifier = Modifier.height(16.dp)) }
+                }
+                if (closedHoldings.isNotEmpty()) {
+                    item {
+                        Text(
+                            "Closed Positions",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                    items(closedHoldings) { holding ->
+                        HoldingItem(
+                            holding = holding,
+                            financeColors = financeColors,
+                            onClick = { onStockClick(holding.stockSymbol) }
+                        )
+                    }
+                }
+                if (holdings.isEmpty()) {
+                    item {
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .padding(vertical = 24.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
                         ) {
-                            Text("📈", fontSize = 48.sp)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                "No holdings yet",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                "Your portfolio will appear here once you add transactions.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text("📈", fontSize = 48.sp)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    "No holdings yet",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    "Your portfolio will appear here once you add transactions.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
-            item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.window.Dialog
 @Composable
 fun AddTransactionSheet(
     onDismissRequest: () -> Unit,
+    preselectedSymbol: String? = null,
     viewModel: TransactionsViewModel = viewModel(factory = TransactionsViewModel.Factory)
 ) {
     var selectedStock by remember { mutableStateOf<Stock?>(null) }
@@ -34,6 +35,27 @@ fun AddTransactionSheet(
     var notes by remember { mutableStateOf("") }
     
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    
+    LaunchedEffect(preselectedSymbol) {
+        if (preselectedSymbol != null) {
+            viewModel.updateSearchQuery(preselectedSymbol)
+            // The searchResults will contain this stock
+        }
+    }
+    
+    val searchResults by viewModel.searchResults.collectAsState()
+    
+    LaunchedEffect(searchResults, preselectedSymbol) {
+        if (preselectedSymbol != null && selectedStock == null) {
+            val stock = searchResults.find { it.symbol == preselectedSymbol }
+            if (stock != null) {
+                selectedStock = stock
+                if (pricePerShare.isEmpty() && stock.currentPrice > 0) {
+                    pricePerShare = stock.currentPrice.toString()
+                }
+            }
+        }
+    }
     
     val isQuantityInvalid = quantity.isNotEmpty() && (quantity.toIntOrNull() ?: 0) <= 0
     val isPriceInvalid = pricePerShare.isNotEmpty() && (pricePerShare.toDoubleOrNull() ?: -1.0) < 0.0

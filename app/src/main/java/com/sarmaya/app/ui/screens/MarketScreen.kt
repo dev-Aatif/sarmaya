@@ -70,36 +70,71 @@ fun MarketScreen(
                     )
                 )
                 
-                // Sector Filter
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                // Filters Row: Watchlist Toggle + Sector Dropdown
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    item {
-                        FilterChip(
-                            selected = isOnlyWatchlist,
-                            onClick = { viewModel.toggleOnlyWatchlist() },
-                            label = { Text("Watchlist") },
-                            leadingIcon = { Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                            shape = RoundedCornerShape(12.dp)
+                    FilterChip(
+                        selected = isOnlyWatchlist,
+                        onClick = { viewModel.toggleOnlyWatchlist() },
+                        label = { Text("Watchlist") },
+                        leadingIcon = { 
+                            Icon(
+                                if (isOnlyWatchlist) Icons.Default.Star else Icons.Default.Star, // Could use a different icon for unfilled star
+                                contentDescription = null, 
+                                modifier = Modifier.size(18.dp)
+                            ) 
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    var sectorExpanded by remember { mutableStateOf(false) }
+                    ExposedDropdownMenuBox(
+                        expanded = sectorExpanded,
+                        onExpandedChange = { sectorExpanded = !sectorExpanded },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        OutlinedTextField(
+                            value = selectedSector ?: "All Sectors",
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sectorExpanded) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            textStyle = MaterialTheme.typography.bodyMedium,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
                         )
-                    }
-                    item {
-                        FilterChip(
-                            selected = selectedSector == null && !isOnlyWatchlist,
-                            onClick = { viewModel.selectSector(null) },
-                            label = { Text("All Sectors") },
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                    }
-                    items(sectors) { sector ->
-                        FilterChip(
-                            selected = selectedSector == sector,
-                            onClick = { viewModel.selectSector(sector) },
-                            label = { Text(sector) },
-                            shape = RoundedCornerShape(12.dp)
-                        )
+                        ExposedDropdownMenu(
+                            expanded = sectorExpanded,
+                            onDismissRequest = { sectorExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("All Sectors") },
+                                onClick = {
+                                    viewModel.selectSector(null)
+                                    sectorExpanded = false
+                                }
+                            )
+                            sectors.forEach { sector ->
+                                DropdownMenuItem(
+                                    text = { Text(sector) },
+                                    onClick = {
+                                        viewModel.selectSector(sector)
+                                        sectorExpanded = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }

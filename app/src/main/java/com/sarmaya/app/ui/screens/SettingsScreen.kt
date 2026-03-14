@@ -1,5 +1,6 @@
 package com.sarmaya.app.ui.screens
 
+import androidx.activity.compose.BackHandler
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
@@ -29,6 +30,10 @@ fun SettingsScreen(
 ) {
     val isDarkTheme by viewModel.isDarkTheme.collectAsState()
     val username by viewModel.username.collectAsState()
+    
+    BackHandler(enabled = onDismiss != null) {
+        onDismiss?.invoke()
+    }
     val notifPortfolio by viewModel.notificationsPortfolio.collectAsState()
     val notifMarket by viewModel.notificationsMarket.collectAsState()
     val notifUpdates by viewModel.notificationsUpdates.collectAsState()
