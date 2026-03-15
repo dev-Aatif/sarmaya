@@ -30,6 +30,8 @@ interface StockDao {
     suspend fun insertStocks(stocks: List<Stock>)
 
     @Query("SELECT * FROM Stock WHERE sector = :sector ORDER BY symbol ASC")
+    suspend fun getStocksBySectorSync(sector: String): List<Stock>
+
     @androidx.room.Transaction
     suspend fun updatePrices(updates: Map<String, Double>) {
         val now = System.currentTimeMillis()

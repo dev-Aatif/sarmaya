@@ -15,7 +15,7 @@ import com.sarmaya.app.ui.theme.SarmayaFinanceColors
 
 @Composable
 fun SectorAllocationCard(
-    sectorAllocation: Map<String, Double>,
+    sectorAllocation: List<Pair<String, Double>>,
     totalValue: Double,
     financeColors: SarmayaFinanceColors
 ) {

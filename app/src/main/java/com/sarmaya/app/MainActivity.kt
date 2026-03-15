@@ -12,6 +12,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.coroutineScope
+import kotlinx.coroutines.launch
 import com.sarmaya.app.ui.navigation.SarmayaNavHost
 import com.sarmaya.app.ui.theme.SarmayaTheme
 import com.sarmaya.app.viewmodel.SettingsViewModel
@@ -51,7 +53,7 @@ class MainActivity : ComponentActivity() {
         if (oldPrefs.contains("dark_theme")) {
             val wasDark = oldPrefs.getBoolean("dark_theme", false)
             val app = application as SarmayaApplication
-            androidx.lifecycle.lifecycleScope.launch {
+            lifecycle.coroutineScope.launch {
                 app.container.dataStoreManager.setDarkTheme(
                     if (wasDark) "true" else "false"
                 )

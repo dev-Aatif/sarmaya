@@ -95,7 +95,7 @@ fun SarmayaNavHost() {
         },
         label = "onboarding_transition"
     ) { onboarded ->
-        if (!onboarded) {
+        if (onboarded == false) {
             val scope = rememberCoroutineScope()
             OnboardingScreen(
                 onComplete = { username ->

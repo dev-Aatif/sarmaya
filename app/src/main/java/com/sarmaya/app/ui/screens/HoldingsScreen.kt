@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -38,6 +39,7 @@ fun HoldingsScreen(
     viewModel: HoldingsViewModel = viewModel(factory = HoldingsViewModel.Factory)
 ) {
     val holdings by viewModel.holdings.collectAsStateWithLifecycle()
+    val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     
