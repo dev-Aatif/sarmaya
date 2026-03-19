@@ -1,5 +1,6 @@
 package com.sarmaya.app.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -51,17 +52,18 @@ class StockDetailViewModel(
             val chartResult = repository.getHistoricalData(symbol, _chartRange.value)
             val peersResult = repository.getPeers(symbol)
 
-            if (quoteResult.isSuccess && profileResult.isSuccess) {
+            // Only require the quote to succeed. Profile gracefully degrades to placeholder.
+            if (quoteResult.isSuccess) {
                 _uiState.value = StockDetailUiState.Success(
                     quote = quoteResult.getOrThrow(),
-                    profile = profileResult.getOrThrow(),
+                    profile = profileResult.getOrElse { emptyProfile(symbol) },
                     chartData = chartResult.getOrDefault(emptyList()),
                     peers = peersResult.getOrDefault(emptyList())
                 )
             } else {
                 val errorMsg = quoteResult.exceptionOrNull()?.message 
-                    ?: profileResult.exceptionOrNull()?.message 
                     ?: "Failed to load stock details"
+                Log.e("StockDetailVM", "Failed to load $symbol: $errorMsg")
                 _uiState.value = StockDetailUiState.Error(errorMsg)
             }
         }
@@ -80,6 +82,30 @@ class StockDetailViewModel(
             }
         }
     }
+
+    /**
+     * Creates a placeholder profile when the real profile is unavailable.
+     * This ensures the stock detail screen always renders with at least basic info.
+     */
+    private fun emptyProfile(symbol: String) = CompanyProfile(
+        symbol = symbol,
+        name = symbol,
+        description = "Company profile data is currently unavailable. Please check your internet connection and try again.",
+        sector = "",
+        industry = "",
+        website = "",
+        phone = "",
+        country = "Pakistan",
+        logoUrl = "",
+        marketCap = 0L,
+        peRatio = 0.0,
+        eps = 0.0,
+        beta = 0.0,
+        weekHigh52 = 0.0,
+        weekLow52 = 0.0,
+        dividendYield = 0.0,
+        earningsDate = ""
+    )
 
     class Factory(private val symbol: String) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

@@ -91,7 +91,8 @@ class DashboardViewModelTest {
             `when`(portfolioDao.getPortfolioById(1L)).thenReturn(defaultPortfolio)
         }
         
-        viewModel = DashboardViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager)
+        val stockDataRepository = mock(com.sarmaya.app.network.StockDataRepository::class.java)
+        viewModel = DashboardViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager, stockDataRepository)
     }
 
     @After

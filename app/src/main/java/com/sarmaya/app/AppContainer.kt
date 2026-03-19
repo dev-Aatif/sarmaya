@@ -14,6 +14,7 @@ import com.sarmaya.app.network.ConnectivityChecker
 import com.sarmaya.app.network.StockDataRepository
 import com.sarmaya.app.network.api.GitHubApi
 import com.sarmaya.app.network.api.PsxApi
+import com.sarmaya.app.network.api.PsxTerminalApi
 import com.sarmaya.app.network.api.YahooFinanceApi
 import com.sarmaya.app.worker.SyncManager
 import com.squareup.moshi.Moshi
@@ -63,9 +64,27 @@ class AppContainer(private val context: Context) {
             .build()
     }
 
+    /**
+     * Dedicated OkHttpClient for PSX endpoints with User-Agent header
+     * (PSX may block requests without a browser-like User-Agent)
+     */
+    private val psxOkHttpClient: OkHttpClient by lazy {
+        okHttpClient.newBuilder()
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
+                    .header("Accept", "application/json")
+                    .build()
+                chain.proceed(request)
+            }
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .build()
+    }
+
     val yahooFinanceApi: YahooFinanceApi by lazy {
         Retrofit.Builder()
-            .baseUrl("https://query1.finance.yahoo.com")
+            .baseUrl("https://query2.finance.yahoo.com")  // query2 is the community-maintained mirror
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
@@ -75,10 +94,19 @@ class AppContainer(private val context: Context) {
     val psxApi: PsxApi by lazy {
         Retrofit.Builder()
             .baseUrl("https://dps.psx.com.pk/")
-            .client(okHttpClient)
+            .client(psxOkHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(PsxApi::class.java)
+    }
+
+    val psxTerminalApi: PsxTerminalApi by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://psxterminal.com/")
+            .client(psxOkHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(PsxTerminalApi::class.java)
     }
 
     val gitHubApi: GitHubApi by lazy {
@@ -98,6 +126,7 @@ class AppContainer(private val context: Context) {
         StockDataRepository(
             yahooApi = yahooFinanceApi,
             psxApi = psxApi,
+            psxTerminalApi = psxTerminalApi,
             stockDao = stockDao,
             quoteCacheDao = stockQuoteCacheDao,
             connectivityChecker = connectivityChecker

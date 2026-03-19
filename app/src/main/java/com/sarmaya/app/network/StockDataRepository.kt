@@ -5,13 +5,15 @@ import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.StockQuoteCache
 import com.sarmaya.app.data.StockQuoteCacheDao
 import com.sarmaya.app.network.api.PsxApi
+import com.sarmaya.app.network.api.PsxTerminalApi
+import com.sarmaya.app.network.api.PsxIndex
 import com.sarmaya.app.network.api.YahooFinanceApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Central data repository implementing:
- *   Yahoo Finance API → PSX website scraper (future) → local cache fallback
+ * Central data repository implementing multi-tier fallback:
+ *   PSX DPS → PSX Terminal → Yahoo Finance → local cache
  *
  * All methods return [Result] so callers can gracefully handle failures.
  * Successfully fetched data is always cached to Room for offline access.
@@ -19,6 +21,7 @@ import kotlinx.coroutines.withContext
 class StockDataRepository(
     private val yahooApi: YahooFinanceApi,
     private val psxApi: PsxApi,
+    private val psxTerminalApi: PsxTerminalApi,
     private val stockDao: StockDao,
     private val quoteCacheDao: StockQuoteCacheDao,
     private val connectivityChecker: ConnectivityChecker
@@ -50,7 +53,7 @@ class StockDataRepository(
 
     /**
      * Fetch live quote for a single symbol.
-     * Strategy: cache first (if fresh) → Yahoo API → return stale cache on failure.
+     * Strategy: cache first (if fresh) → sync PSX quotes → Yahoo API → stale cache → placeholder.
      */
     suspend fun getQuote(psxSymbol: String): Result<UnifiedQuote> = withContext(Dispatchers.IO) {
         // 1. Check fresh cache
@@ -59,11 +62,9 @@ class StockDataRepository(
             return@withContext Result.success(cached.toUnifiedQuote())
         }
 
-        // 2. Try direct PSX Scraper (Faster & more accurate)
+        // 2. Try PSX data sync (DPS + Terminal fallback)
         if (connectivityChecker.isOnline()) {
             try {
-                // To avoid fetching all stocks for one quote, we could have a single scrip endpoint,
-                // but usually live.json is the way. Let's try batching or bulk sync first.
                 val psxResult = syncPsxQuotes()
                 if (psxResult.isSuccess) {
                     val freshCached = quoteCacheDao.getCache(psxSymbol)
@@ -72,7 +73,7 @@ class StockDataRepository(
                     }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "PSX scraper failed for $psxSymbol: ${e.message}")
+                Log.w(TAG, "PSX sync failed for $psxSymbol: ${e.message}")
             }
         }
 
@@ -94,9 +95,7 @@ class StockDataRepository(
                         open = quoteData.regularMarketOpen ?: 0.0,
                         previousClose = quoteData.regularMarketPreviousClose ?: 0.0
                     )
-                    // Cache it
                     cacheQuote(quote)
-                    // Also update Stock table price
                     stockDao.updatePrice(psxSymbol, quote.price)
                     return@withContext Result.success(quote)
                 }
@@ -105,12 +104,13 @@ class StockDataRepository(
             }
         }
 
-        // 3. Return stale cache if available
+        // 4. Return stale cache if available
         if (cached != null) {
+            Log.i(TAG, "Returning stale cache for $psxSymbol (age: ${(System.currentTimeMillis() - cached.cachedAt) / 1000}s)")
             return@withContext Result.success(cached.toUnifiedQuote())
         }
 
-        // 4. Ultimate fallback: last known price from Stock table
+        // 5. Ultimate fallback: last known price from Stock table
         var lastKnownPrice: Double? = null
         try {
             val lastStock = stockDao.getStocksSync(listOf(psxSymbol)).firstOrNull()
@@ -134,10 +134,7 @@ class StockDataRepository(
             Log.w(TAG, "Fallback to Stock table failed for $psxSymbol: ${e.message}")
         }
 
-        // 5. As a last resort, return a placeholder quote instead of failing.
-        // This prevents the detail screen from showing a hard error like
-        // "No data available for XYZ" when the symbol is missing from both
-        // remote sources and the local DB (e.g. newly listed or not yet seeded).
+        // 6. Placeholder quote (prevents hard error on detail screen)
         Log.w(TAG, "No remote or cached data for $psxSymbol, returning placeholder quote")
         Result.success(
             UnifiedQuote(
@@ -160,7 +157,7 @@ class StockDataRepository(
     suspend fun getBatchQuotes(psxSymbols: List<String>): Result<List<UnifiedQuote>> = withContext(Dispatchers.IO) {
         if (psxSymbols.isEmpty()) return@withContext Result.success(emptyList())
 
-        // Try PSX Scraper first (Bulk sync)
+        // Try PSX sync first (DPS + Terminal fallback)
         if (connectivityChecker.isOnline()) {
             val psxResult = syncPsxQuotes()
             if (psxResult.isSuccess) {
@@ -193,9 +190,7 @@ class StockDataRepository(
                             previousClose = quoteData.regularMarketPreviousClose ?: 0.0
                         )
                     }
-                    // Cache all
                     quotes.forEach { cacheQuote(it) }
-                    // Update Stock table prices
                     quotes.forEach { stockDao.updatePrice(it.symbol, it.price) }
                     return@withContext Result.success(quotes)
                 }
@@ -219,6 +214,7 @@ class StockDataRepository(
 
     /**
      * Fetch historical price data for charting.
+     * Uses Yahoo Finance (only source for historical charts).
      */
     suspend fun getHistoricalData(
         psxSymbol: String,
@@ -266,57 +262,120 @@ class StockDataRepository(
     // ─── Company Profile ───
 
     /**
-     * Fetch detailed company profile (description, stats, etc.).
+     * Fetch detailed company profile.
+     * Strategy: PSX Terminal → Yahoo Finance → placeholder.
+     * Always returns a profile (never fails hard) so the detail screen always renders.
      */
     suspend fun getCompanyProfile(psxSymbol: String): Result<CompanyProfile> = withContext(Dispatchers.IO) {
-        if (!connectivityChecker.isOnline()) {
-            return@withContext Result.failure(Exception("No internet connection"))
-        }
-
-        try {
-            val yahooSymbol = toYahooSymbol(psxSymbol)
-            val response = yahooApi.getQuoteSummary(yahooSymbol)
-            val modules = response.quoteSummary?.result?.firstOrNull()
-            if (modules != null) {
-                val profile = modules.assetProfile
-                val stats = modules.keyStats
-                val summary = modules.summaryDetail
-                val price = modules.price
+        // 1. Try PSX Terminal for company data + yields
+        if (connectivityChecker.isOnline()) {
+            try {
+                val company = psxTerminalApi.getCompany(psxSymbol)
+                var yields: com.sarmaya.app.network.api.PsxTerminalYields? = null
+                try {
+                    yields = psxTerminalApi.getYields(psxSymbol)
+                } catch (e: Exception) {
+                    Log.w(TAG, "PSX Terminal yields failed for $psxSymbol: ${e.message}")
+                }
 
                 return@withContext Result.success(
                     CompanyProfile(
                         symbol = psxSymbol,
-                        name = price?.longName ?: price?.shortName ?: psxSymbol,
-                        description = profile?.longBusinessSummary ?: "",
-                        sector = profile?.sector ?: "",
-                        industry = profile?.industry ?: "",
-                        website = profile?.website ?: "",
-                        phone = profile?.phone ?: "",
-                        country = profile?.country ?: "",
-                        logoUrl = "", // Not available from Yahoo, use placeholder
-                        marketCap = summary?.marketCap?.raw?.toLong() ?: price?.marketCap?.raw?.toLong() ?: 0L,
-                        peRatio = summary?.trailingPE?.raw ?: 0.0,
-                        eps = price?.eps?.raw ?: 0.0,
-                        beta = stats?.beta?.raw ?: 0.0,
-                        weekHigh52 = summary?.fiftyTwoWeekHigh?.raw ?: 0.0,
-                        weekLow52 = summary?.fiftyTwoWeekLow?.raw ?: 0.0,
-                        dividendYield = summary?.dividendYield?.raw ?: 0.0,
+                        name = company.effectiveName(),
+                        description = company.description ?: "",
+                        sector = company.sector ?: "",
+                        industry = company.industry ?: "",
+                        website = company.website ?: "",
+                        phone = company.phone ?: "",
+                        country = "Pakistan",
+                        logoUrl = "",
+                        marketCap = company.marketCap ?: yields?.marketCap ?: 0L,
+                        peRatio = yields?.pe ?: 0.0,
+                        eps = yields?.eps ?: 0.0,
+                        beta = yields?.beta ?: 0.0,
+                        weekHigh52 = yields?.high52w ?: 0.0,
+                        weekLow52 = yields?.low52w ?: 0.0,
+                        dividendYield = yields?.dividendYield ?: 0.0,
                         earningsDate = ""
                     )
                 )
+            } catch (e: Exception) {
+                Log.w(TAG, "PSX Terminal company failed for $psxSymbol: ${e.message}")
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "Yahoo profile failed for $psxSymbol: ${e.message}")
         }
 
-        Result.failure(Exception("No profile data available for $psxSymbol"))
+        // 2. Try Yahoo Finance for profile
+        if (connectivityChecker.isOnline()) {
+            try {
+                val yahooSymbol = toYahooSymbol(psxSymbol)
+                val response = yahooApi.getQuoteSummary(yahooSymbol)
+                val modules = response.quoteSummary?.result?.firstOrNull()
+                if (modules != null) {
+                    val profile = modules.assetProfile
+                    val stats = modules.keyStats
+                    val summary = modules.summaryDetail
+                    val price = modules.price
+
+                    return@withContext Result.success(
+                        CompanyProfile(
+                            symbol = psxSymbol,
+                            name = price?.longName ?: price?.shortName ?: psxSymbol,
+                            description = profile?.longBusinessSummary ?: "",
+                            sector = profile?.sector ?: "",
+                            industry = profile?.industry ?: "",
+                            website = profile?.website ?: "",
+                            phone = profile?.phone ?: "",
+                            country = profile?.country ?: "",
+                            logoUrl = "",
+                            marketCap = summary?.marketCap?.raw?.toLong() ?: price?.marketCap?.raw?.toLong() ?: 0L,
+                            peRatio = summary?.trailingPE?.raw ?: 0.0,
+                            eps = price?.eps?.raw ?: 0.0,
+                            beta = stats?.beta?.raw ?: 0.0,
+                            weekHigh52 = summary?.fiftyTwoWeekHigh?.raw ?: 0.0,
+                            weekLow52 = summary?.fiftyTwoWeekLow?.raw ?: 0.0,
+                            dividendYield = summary?.dividendYield?.raw ?: 0.0,
+                            earningsDate = ""
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Yahoo profile failed for $psxSymbol: ${e.message}")
+            }
+        }
+
+        // 3. Return placeholder profile (never fail — the detail screen will still render)
+        Log.i(TAG, "Returning placeholder profile for $psxSymbol")
+        val stock = try {
+            stockDao.getStocksSync(listOf(psxSymbol)).firstOrNull()
+        } catch (e: Exception) { null }
+        
+        Result.success(
+            CompanyProfile(
+                symbol = psxSymbol,
+                name = stock?.name ?: psxSymbol,
+                description = "Company profile data is currently unavailable. Please check your internet connection and try again.",
+                sector = stock?.sector ?: "",
+                industry = "",
+                website = "",
+                phone = "",
+                country = "Pakistan",
+                logoUrl = "",
+                marketCap = 0L,
+                peRatio = 0.0,
+                eps = 0.0,
+                beta = 0.0,
+                weekHigh52 = 0.0,
+                weekLow52 = 0.0,
+                dividendYield = 0.0,
+                earningsDate = ""
+            )
+        )
     }
 
     // ─── Peers (same-sector stocks from local DB) ───
 
     /**
      * Get peer companies from the same sector using local DB.
-     * Since Finnhub peers endpoint is US-only, we derive from sector.
      */
     suspend fun getPeers(psxSymbol: String): Result<List<String>> = withContext(Dispatchers.IO) {
         try {
@@ -336,31 +395,115 @@ class StockDataRepository(
     }
 
     /**
-     * Fetch all live quotes from PSX Data Portal and update local DB.
-     * This is the "Scraper" implementation.
+     * Sync all live quotes from PSX.
+     * Strategy: PSX DPS → PSX Terminal fallback.
      */
     suspend fun syncPsxQuotes(): Result<Unit> = withContext(Dispatchers.IO) {
         if (!connectivityChecker.isOnline()) return@withContext Result.failure(Exception("No internet"))
         
+        // 1. Try PSX DPS (original source)
         try {
+            Log.d(TAG, "Attempting PSX DPS sync...")
             val response = psxApi.getLiveQuotes()
-            val stocks = response.stocks ?: return@withContext Result.failure(Exception("No stocks in PSX response"))
-            
-            val quotes = stocks.map { psxStock ->
-                UnifiedQuote(
-                    symbol = psxStock.scrip,
-                    price = psxStock.current,
-                    change = psxStock.change,
-                    changePercent = psxStock.changep,
-                    volume = psxStock.vol,
-                    dayHigh = psxStock.high ?: 0.0,
-                    dayLow = psxStock.low ?: 0.0,
-                    open = psxStock.open ?: 0.0,
-                    previousClose = psxStock.prev ?: 0.0
-                )
+            val stocks = response.stocks
+            if (!stocks.isNullOrEmpty()) {
+                Log.i(TAG, "PSX DPS sync success: ${stocks.size} stocks")
+                val quotes = stocks.map { psxStock ->
+                    UnifiedQuote(
+                        symbol = psxStock.scrip,
+                        price = psxStock.current,
+                        change = psxStock.change,
+                        changePercent = psxStock.changep,
+                        volume = psxStock.vol,
+                        dayHigh = psxStock.high ?: 0.0,
+                        dayLow = psxStock.low ?: 0.0,
+                        open = psxStock.open ?: 0.0,
+                        previousClose = psxStock.prev ?: 0.0
+                    )
+                }
+                bulkCacheAndUpdate(quotes)
+                return@withContext Result.success(Unit)
             }
-            
-            // Bulk cache
+        } catch (e: Exception) {
+            Log.w(TAG, "PSX DPS sync failed: ${e.javaClass.simpleName}: ${e.message}")
+        }
+
+        // 2. Try PSX Terminal (free fallback)
+        try {
+            Log.d(TAG, "Attempting PSX Terminal sync...")
+            val terminalStocks = psxTerminalApi.getMarketData()
+            if (terminalStocks.isNotEmpty()) {
+                Log.i(TAG, "PSX Terminal sync success: ${terminalStocks.size} stocks")
+                val quotes = terminalStocks.map { stock ->
+                    UnifiedQuote(
+                        symbol = stock.symbol,
+                        price = stock.effectivePrice(),
+                        change = stock.effectiveChange(),
+                        changePercent = stock.effectiveChangePercent(),
+                        volume = stock.effectiveVolume(),
+                        dayHigh = stock.high ?: 0.0,
+                        dayLow = stock.low ?: 0.0,
+                        open = stock.open ?: 0.0,
+                        previousClose = stock.ldcp ?: 0.0
+                    )
+                }
+                bulkCacheAndUpdate(quotes)
+                return@withContext Result.success(Unit)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "PSX Terminal sync failed: ${e.javaClass.simpleName}: ${e.message}")
+        }
+
+        Log.e(TAG, "All PSX sync sources failed")
+        Result.failure(Exception("All PSX data sources unavailable"))
+    }
+
+    suspend fun getIndices(): Result<List<PsxIndex>> = withContext(Dispatchers.IO) {
+        if (!connectivityChecker.isOnline()) return@withContext Result.failure(Exception("No internet"))
+        
+        // 1. Try PSX DPS
+        try {
+            val response = psxApi.getIndices()
+            val indices = response.indices
+            if (!indices.isNullOrEmpty()) {
+                return@withContext Result.success(indices)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "PSX DPS indices failed: ${e.message}")
+        }
+
+        // 2. Try PSX Terminal
+        try {
+            val response = psxTerminalApi.getStats()
+            val terminalIndices = response.indices
+            if (!terminalIndices.isNullOrEmpty()) {
+                val mapped = terminalIndices.map { idx ->
+                    PsxIndex(
+                        name = idx.name,
+                        current = idx.effectiveValue(),
+                        change = idx.effectiveChange(),
+                        changep = idx.effectiveChangePercent(),
+                        high = idx.high ?: idx.effectiveValue(),
+                        low = idx.low ?: idx.effectiveValue(),
+                        prev = idx.effectivePrev()
+                    )
+                }
+                return@withContext Result.success(mapped)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "PSX Terminal indices failed: ${e.message}")
+        }
+
+        Result.failure(Exception("No index data available"))
+    }
+
+    // ─── Helpers ───
+
+    /**
+     * Bulk cache quotes and update Stock table prices.
+     */
+    private suspend fun bulkCacheAndUpdate(quotes: List<UnifiedQuote>) {
+        try {
             val cacheEntities = quotes.map { quote ->
                 StockQuoteCache(
                     symbol = quote.symbol,
@@ -375,28 +518,12 @@ class StockDataRepository(
             }
             quoteCacheDao.upsertAll(cacheEntities)
 
-            // Bulk update Stock table prices
             val priceUpdates = quotes.associate { it.symbol to it.price }
             stockDao.updatePrices(priceUpdates)
-            
-            Result.success(Unit)
         } catch (e: Exception) {
-            Log.e(TAG, "syncPsxQuotes failed: ${e.message}")
-            Result.failure(e)
+            Log.w(TAG, "Bulk cache/update failed: ${e.message}")
         }
     }
-
-    suspend fun getIndices(): Result<List<com.sarmaya.app.network.api.PsxIndex>> = withContext(Dispatchers.IO) {
-        if (!connectivityChecker.isOnline()) return@withContext Result.failure(Exception("No internet"))
-        try {
-            val response = psxApi.getIndices()
-            Result.success(response.indices ?: emptyList())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // ─── Helpers ───
 
     private suspend fun cacheQuote(quote: UnifiedQuote) {
         try {
