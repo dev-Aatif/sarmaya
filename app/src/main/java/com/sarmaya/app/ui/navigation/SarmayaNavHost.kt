@@ -4,11 +4,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
@@ -24,21 +21,17 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import com.sarmaya.app.SarmayaApplication
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -148,7 +141,11 @@ fun SarmayaNavHost() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+/**
+ * Main app content with bottom navigation.
+ * Uses Crossfade (via AnimatedContent) instead of HorizontalPager to prevent
+ * navigation race conditions where tabs get stuck or open the wrong screen.
+ */
 @Composable
 private fun MainAppContent(
     onStockClick: (String) -> Unit,
@@ -156,21 +153,6 @@ private fun MainAppContent(
     onTotalValueClick: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-    val pagerState = rememberPagerState(initialPage = 0) { bottomNavItems.size }
-
-    // Sync bottom bar tap → pager
-    LaunchedEffect(selectedTab) {
-        if (pagerState.currentPage != selectedTab) {
-            pagerState.animateScrollToPage(selectedTab)
-        }
-    }
-
-    // Sync pager swipe → bottom bar
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            selectedTab = page
-        }
-    }
 
     Scaffold(
         bottomBar = {
@@ -196,12 +178,18 @@ private fun MainAppContent(
             }
         }
     ) { innerPadding ->
-        HorizontalPager(
-            state = pagerState,
+        // Use Crossfade-style AnimatedContent instead of HorizontalPager
+        // This eliminates the dual-LaunchedEffect race condition that caused
+        // tabs to get stuck or navigate to the wrong screen.
+        AnimatedContent(
+            targetState = selectedTab,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            beyondBoundsPageCount = 1
+            transitionSpec = {
+                fadeIn() togetherWith fadeOut()
+            },
+            label = "tab_content"
         ) { page ->
             when (page) {
                 0 -> DashboardScreen(

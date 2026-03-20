@@ -366,11 +366,11 @@ private fun StockDetailContent(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+            // Use a horizontally scrollable Row so peers don't overflow
+            androidx.compose.foundation.lazy.LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                peers.forEach { peer ->
+                androidx.compose.foundation.lazy.items(peers) { peer ->
                     Surface(
                         modifier = Modifier.clickable { onPeerClick(peer) },
                         shape = RoundedCornerShape(12.dp),

@@ -20,6 +20,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import com.sarmaya.app.data.PortfolioDao
 import com.sarmaya.app.data.DataStoreManager
+import com.sarmaya.app.data.WatchlistDao
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TransactionsViewModelTest {
@@ -78,7 +79,9 @@ class TransactionsViewModelTest {
         val dataStoreManager = mock(DataStoreManager::class.java)
         `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(1L))
 
-        viewModel = TransactionsViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager)
+        val watchlistDao = mock(WatchlistDao::class.java)
+
+        viewModel = TransactionsViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager, watchlistDao)
     }
 
     @After
@@ -169,7 +172,9 @@ class TransactionsViewModelTest {
         val dataStoreManager = mock(DataStoreManager::class.java)
         `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(1L))
 
-        val viewModel2 = TransactionsViewModel(transactionDao, trackingStockDao, portfolioDao, dataStoreManager)
+        val watchlistDao2 = mock(WatchlistDao::class.java)
+
+        val viewModel2 = TransactionsViewModel(transactionDao, trackingStockDao, portfolioDao, dataStoreManager, watchlistDao2)
 
         viewModel2.updateTransaction(
             transactionId = insertedTx.id,

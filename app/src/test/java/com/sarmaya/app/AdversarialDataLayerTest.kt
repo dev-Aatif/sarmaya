@@ -12,6 +12,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import com.sarmaya.app.data.PortfolioDao
 import com.sarmaya.app.data.DataStoreManager
+import com.sarmaya.app.data.WatchlistDao
 import com.sarmaya.app.data.AppDatabase
 import kotlinx.coroutines.test.*
 import org.junit.After
@@ -111,7 +112,9 @@ class AdversarialDataLayerTest {
         val dataStoreManager = mock(DataStoreManager::class.java)
         `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(1L))
 
-        viewModel = TransactionsViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager)
+        val watchlistDao = mock(WatchlistDao::class.java)
+
+        viewModel = TransactionsViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager, watchlistDao)
     }
 
     @After

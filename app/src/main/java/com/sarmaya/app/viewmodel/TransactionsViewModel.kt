@@ -10,6 +10,8 @@ import com.sarmaya.app.data.PortfolioDao
 import com.sarmaya.app.data.Stock
 import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.Transaction
+import com.sarmaya.app.data.WatchlistDao
+import com.sarmaya.app.data.WatchlistItem
 import com.sarmaya.app.data.TransactionDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -25,6 +27,7 @@ class TransactionsViewModel(
     private val stockDao: StockDao,
     private val portfolioDao: PortfolioDao,
     private val dataStoreManager: DataStoreManager,
+    private val watchlistDao: WatchlistDao,
     private val dbTransactionRunner: suspend (suspend () -> Unit) -> Unit = { it() }
 ) : ViewModel() {
 
@@ -134,6 +137,13 @@ class TransactionsViewModel(
                         }
                     }
                     transactionDao.insert(t)
+                    // Auto-add stock to watchlist on BUY
+                    if (type == "BUY") {
+                        val isWatched = watchlistDao.isInWatchlist(stockSymbol)
+                        if (isWatched == 0) {
+                            watchlistDao.insert(WatchlistItem(stockSymbol = stockSymbol))
+                        }
+                    }
                 }
                 onSuccess()
             }
@@ -273,6 +283,7 @@ class TransactionsViewModel(
                     application.container.stockDao,
                     application.container.portfolioDao,
                     application.container.dataStoreManager,
+                    application.container.watchlistDao,
                     { block: suspend () -> Unit -> application.container.database.withTransaction { block() } }
                 ) as T
             }
