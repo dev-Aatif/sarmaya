@@ -14,8 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.sarmaya.app.data.ComputedHolding
-import com.sarmaya.app.data.Transaction
+import com.sarmaya.app.data.*
 import com.sarmaya.app.ui.theme.SarmayaFinanceColors
 import java.text.SimpleDateFormat
 import java.util.*
