@@ -2,46 +2,66 @@ package com.sarmaya.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ─── Primary Emerald Palette (toned down) ───
-val EmeraldPrimary = Color(0xFF2D9D78)
-val EmeraldSecondary = Color(0xFF5DB89E)
-val EmeraldTertiary = Color(0xFF1E8A6A)
+// ─── Primary Teal Palette (Vibrant & Fintech-inspired) ───
+val TealPrimary = Color(0xFF0D9488) // Strategic brand color (accessible contrast)
+val TealSecondary = Color(0xFF14B8A6) // Lighter, for active UI elements
+val TealTertiary = Color(0xFF0F766E) // Deeper, for pressed states/headers
 
-// ─── Semantic Finance Colors (muted) ───
-val ProfitGreen = Color(0xFF3BA55D)
-val ProfitGreenLight = Color(0xFFE5F5EB)
-val ProfitGreenDark = Color(0xFF1B5E30)
+// ─── Market Colors ───
+val GainGreen = Color(0xFF10B981)
+val GainGreenLight = Color(0xFFD1FAE5)
+val GainGreenDark = Color(0xFF065F46)
 
-val LossRed = Color(0xFFD45454)
-val LossRedLight = Color(0xFFFCECEC)
-val LossRedDark = Color(0xFF8B2020)
-
-val WarningAmber = Color(0xFFD4960A)
-val WarningAmberLight = Color(0xFFFFF5DC)
-
-val DividendBlue = Color(0xFF5B8FD4)
-val DividendBlueLight = Color(0xFFE4EEFC)
-
-val NeutralGray = Color(0xFF8891A0)
-
-// ─── Dark Theme (softer) ───
-val DarkBackground = Color(0xFF111118)
-val DarkSurface = Color(0xFF1C1C28)
-val DarkSurfaceVariant = Color(0xFF262636)
-val DarkCardSurface = Color(0xFF202030)
-val DarkOnBackground = Color(0xFFDCDCE4)
-val DarkOnSurface = Color(0xFFB8B8C8)
-
-// ─── Light Theme ───
-val LightBackground = Color(0xFFF7F8FB)
-val LightSurface = Color(0xFFFFFFFF)
-val LightSurfaceVariant = Color(0xFFF0F1F5)
-val LightCardSurface = Color(0xFFFAFBFD)
-val LightOnBackground = Color(0xFF1E2130)
-val LightOnSurface = Color(0xFF404858)
-
-// ─── Gradient Colors (subtler) ───
-val GradientEmeraldStart = Color(0xFF2D9D78)
-val GradientEmeraldEnd = Color(0xFF1E8A6A)
+// ─── Gradient Colors (Dynamic App Feel) ───
+val GradientTealStart = Color(0xFF14B8A6)
+val GradientTealEnd = Color(0xFF0F766E)
 val GradientDarkStart = Color(0xFF1E293B)
 val GradientDarkEnd = Color(0xFF0F172A)
+
+// Aliases to avoid breaking old v1 screens before their rewrite in Phase 8
+val ProfitGreen = GainGreen
+val ProfitGreenLight = GainGreenLight
+val ProfitGreenDark = GainGreenDark
+val EmeraldPrimary = TealPrimary
+val EmeraldSecondary = TealSecondary
+val EmeraldTertiary = TealTertiary
+val GradientEmeraldStart = GradientTealStart
+val GradientEmeraldEnd = GradientTealEnd
+
+// ─── Other Semantic Colors ───
+val LossRed = Color(0xFFEF4444) // Crisp red for negative
+val LossRedLight = Color(0xFFFEE2E2)
+val LossRedDark = Color(0xFF991B1B)
+
+val WarningAmber = Color(0xFFF59E0B)
+val WarningAmberLight = Color(0xFFFEF3C7)
+
+val DividendBlue = Color(0xFF3B82F6)
+val DividendBlueLight = Color(0xFFDBEAFE)
+
+val NeutralGray = Color(0xFF9CA3AF)
+
+// ─── Dark Theme (Deep Navy/Black - Modern Fintech) ───
+val DarkBackground = Color(0xFF0B0F19)
+val DarkSurface = Color(0xFF151A23)
+val DarkSurfaceVariant = Color(0xFF1F2937)
+val DarkCardSurface = Color(0xFF19202E)
+val DarkOnBackground = Color(0xFFF9FAFB)
+val DarkOnSurface = Color(0xFFE5E7EB)
+val DarkOnSurfaceVariant = Color(0xFF9CA3AF)
+
+// ─── Light Theme (Crisp, High Contrast) ───
+val LightBackground = Color(0xFFF8FAFC)
+val LightSurface = Color(0xFFFFFFFF)
+val LightSurfaceVariant = Color(0xFFF1F5F9)
+val LightCardSurface = Color(0xFFFFFFFF)
+val LightOnBackground = Color(0xFF0F172A)
+val LightOnSurface = Color(0xFF334155)
+val LightOnSurfaceVariant = Color(0xFF64748B)
+
+// ─── Market State Indicators ───
+val MarketPreOpen = Color(0xFF8B5CF6) // Purple
+val MarketOpen = GainGreen
+val MarketSuspended = WarningAmber
+val MarketClosed = NeutralGray
+val MarketOffline = Color(0xFFEF4444)

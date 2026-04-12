@@ -16,9 +16,9 @@ import androidx.core.view.WindowCompat
 
 /** Semantic finance color holder accessible via LocalSarmayaColors */
 data class SarmayaFinanceColors(
-    val profit: Color = ProfitGreen,
-    val profitContainer: Color = ProfitGreenLight,
-    val onProfitContainer: Color = ProfitGreenDark,
+    val profit: Color = GainGreen,
+    val profitContainer: Color = GainGreenLight,
+    val onProfitContainer: Color = GainGreenDark,
     val loss: Color = LossRed,
     val lossContainer: Color = LossRedLight,
     val onLossContainer: Color = LossRedDark,
@@ -27,15 +27,22 @@ data class SarmayaFinanceColors(
     val dividend: Color = DividendBlue,
     val dividendContainer: Color = DividendBlueLight,
     val cardSurface: Color = LightCardSurface,
-    val neutral: Color = NeutralGray
+    val neutral: Color = NeutralGray,
+    
+    // Market States
+    val marketPreOpen: Color = MarketPreOpen,
+    val marketOpen: Color = MarketOpen,
+    val marketSuspended: Color = MarketSuspended,
+    val marketClosed: Color = MarketClosed,
+    val marketOffline: Color = MarketOffline
 )
 
 val LocalSarmayaColors = staticCompositionLocalOf { SarmayaFinanceColors() }
 
 private val DarkColorScheme = darkColorScheme(
-    primary = EmeraldPrimary,
-    secondary = EmeraldSecondary,
-    tertiary = EmeraldTertiary,
+    primary = TealPrimary,
+    secondary = TealSecondary,
+    tertiary = TealTertiary,
     background = DarkBackground,
     surface = DarkSurface,
     surfaceVariant = DarkSurfaceVariant,
@@ -44,16 +51,16 @@ private val DarkColorScheme = darkColorScheme(
     onTertiary = Color.White,
     onBackground = DarkOnBackground,
     onSurface = DarkOnSurface,
-    primaryContainer = Color(0xFF0D3D2E),
-    onPrimaryContainer = EmeraldSecondary,
-    errorContainer = Color(0xFF3D1212),
+    primaryContainer = Color(0xFF042F2E), // Tailwind Teal 900
+    onPrimaryContainer = TealSecondary,
+    errorContainer = LossRedDark,
     onErrorContainer = LossRed
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = EmeraldPrimary,
-    secondary = EmeraldSecondary,
-    tertiary = EmeraldTertiary,
+    primary = TealPrimary,
+    secondary = TealSecondary,
+    tertiary = TealTertiary,
     background = LightBackground,
     surface = LightSurface,
     surfaceVariant = LightSurfaceVariant,
@@ -62,8 +69,8 @@ private val LightColorScheme = lightColorScheme(
     onTertiary = Color.White,
     onBackground = LightOnBackground,
     onSurface = LightOnSurface,
-    primaryContainer = Color(0xFFD1FAE5),
-    onPrimaryContainer = Color(0xFF064E3B),
+    primaryContainer = Color(0xFFCCFBF1), // Tailwind Teal 100
+    onPrimaryContainer = Color(0xFF115E59), // Tailwind Teal 800
     errorContainer = LossRedLight,
     onErrorContainer = LossRedDark
 )
@@ -77,12 +84,12 @@ fun SarmayaTheme(
 
     val financeColors = if (darkTheme) {
         SarmayaFinanceColors(
-            profitContainer = Color(0xFF0D3D1E),
-            onProfitContainer = ProfitGreen,
-            lossContainer = Color(0xFF3D1212),
+            profitContainer = Color(0xFF064E3B), // Tailwind Emerald 900
+            onProfitContainer = GainGreen,
+            lossContainer = Color(0xFF7F1D1D), // Tailwind Red 900
             onLossContainer = LossRed,
-            warningContainer = Color(0xFF3D2E0A),
-            dividendContainer = Color(0xFF1E2A4A),
+            warningContainer = Color(0xFF78350F), // Tailwind Amber 900
+            dividendContainer = Color(0xFF1E3A8A), // Tailwind Blue 900
             cardSurface = DarkCardSurface
         )
     } else {

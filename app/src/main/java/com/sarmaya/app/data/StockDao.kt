@@ -23,6 +23,13 @@ interface StockDao {
     @Query("UPDATE Stock SET currentPrice = :price, priceUpdatedAt = :updatedAt WHERE symbol = :symbol")
     suspend fun updatePrice(symbol: String, price: Double, updatedAt: Long = System.currentTimeMillis())
 
+    @Query("UPDATE Stock SET currentPrice = :price, change = :change, changePercent = :changePercent, volume = :volume, trades = :trades, value = :value, high = :high, low = :low, state = :state, priceUpdatedAt = :updatedAt WHERE symbol = :symbol")
+    suspend fun updateTickData(
+        symbol: String, price: Double, change: Double, changePercent: Double, 
+        volume: Long, trades: Long, value: Long, high: Double, low: Double, 
+        state: String, updatedAt: Long = System.currentTimeMillis()
+    )
+
     @androidx.room.Update
     suspend fun updateStocks(stocks: List<Stock>)
 

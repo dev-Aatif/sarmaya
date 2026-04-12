@@ -65,7 +65,7 @@ fun MarketScreen(
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                     )
@@ -109,8 +109,9 @@ fun MarketScreen(
                                 .fillMaxWidth(),
                             textStyle = MaterialTheme.typography.bodyMedium,
                             shape = RoundedCornerShape(12.dp),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                                 unfocusedBorderColor = Color.Transparent,
                                 focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                             )
