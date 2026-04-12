@@ -27,62 +27,65 @@ fun TransactionTypeSelectionSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp
+        tonalElevation = 8.dp,
+        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
-                .padding(bottom = 32.dp)
+                .padding(horizontal = 24.dp, vertical = 32.dp)
         ) {
             Text(
-                "Select Transaction Type",
-                style = MaterialTheme.typography.titleLarge,
+                "Record Transaction",
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 20.dp)
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 24.dp)
             )
 
             TypeItem(
-                title = "Buy",
-                subtitle = "Record a new stock purchase",
+                title = "Buy Stock",
+                subtitle = "Add new shares to your portfolio",
                 icon = Icons.Default.Add,
                 color = financeColors.profit,
-                containerColor = financeColors.profitContainer.copy(alpha = 0.5f),
+                containerColor = financeColors.profitContainer.copy(alpha = 0.4f),
                 onClick = { onTypeSelected("BUY") }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             TypeItem(
-                title = "Sell",
-                subtitle = "Record a stock sale",
+                title = "Sell Stock",
+                subtitle = "Reduce or exit a position",
                 icon = Icons.Default.KeyboardArrowDown,
                 color = financeColors.loss,
-                containerColor = financeColors.lossContainer.copy(alpha = 0.5f),
+                containerColor = financeColors.lossContainer.copy(alpha = 0.4f),
                 onClick = { onTypeSelected("SELL") }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             TypeItem(
-                title = "Dividend",
-                subtitle = "Record income from dividends",
+                title = "Cash Dividend",
+                subtitle = "Record payouts from your holdings",
                 icon = Icons.Default.KeyboardArrowUp,
                 color = financeColors.dividend,
-                containerColor = financeColors.dividendContainer.copy(alpha = 0.5f),
+                containerColor = financeColors.dividendContainer.copy(alpha = 0.4f),
                 onClick = { onTypeSelected("DIVIDEND") }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             TypeItem(
-                title = "Bonus",
+                title = "Bonus Issue",
                 subtitle = "Record bonus shares received",
                 icon = Icons.Default.Add,
                 color = financeColors.warning,
-                containerColor = financeColors.warningContainer.copy(alpha = 0.5f),
+                containerColor = financeColors.warningContainer.copy(alpha = 0.4f),
                 onClick = { onTypeSelected("BONUS") }
             )
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -98,7 +101,7 @@ private fun TypeItem(
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         color = containerColor,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -107,21 +110,30 @@ private fun TypeItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                shape = CircleShape,
+                shape = RoundedCornerShape(12.dp),
                 color = color,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(44.dp)
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier.padding(10.dp)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    title, 
+                    style = MaterialTheme.typography.titleMedium, 
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    subtitle, 
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

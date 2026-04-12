@@ -3,21 +3,28 @@ package com.sarmaya.app.ui.screens
 import androidx.activity.compose.BackHandler
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.SettingsViewModel
@@ -46,13 +53,16 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             if (onDismiss != null) {
-                TopAppBar(
+                CenterAlignedTopAppBar(
                     title = { Text("Settings", fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
                 )
             }
         }
@@ -62,46 +72,53 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 24.dp)
         ) {
             if (onDismiss == null) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     "Settings",
                     style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
+            
             Spacer(modifier = Modifier.height(24.dp))
 
             // ─── User Profile ───
+            SettingsSectionHeader("User Profile")
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text("User Profile", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     if (editingUsername) {
                         OutlinedTextField(
                             value = usernameInput,
                             onValueChange = { usernameInput = it },
                             label = { Text("Display Name") },
                             singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                            )
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
                             OutlinedButton(
                                 onClick = {
                                     usernameInput = username
                                     editingUsername = false
                                 },
-                                shape = RoundedCornerShape(10.dp)
+                                modifier = Modifier.weight(1f).height(48.dp),
+                                shape = RoundedCornerShape(14.dp)
                             ) {
                                 Text("Cancel")
                             }
@@ -110,7 +127,8 @@ fun SettingsScreen(
                                     viewModel.setUsername(usernameInput.trim())
                                     editingUsername = false
                                 },
-                                shape = RoundedCornerShape(10.dp)
+                                modifier = Modifier.weight(1f).height(48.dp),
+                                shape = RoundedCornerShape(14.dp)
                             ) {
                                 Text("Save")
                             }
@@ -122,115 +140,120 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Display Name", style = MaterialTheme.typography.bodyLarge)
+                                Text("Display Name", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
                                 Text(
                                     username.ifBlank { "Not set" },
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            TextButton(onClick = { editingUsername = true }) {
-                                Text("Edit")
+                            TextButton(
+                                onClick = { editingUsername = true },
+                                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                            ) {
+                                Text("Edit", fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // ─── Appearance ───
+            SettingsSectionHeader("Appearance")
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Appearance", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text("Theme", style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        "Choose your preferred appearance",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    var expanded by remember { mutableStateOf(false) }
-                    val currentLabel = when (isDarkTheme) {
-                        true -> "Dark"
-                        false -> "Light"
-                        null -> "System Default"
-                    }
-
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        OutlinedTextField(
-                            value = currentLabel,
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("System Default") },
-                                onClick = { viewModel.setTheme(null); expanded = false }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Theme", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                            Text(
+                                "Choose your preferred appearance",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            DropdownMenuItem(
-                                text = { Text("Light") },
-                                onClick = { viewModel.setTheme(false); expanded = false }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Dark") },
-                                onClick = { viewModel.setTheme(true); expanded = false }
-                            )
+                        }
+                        
+                        var expanded by remember { mutableStateOf(false) }
+                        val currentLabel = when (isDarkTheme) {
+                            true -> "Dark"
+                            false -> "Light"
+                            null -> "System"
+                        }
+
+                        Box {
+                            TextButton(
+                                onClick = { expanded = true },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.textButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Text(currentLabel, fontWeight = FontWeight.Bold)
+                                Icon(androidx.compose.material.icons.Icons.Default.ArrowDropDown, contentDescription = null)
+                            }
+                            
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false },
+                                modifier = Modifier.background(financeColors.cardSurface)
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("System Default") },
+                                    onClick = { viewModel.setTheme(null); expanded = false }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Light Mode") },
+                                    onClick = { viewModel.setTheme(false); expanded = false }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Dark Mode") },
+                                    onClick = { viewModel.setTheme(true); expanded = false }
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // ─── Notifications ───
+            SettingsSectionHeader("Notifications")
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Notifications", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Control which notifications you receive",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
+                Column(modifier = Modifier.padding(12.dp)) {
                     NotificationToggle(
                         title = "Portfolio Updates",
                         subtitle = "Daily P/L summaries",
                         checked = notifPortfolio,
                         onCheckedChange = { viewModel.setNotificationPortfolio(it) }
                     )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    )
                     NotificationToggle(
                         title = "Market Status",
                         subtitle = "PSX open/close alerts",
                         checked = notifMarket,
                         onCheckedChange = { viewModel.setNotificationMarket(it) }
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
                     )
                     NotificationToggle(
                         title = "App Updates",
@@ -241,128 +264,136 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // ─── Data Management ───
+            SettingsSectionHeader("Data Management")
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Data Management", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     Button(
                         onClick = { viewModel.exportPortfolioToCsv() },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            contentColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Text("Export Portfolio (CSV)", style = MaterialTheme.typography.labelLarge)
+                        Icon(androidx.compose.material.icons.Icons.Default.Share, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Export Portfolio (CSV)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // ─── About & Credits ───
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("📊", fontSize = 24.sp)
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                "Sarmaya",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                "Version 1.1 • Build 2",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    }
+                    
                     Text(
-                        "Sarmaya",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        "Your Personal Portfolio Manager",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        "Version 1.1 • Build 2",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.outline
+                        text = "Intelligent PSX Portfolio Manager. Stay ahead of the curve with real-time tracking and deep insights.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 24.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                    Text("Credits", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Credits & Tech", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(12.dp))
                     CreditRow(label = "Developer", value = "Aatif")
-                    CreditRow(label = "Design", value = "Aatif")
-                    CreditRow(label = "License", value = "MIT License")
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text("Tech Stack", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    CreditRow(label = "Language", value = "Kotlin")
-                    CreditRow(label = "UI", value = "Jetpack Compose")
-                    CreditRow(label = "Design System", value = "Material 3")
-                    CreditRow(label = "Database", value = "Room (SQLite)")
+                    CreditRow(label = "UI/Design", value = "Jetpack Compose")
                     CreditRow(label = "Networking", value = "Retrofit + OkHttp")
-                    CreditRow(label = "Architecture", value = "MVVM + Event Sourcing")
-                    CreditRow(label = "Async", value = "Kotlin Coroutines + Flow")
-                    CreditRow(label = "Data API", value = "Yahoo Finance")
+                    CreditRow(label = "Database", value = "Room (SQLite)")
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                    Text("Links", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Links", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     LinkRow(
-                        label = "GitHub",
-                        url = "https://github.com/dev-Aatif/sarmaya",
+                        label = "GitHub Registry",
+                        url = "github.com/dev-Aatif/sarmaya",
                         onClick = {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/dev-Aatif/sarmaya"))
                             context.startActivity(intent)
                         }
                     )
                     LinkRow(
-                        label = "Report an Issue",
-                        url = "https://github.com/dev-Aatif/sarmaya/issues",
+                        label = "Report Feedback",
+                        url = "github.com/dev-Aatif/sarmaya/issues",
                         onClick = {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/dev-Aatif/sarmaya/issues"))
                             context.startActivity(intent)
                         }
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                    Spacer(modifier = Modifier.height(12.dp))
-
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
                     Text(
                         "Made with ❤\uFE0F in Pakistan",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.outline,
+                        fontWeight = FontWeight.Medium,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(48.dp))
         }
     }
+}
+
+@Composable
+private fun SettingsSectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 12.dp, bottom = 12.dp)
+    )
 }
 
 @Composable
@@ -375,12 +406,14 @@ private fun NotificationToggle(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
             Text(
                 subtitle,
                 style = MaterialTheme.typography.bodySmall,
@@ -389,7 +422,11 @@ private fun NotificationToggle(
         }
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = MaterialTheme.colorScheme.primary
+            )
         )
     }
 }
@@ -410,7 +447,7 @@ private fun CreditRow(label: String, value: String) {
         Text(
             value,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
@@ -420,21 +457,32 @@ private fun LinkRow(label: String, url: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() }
-            .padding(vertical = 6.dp),
+            .padding(vertical = 8.dp, horizontal = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            fontWeight = FontWeight.Medium
         )
-        Text(
-            url.removePrefix("https://"),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            textDecoration = TextDecoration.Underline
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                url,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                androidx.compose.material.icons.Icons.Default.KeyboardArrowRight,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
+

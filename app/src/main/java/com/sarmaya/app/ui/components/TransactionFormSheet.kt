@@ -109,30 +109,50 @@ fun TransactionFormSheet(
             ) {
                 Text(
                     title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 // Stock Selector
                 OutlinedButton(
                     onClick = { if (existingTransaction == null) showStockPicker = true },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = existingTransaction == null
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = existingTransaction == null,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outlineVariant)
+                    )
                 ) {
                     Text(
                         selectedStock?.let { "${it.symbol} — ${it.name}" } 
                             ?: existingTransaction?.stockSymbol 
-                            ?: "Select Stock",
-                        style = MaterialTheme.typography.bodyLarge
+                            ?: "Select Stock Asset",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 if (errorMessage != null) {
-                    Text(errorMessage!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            errorMessage!!, 
+                            color = MaterialTheme.colorScheme.error, 
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 // Grid row: Quantity + Price
@@ -147,7 +167,12 @@ fun TransactionFormSheet(
                         isError = isQuantityInvalid,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
                     )
                     OutlinedTextField(
                         value = pricePerShare,
@@ -156,33 +181,45 @@ fun TransactionFormSheet(
                         isError = isPriceInvalid,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
                     )
                 }
                 
                 if (type == "DIVIDEND" && quantity.isNotEmpty() && pricePerShare.isNotEmpty() && !isQuantityInvalid && !isPriceInvalid) {
                     val total = (quantity.toIntOrNull() ?: 0) * (pricePerShare.toDoubleOrNull() ?: 0.0)
                     Text(
-                        "Total Amount: \u20A8 ${String.format("%,.2f", total)}",
+                        "Estimated Dividend: \u20A8 ${String.format("%,.2f", total)}",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp, start = 4.dp)
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Date display (simplified)
                 OutlinedTextField(
-                    value = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(date)),
+                    value = SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault()).format(Date(date)),
                     onValueChange = {},
-                    label = { Text("Date") },
+                    label = { Text("Transaction Date") },
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = false
+                    enabled = false,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
                 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Notes
                 OutlinedTextField(
@@ -190,9 +227,14 @@ fun TransactionFormSheet(
                     onValueChange = { notes = it },
                     label = { Text("Notes (Optional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    )
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
                 // Action buttons
                 Row(
@@ -201,10 +243,13 @@ fun TransactionFormSheet(
                 ) {
                     OutlinedButton(
                         onClick = onDismissRequest,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        border = ButtonDefaults.outlinedButtonBorder.copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outlineVariant)
+                        )
                     ) {
-                        Text("Cancel")
+                        Text("Cancel", fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = {
@@ -263,8 +308,8 @@ fun TransactionFormSheet(
                                 }
                             }
                         },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
                         enabled = (selectedStock != null || existingTransaction != null) && quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid && !isProcessing
                     ) {
                         if (isProcessing) {
@@ -274,7 +319,11 @@ fun TransactionFormSheet(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text(if (existingTransaction != null) "Update" else actionLabel, style = MaterialTheme.typography.labelLarge)
+                            Text(
+                                text = if (existingTransaction != null) "Update" else actionLabel, 
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
