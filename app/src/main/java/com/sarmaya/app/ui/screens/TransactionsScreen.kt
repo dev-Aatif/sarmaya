@@ -22,6 +22,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.data.Transaction
 import com.sarmaya.app.data.*
@@ -32,6 +34,7 @@ import com.sarmaya.app.viewmodel.TransactionsViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionsScreen(
     viewModel: TransactionsViewModel = viewModel(factory = TransactionsViewModel.Factory)
@@ -71,11 +74,12 @@ fun TransactionsScreen(
             selectedStockForForm = null
         }
     )
+
     if (transactionToDelete != null) {
         AlertDialog(
             onDismissRequest = { transactionToDelete = null },
             title = { Text("Delete Transaction", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete this transaction? This action cannot be undone.") },
+            text = { Text("Are you sure you want to delete this transaction?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteTransaction(transactionToDelete!!)
@@ -89,117 +93,101 @@ fun TransactionsScreen(
                     Text("Cancel")
                 }
             },
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(24.dp)
         )
     }
 
     Scaffold(
+        topBar = {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+                CenterAlignedTopAppBar(
+                    title = { Text("Ledger", fontWeight = FontWeight.Bold) },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                )
+                
+                PortfolioSelector(
+                    activePortfolio = activePortfolio,
+                    allPortfolios = allPortfolios,
+                    onPortfolioSelected = { viewModel.selectPortfolio(it) },
+                    onCreatePortfolio = { viewModel.createPortfolio(it) },
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+
+                // Premium Filter Row
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp)
+                ) {
+                    items(filterOptions) { filter ->
+                        FilterChip(
+                            selected = selectedFilter == filter,
+                            onClick = { selectedFilter = filter },
+                            label = { Text(filter) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                selected = selectedFilter == filter,
+                                enabled = true,
+                                borderColor = MaterialTheme.colorScheme.outlineVariant,
+                                selectedBorderColor = Color.Transparent
+                            )
+                        )
+                    }
+                }
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showTypeSelection = true },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = androidx.compose.foundation.shape.CircleShape
+                shape = RoundedCornerShape(20.dp)
             ) {
-                Icon(Icons.Filled.Add, "Add Options")
+                Icon(Icons.Filled.Add, "Add Transaction")
             }
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 100.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ─── Header ───
-            Text(
-                "Transaction History",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
-            )
-            PortfolioSelector(
-                activePortfolio = activePortfolio,
-                allPortfolios = allPortfolios,
-                onPortfolioSelected = { viewModel.selectPortfolio(it) },
-                onCreatePortfolio = { viewModel.createPortfolio(it) }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // ─── Filter Chips (static row, no nested scroll) ───
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                filterOptions.forEach { filter ->
-                    FilterChip(
-                        selected = selectedFilter == filter,
-                        onClick = { selectedFilter = filter },
-                        label = {
-                            Text(
-                                filter,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = if (selectedFilter == filter) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        modifier = Modifier.height(40.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+            if (filteredTransactions.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("📓", fontSize = 64.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            if (selectedFilter == "All") "No transactions yet" else "No $selectedFilter recorded",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
                         )
-                    )
+                    }
                 }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // ─── Transaction List ───
-            LazyColumn(Modifier.fillMaxSize()) {
+            } else {
                 items(filteredTransactions) { tx ->
                     TransactionItem(
                         tx = tx,
                         financeColors = financeColors,
                         onEdit = { showTransactionForm = tx.type to tx },
-                        onDelete = { transactionToDelete = it }
+                        onDelete = { transactionToDelete = it },
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                     )
                 }
-                if (filteredTransactions.isEmpty()) {
-                    item {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 24.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text("📋", fontSize = 48.sp)
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(
-                                    if (selectedFilter == "All") "No transactions yet" else "No $selectedFilter transactions",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    if (selectedFilter == "All") "Tap + to log your first transaction." else "Try a different filter.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }
@@ -210,7 +198,8 @@ fun TransactionItem(
     tx: Transaction,
     financeColors: SarmayaFinanceColors,
     onEdit: (Transaction) -> Unit,
-    onDelete: (Transaction) -> Unit
+    onDelete: (Transaction) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
     val dateStr = dateFormat.format(Date(tx.date))
@@ -227,11 +216,9 @@ fun TransactionItem(
     val totalAmount = tx.quantity * tx.pricePerShare
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        shape = RoundedCornerShape(14.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        modifier = modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
     ) {
         Row(

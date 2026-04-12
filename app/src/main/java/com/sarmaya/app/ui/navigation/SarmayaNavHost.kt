@@ -192,12 +192,19 @@ private fun MainAppContent(
             label = "tab_content"
         ) { page ->
             when (page) {
-                0 -> DashboardScreen(
-                    onStockClick = onStockClick,
-                    onAlertsClick = onAlertsClick,
-                    onTotalValueClick = onTotalValueClick,
-                    onViewAllTransactions = { selectedTab = 3 }
-                )
+                0 -> {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    DashboardScreen(
+                        onStockClick = onStockClick,
+                        onAlertsClick = onAlertsClick,
+                        onTotalValueClick = onTotalValueClick,
+                        onViewAllTransactions = { selectedTab = 3 },
+                        onNewsClick = { article ->
+                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(article.link))
+                            context.startActivity(intent)
+                        }
+                    )
+                }
                 1 -> HoldingsScreen(onStockClick = onStockClick)
                 2 -> MarketScreen(onStockClick = onStockClick)
                 3 -> TransactionsScreen()

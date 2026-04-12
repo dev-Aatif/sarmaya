@@ -10,6 +10,10 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -33,7 +37,6 @@ fun PriceAlertsScreen(
     val financeColors = LocalSarmayaColors.current
 
     if (showAddAlertSheet) {
-        // We'll reuse the stock picker logic or a simple sheet
         AddPriceAlertSheet(
             onDismiss = { showAddAlertSheet = false },
             onAdd = { symbol, price, type ->
@@ -47,14 +50,17 @@ fun PriceAlertsScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Price Alerts", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
-                        Icon(androidx.compose.material.icons.Icons.Default.Notifications, contentDescription = "Back")
+                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     IconButton(onClick = { showAddAlertSheet = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Alert")
+                        Icon(Icons.Default.Add, contentDescription = "Add Alert", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             )
@@ -63,17 +69,15 @@ fun PriceAlertsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 80.dp)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 48.dp)
         ) {
             item {
                 Text(
                     "Set target prices for your favorite stocks and get notified when they are reached.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                 )
             }
 
@@ -86,7 +90,8 @@ fun PriceAlertsScreen(
                     AlertItem(
                         alert = alert,
                         onToggle = { viewModel.toggleAlert(alert) },
-                        onDelete = { viewModel.deleteAlert(alert) }
+                        onDelete = { viewModel.deleteAlert(alert) },
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                     )
                 }
             }
@@ -98,36 +103,48 @@ fun PriceAlertsScreen(
 fun AlertItem(
     alert: PriceAlert,
     onToggle: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val financeColors = LocalSarmayaColors.current
     
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(alert.stockSymbol, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
-                    "${if (alert.alertType == "ABOVE") "Crosses Above" else "Drops Below"} ₨ ${String.format("%,.2f", alert.targetPrice)}",
-                    style = MaterialTheme.typography.bodySmall,
+                    alert.stockSymbol, 
+                    style = MaterialTheme.typography.titleLarge, 
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    "${if (alert.alertType == "ABOVE") "Crosses Above" else "Drops Below"} ₨ ${String.format("%,.0f", alert.targetPrice)}",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (alert.isTriggered) {
-                    Text(
-                        "Triggered",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = financeColors.profit,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Surface(
+                        color = financeColors.profit.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            "Triggered",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = financeColors.profit,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
                 }
             }
             
@@ -137,18 +154,26 @@ fun AlertItem(
                     onCheckedChange = { onToggle() },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.primary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
+                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
                     enabled = !alert.isTriggered
                 )
                 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 
-                IconButton(onClick = onDelete) {
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.05f))
+                ) {
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
@@ -161,25 +186,35 @@ fun EmptyAlertsState() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 48.dp),
+            .padding(vertical = 80.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            Icons.Default.Notifications,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .clip(RoundedCornerShape(32.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Default.Notifications,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
-            "No alerts set",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            "No active alerts",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
         )
         Text(
-            "Tap + to create your first price alert",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            "Be the first to know when your favorite stocks hit your target price.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.padding(start = 48.dp, end = 48.dp, top = 8.dp)
         )
     }
 }

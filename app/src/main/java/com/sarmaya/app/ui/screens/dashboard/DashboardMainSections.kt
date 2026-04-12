@@ -109,10 +109,11 @@ fun PortfolioValueCard(
     totalInvested: Double,
     holdingsCount: Int,
     financeColors: SarmayaFinanceColors,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),

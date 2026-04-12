@@ -48,7 +48,9 @@ fun DashboardScreen(
     onAlertsClick: () -> Unit,
     onTotalValueClick: () -> Unit,
     onViewAllTransactions: () -> Unit,
-    viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
+    onNewsClick: (com.sarmaya.app.data.NewsArticle) -> Unit,
+    viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory),
+    newsViewModel: com.sarmaya.app.viewmodel.NewsViewModel = viewModel(factory = com.sarmaya.app.viewmodel.NewsViewModel.Factory)
 ) {
     val totalValue by viewModel.totalPortfolioValue.collectAsStateWithLifecycle()
     val totalInvested by viewModel.totalInvested.collectAsStateWithLifecycle()
@@ -66,20 +68,16 @@ fun DashboardScreen(
     val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    
+    val newsArticles by newsViewModel.newsArticles.collectAsStateWithLifecycle()
 
-    var showUpdatePricesSheet by remember { mutableStateOf(false) }
     var showTypeSelection by remember { mutableStateOf(false) }
-    var showTransactionForm by remember { mutableStateOf<String?>(null) } // "BUY", "SELL", etc.
+    var showTransactionForm by remember { mutableStateOf<String?>(null) } 
     var selectedStockForForm by remember { mutableStateOf<String?>(null) }
     var showSettingsSheet by remember { mutableStateOf(false) }
 
     val financeColors = LocalSarmayaColors.current
 
-    if (showUpdatePricesSheet) {
-        com.sarmaya.app.ui.components.UpdatePricesSheet(
-            onDismissRequest = { showUpdatePricesSheet = false }
-        )
-    }
     TransactionFlow(
         showTypeSelection = showTypeSelection,
         showTransactionForm = showTransactionForm,
@@ -96,44 +94,26 @@ fun DashboardScreen(
     )
 
     if (showSettingsSheet) {
-        SettingsScreen(
-            onDismiss = { showSettingsSheet = false }
-        )
+        SettingsScreen(onDismiss = { showSettingsSheet = false })
     }
 
     Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showTypeSelection = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Filled.Add, "Add Options")
-            }
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // ─── Header ───
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
+        topBar = {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+                Spacer(modifier = Modifier.height(16.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
                         Text(
-                            if (username.isNotBlank()) "Welcome back, $username" else "Sarmaya",
-                            style = MaterialTheme.typography.headlineLarge,
+                            text = if (username.isNotBlank()) "Salam, $username" else "Sarmaya",
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         PortfolioSelector(
                             activePortfolio = activePortfolio,
@@ -142,32 +122,58 @@ fun DashboardScreen(
                             onCreatePortfolio = { viewModel.createPortfolio(it) }
                         )
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        IconButton(onClick = onAlertsClick) {
-                            Icon(androidx.compose.material.icons.Icons.Default.Notifications, "Alerts", tint = MaterialTheme.colorScheme.primary)
+                    Row {
+                        IconButton(
+                            onClick = onAlertsClick,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        ) {
+                            Icon(Icons.Default.Notifications, contentDescription = "Alerts")
                         }
-                        IconButton(onClick = { showSettingsSheet = true }) {
-                            Icon(androidx.compose.material.icons.Icons.Default.Settings, "Settings", tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(
+                            onClick = { showSettingsSheet = true },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        ) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
                         }
                     }
                 }
             }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showTypeSelection = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(20.dp),
+                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 8.dp)
+            ) {
+                Icon(Icons.Filled.Add, "Add Transaction", modifier = Modifier.size(28.dp))
+            }
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 100.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            item { Spacer(modifier = Modifier.height(8.dp)) }
 
             if (isLoading) {
-                item { com.sarmaya.app.ui.components.ShimmerCard(height = 160.dp) }
-                item { com.sarmaya.app.ui.components.ShimmerCard(height = 100.dp) }
-                item { com.sarmaya.app.ui.components.ShimmerCard(height = 200.dp) }
-            } else {
-
-                // ─── Market Status ───
-                item {
-                    MarketStatusCard(
-                        lastPriceUpdate = lastPriceUpdate,
-                        onRefreshClick = { showUpdatePricesSheet = true }
-                    )
+                item { 
+                    com.sarmaya.app.ui.components.ShimmerCard(
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                        height = 180.dp 
+                    ) 
                 }
-
-                // ─── Portfolio Value Card ───
+            } else {
+                // ─── Main Portfolio Card ───
                 item {
                     PortfolioValueCard(
                         totalValue = totalValue,
@@ -175,190 +181,107 @@ fun DashboardScreen(
                         totalInvested = totalInvested,
                         holdingsCount = holdingsCount,
                         financeColors = financeColors,
-                        onClick = onTotalValueClick
+                        onClick = onTotalValueClick,
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
                 }
 
-                // ─── Quick Stats ───
+                // ─── Quick Stats Row ───
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        QuickStatCard(
-                            label = "Invested",
-                            value = "₨ ${String.format("%,.2f", totalInvested)}",
-                            containerColor = financeColors.cardSurface,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
-                        )
-                        QuickStatCard(
-                            label = "Realized P/L",
-                            value = "${if (totalRealizedPL >= 0) "+" else ""}₨ ${String.format("%,.2f", totalRealizedPL)}",
-                            containerColor = if (totalRealizedPL >= 0) financeColors.profitContainer else financeColors.lossContainer,
-                            contentColor = if (totalRealizedPL >= 0) financeColors.onProfitContainer else financeColors.onLossContainer,
-                            modifier = Modifier.weight(1f)
-                        )
-                        QuickStatCard(
-                            label = "Dividends",
-                            value = "₨ ${String.format("%,.2f", totalDividends)}",
-                            containerColor = financeColors.dividendContainer,
-                            contentColor = DividendBlue,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-
-                // ─── Total Return Card ───
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (totalReturn >= 0) financeColors.profitContainer else financeColors.lossContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    "Total Return",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer
-                                )
-                                Text(
-                                    "Unrealized + Realized + Dividends",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = (if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer).copy(alpha = 0.7f)
-                                )
-                            }
-                            Text(
-                                "${if (totalReturn >= 0) "+" else ""}₨ ${String.format("%,.2f", totalReturn)}",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = if (totalReturn >= 0) financeColors.onProfitContainer else financeColors.onLossContainer
-                            )
-                        }
-                    }
-                }
-
-                // ─── Top Movers ───
-                if (topGainers.isNotEmpty() || topLosers.isNotEmpty()) {
-                    item {
-                        Text(
-                            "Top Movers",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                    item {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(topGainers) { holding ->
-                                MoverChip(holding = holding, isGainer = true, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
-                            }
-                            items(topLosers) { holding ->
-                                MoverChip(holding = holding, isGainer = false, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
-                            }
-                        }
-                    }
-                }
-
-                // ─── Quick Actions (Buy / Sell) ───
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 24.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Button(
-                            onClick = { showTransactionForm = "BUY" },
-                            modifier = Modifier.weight(1f).height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = financeColors.profitContainer,
-                                contentColor = financeColors.onProfitContainer
+                        item {
+                            QuickStatCard(
+                                label = "Direct Invested",
+                                value = "₨ ${String.format("%,.0f", totalInvested)}",
+                                containerColor = financeColors.cardSurface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
                             )
-                        ) {
-                            Icon(androidx.compose.material.icons.Icons.Default.Add, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Buy", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         }
-                        Button(
-                            onClick = { showTypeSelection = true },
-                            modifier = Modifier.weight(1f).height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = financeColors.lossContainer,
-                                contentColor = financeColors.onLossContainer
+                        item {
+                            QuickStatCard(
+                                label = "Realized P/L",
+                                value = "${if (totalRealizedPL >= 0) "+" else ""}₨ ${String.format("%,.0f", totalRealizedPL)}",
+                                containerColor = if (totalRealizedPL >= 0) financeColors.profitContainer else financeColors.lossContainer,
+                                contentColor = if (totalRealizedPL >= 0) financeColors.onProfitContainer else financeColors.onLossContainer
                             )
-                        ) {
-                            Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.List, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Quick Actions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        }
+                        item {
+                            QuickStatCard(
+                                label = "Dividends",
+                                value = "₨ ${String.format("%,.0f", totalDividends)}",
+                                containerColor = financeColors.dividendContainer,
+                                contentColor = Color(0xFF1976D2)
+                            )
                         }
                     }
                 }
 
-                // ─── Sector Allocation ───
-                if (sectorAllocation.isNotEmpty()) {
+                // ─── Market News Section ───
+                if (newsArticles.isNotEmpty()) {
                     item {
-                        Text(
-                            "Sector Allocation",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(top = 4.dp)
+                        com.sarmaya.app.ui.components.NewsSection(
+                            articles = newsArticles,
+                            onArticleClick = onNewsClick
                         )
                     }
+                }
+
+                // ─── Top Movers / Gainers ───
+                if (topGainers.isNotEmpty() || topLosers.isNotEmpty()) {
                     item {
-                        SectorAllocationCard(
-                            sectorAllocation = sectorAllocation,
-                            totalValue = totalValue,
-                            financeColors = financeColors
-                        )
+                        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                            Text(
+                                "Top Performers",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                items(topGainers) { holding ->
+                                    MoverChip(holding = holding, isGainer = true, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
+                                }
+                                items(topLosers) { holding ->
+                                    MoverChip(holding = holding, isGainer = false, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
+                                }
+                            }
+                        }
                     }
                 }
 
                 // ─── Recent Activity ───
                 if (recentTransactions.isNotEmpty()) {
                     item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Recent Activity",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            TextButton(onClick = onViewAllTransactions) {
-                                Text("View All")
+                        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Recent Activity",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                TextButton(onClick = onViewAllTransactions) {
+                                    Text("View All", color = MaterialTheme.colorScheme.primary)
+                                }
                             }
-                        }
-                    }
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                recentTransactions.forEachIndexed { index, tx ->
-                                    RecentTransactionRow(tx = tx, financeColors = financeColors, onClick = { onStockClick(tx.stockSymbol) })
-                                    if (index < recentTransactions.size - 1) {
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(vertical = 4.dp),
-                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                                        )
+                            Card(
+                                shape = RoundedCornerShape(24.dp),
+                                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    recentTransactions.forEachIndexed { index, tx ->
+                                        RecentTransactionRow(tx = tx, financeColors = financeColors, onClick = { onStockClick(tx.stockSymbol) })
+                                        if (index < recentTransactions.size - 1) {
+                                            HorizontalDivider(
+                                                modifier = Modifier.padding(vertical = 12.dp),
+                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -369,41 +292,43 @@ fun DashboardScreen(
                 // ─── Empty State ───
                 if (holdingsCount == 0 && recentTransactions.isEmpty()) {
                     item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Column(
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                    .size(80.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    "📊",
-                                    fontSize = 48.sp
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(
-                                    "Start tracking your portfolio",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    "Tap + to add your first stock transaction",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                Icon(
+                                    Icons.AutoMirrored.Filled.List,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(40.dp)
                                 )
                             }
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Text(
+                                "Start Your Journey",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "Add your first transaction to see portfolio insights.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
                         }
                     }
                 }
             }
-
-            // Bottom spacer for FAB clearance
-            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 }

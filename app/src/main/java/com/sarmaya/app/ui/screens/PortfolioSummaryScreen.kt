@@ -40,15 +40,15 @@ fun PortfolioSummaryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Portfolio Summary", fontWeight = FontWeight.Bold) },
+            CenterAlignedTopAppBar(
+                title = { Text("Performance Audit", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
@@ -56,96 +56,112 @@ fun PortfolioSummaryScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 48.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 SummaryCard(
-                    label = "Total Portfolio Value",
-                    value = "₨ ${String.format("%,.2f", totalValue)}",
-                    subValue = "Invested: ₨ ${String.format("%,.2f", totalInvested)}",
+                    label = "Current Portfolio Worth",
+                    value = "₨ ${String.format("%,.0f", totalValue)}",
+                    subValue = "Cost Basis: ₨ ${String.format("%,.0f", totalInvested)}",
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     StatBox(
                         label = "Unrealized P/L",
-                        value = "${if (totalProfitLoss >= 0) "+" else ""}₨ ${String.format("%,.2f", totalProfitLoss)}",
+                        value = "${if (totalProfitLoss >= 0) "+" else ""}₨ ${String.format("%,.0f", totalProfitLoss)}",
                         color = if (totalProfitLoss >= 0) financeColors.profit else financeColors.loss,
                         modifier = Modifier.weight(1f)
                     )
                     StatBox(
                         label = "Realized P/L",
-                        value = "${if (totalRealizedPL >= 0) "+" else ""}₨ ${String.format("%,.2f", totalRealizedPL)}",
+                        value = "${if (totalRealizedPL >= 0) "+" else ""}₨ ${String.format("%,.0f", totalRealizedPL)}",
                         color = if (totalRealizedPL >= 0) financeColors.profit else financeColors.loss,
                         modifier = Modifier.weight(1f)
                     )
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     StatBox(
-                        label = "Total Dividends",
-                        value = "₨ ${String.format("%,.2f", totalDividends)}",
-                        color = financeColors.dividend,
+                        label = "Dividends",
+                        value = "₨ ${String.format("%,.0f", totalDividends)}",
+                        color = Color(0xFF1976D2),
                         modifier = Modifier.weight(1f)
                     )
                     StatBox(
                         label = "Total Return",
-                        value = "${if (totalReturn >= 0) "+" else ""}₨ ${String.format("%,.2f", totalReturn)}",
+                        value = "${if (totalReturn >= 0) "+" else ""}₨ ${String.format("%,.0f", totalReturn)}",
                         color = if (totalReturn >= 0) financeColors.profit else financeColors.loss,
                         modifier = Modifier.weight(1f)
                     )
                 }
+                Spacer(modifier = Modifier.height(32.dp))
             }
 
             item {
-                SectionTitle("General Statistics")
+                SectionTitle("Engagement Metrics")
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(24.dp)) {
                         StatRow("Active Holdings", holdingsCount.toString())
-                        StatRow("All-time Return %", if (totalInvested > 0) String.format("%.2f%%", (totalReturn / totalInvested) * 100) else "0%")
-                        StatRow("Profitability Ratio", if (totalInvested > 0) String.format("%.2f%%", (totalProfitLoss / totalInvested) * 100) else "0%")
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                        StatRow("Total ROI %", if (totalInvested > 0) String.format("%.2f%%", (totalReturn / totalInvested) * 100) else "0%")
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                        StatRow("Market Exposure", if (totalInvested > 0) String.format("%.2f%%", (totalProfitLoss / totalInvested) * 100) else "0%")
                     }
                 }
+                Spacer(modifier = Modifier.height(32.dp))
             }
 
             if (sectorAllocation.isNotEmpty()) {
                 item {
-                    SectionTitle("Sector Allocation")
+                    SectionTitle("Diversification")
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            sectorAllocation.forEach { (sector, value) ->
+                        Column(modifier = Modifier.padding(24.dp)) {
+                            sectorAllocation.toList().sortedByDescending { it.second }.forEach { (sector, value) ->
                                 val percentage = if (totalValue > 0) (value / totalValue).toFloat() else 0f
-                                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                Column(modifier = Modifier.padding(vertical = 10.dp)) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(sector, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                                        Text("${String.format("%.1f", percentage * 100)}%", style = MaterialTheme.typography.labelMedium)
+                                        Text(
+                                            text = sector, 
+                                            style = MaterialTheme.typography.bodyMedium, 
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Text(
+                                            text = "${String.format("%.1f", percentage * 100)}%", 
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     LinearProgressIndicator(
                                         progress = { percentage },
                                         modifier = Modifier
@@ -153,13 +169,13 @@ fun PortfolioSummaryScreen(
                                             .height(8.dp)
                                             .clip(RoundedCornerShape(4.dp)),
                                         color = MaterialTheme.colorScheme.primary,
-                                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                     )
                                     Text(
-                                        "₨ ${String.format("%,.2f", value)}",
+                                        text = "₨ ${String.format("%,.0f", value)}",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.align(Alignment.End).padding(top = 2.dp)
+                                        modifier = Modifier.align(Alignment.End).padding(top = 4.dp)
                                     )
                                 }
                             }
@@ -167,8 +183,6 @@ fun PortfolioSummaryScreen(
                     }
                 }
             }
-            
-            item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
 }
@@ -183,25 +197,27 @@ fun SummaryCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(label, style = MaterialTheme.typography.labelLarge, color = contentColor.copy(alpha = 0.7f))
-            Text(value, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = contentColor)
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(value, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold, color = contentColor)
+            Spacer(modifier = Modifier.height(16.dp))
             Surface(
                 color = contentColor.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
                     subValue,
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
                     color = contentColor,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                 )
             }
         }
@@ -215,12 +231,13 @@ fun StatBox(
     color: Color,
     modifier: Modifier = Modifier
 ) {
+    val financeColors = LocalSarmayaColors.current
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(4.dp))
             Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
@@ -232,21 +249,20 @@ fun StatBox(
 fun SectionTitle(title: String) {
     Text(
         title,
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier.padding(bottom = 16.dp, start = 4.dp)
     )
 }
 
 @Composable
 fun StatRow(label: String, value: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+        Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 }

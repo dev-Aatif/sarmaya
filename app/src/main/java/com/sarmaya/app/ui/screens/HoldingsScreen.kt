@@ -47,18 +47,11 @@ fun HoldingsScreen(
     val activeHoldings = holdings.filter { it.quantity > 0 }
     val closedHoldings = holdings.filter { it.quantity == 0 }
 
-    var showUpdatePricesSheet by remember { mutableStateOf(false) }
     var showTypeSelection by remember { mutableStateOf(false) }
     var showTransactionForm by remember { mutableStateOf<String?>(null) }
     var selectedStockForForm by remember { mutableStateOf<String?>(null) }
 
     val financeColors = LocalSarmayaColors.current
-
-    if (showUpdatePricesSheet) {
-        com.sarmaya.app.ui.components.UpdatePricesSheet(
-            onDismissRequest = { showUpdatePricesSheet = false }
-        )
-    }
 
     TransactionFlow(
         showTypeSelection = showTypeSelection,
@@ -75,310 +68,242 @@ fun HoldingsScreen(
         }
     )
 
-
-
     Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showTypeSelection = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, "Add Options")
-            }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ─── Header ───
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        "Portfolio",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold
+        topBar = {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+                CenterAlignedTopAppBar(
+                    title = { Text("Portfolio", fontWeight = FontWeight.Bold) },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
                     )
+                )
+                // Filter / Selector Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     PortfolioSelector(
                         activePortfolio = activePortfolio,
                         allPortfolios = allPortfolios,
                         onPortfolioSelected = { viewModel.selectPortfolio(it) },
                         onCreatePortfolio = { viewModel.createPortfolio(it) }
                     )
-                }
-                Button(
-                    onClick = { showUpdatePricesSheet = true },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(androidx.compose.material.icons.Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Sync", fontWeight = FontWeight.Bold)
+                    
+                    Text(
+                        "${activeHoldings.size} Active",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
                 }
             }
-
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showTypeSelection = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Icon(Icons.Default.Add, "Add Transaction")
+            }
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
+        ) {
             if (isLoading) {
-                Spacer(modifier = Modifier.height(16.dp))
-                com.sarmaya.app.ui.components.ShimmerCard(height = 120.dp)
-                Spacer(modifier = Modifier.height(16.dp))
-                com.sarmaya.app.ui.components.ShimmerCard(height = 80.dp)
-                Spacer(modifier = Modifier.height(16.dp))
-                com.sarmaya.app.ui.components.ShimmerCard(height = 80.dp)
+                items(3) {
+                    com.sarmaya.app.ui.components.ShimmerCard(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                        height = 120.dp
+                    )
+                }
             } else {
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            LazyColumn(Modifier.fillMaxSize()) {
                 if (activeHoldings.isNotEmpty()) {
                     item {
                         Text(
-                            "Active Positions",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(vertical = 8.dp)
+                            "Positions",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                         )
                     }
                     items(activeHoldings) { holding ->
                         HoldingItem(
                             holding = holding,
                             financeColors = financeColors,
-                            onClick = { 
-                                selectedStockForForm = holding.stockSymbol
-                                showTypeSelection = true
-                            }
+                            onClick = { onStockClick(holding.stockSymbol) },
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                         )
                     }
-                    item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
+
                 if (closedHoldings.isNotEmpty()) {
                     item {
                         Text(
-                            "Closed Positions",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.outline,
-                            modifier = Modifier.padding(vertical = 8.dp)
+                            "Closed History",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     items(closedHoldings) { holding ->
                         HoldingItem(
                             holding = holding,
                             financeColors = financeColors,
-                            onClick = { 
-                                selectedStockForForm = holding.stockSymbol
-                                showTypeSelection = true
-                            }
+                            onClick = { onStockClick(holding.stockSymbol) },
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                         )
                     }
                 }
+
                 if (holdings.isEmpty()) {
                     item {
-                        Card(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 24.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
+                                .padding(40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text("📈", fontSize = 48.sp)
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(
-                                    "No holdings yet",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    "Your portfolio will appear here once you add transactions.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            Text("📊", fontSize = 64.sp)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "No holdings yet",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "Your investment journey begins by adding your first trade.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
                         }
                     }
                 }
-                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }
 }
-}
 
 @Composable
-fun HoldingItem(holding: ComputedHolding, financeColors: SarmayaFinanceColors, onClick: () -> Unit) {
+fun HoldingItem(
+    holding: ComputedHolding, 
+    financeColors: SarmayaFinanceColors, 
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val isProfit = holding.profitLossAmount >= 0
     val isClosed = holding.quantity == 0
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 5.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // Row 1: Symbol + current value
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         holding.stockSymbol,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         holding.name,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                 }
                 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!isClosed) {
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                "₨ ${String.format("%,.2f", holding.currentValue)}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1
-                            )
-                            Surface(
-                                color = if (isProfit) financeColors.profitContainer else financeColors.lossContainer,
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(
-                                    "${if (isProfit) "+" else ""}${String.format("%.1f", holding.profitLossPercentage)}%  ${if (isProfit) "▲" else "▼"}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isProfit) financeColors.onProfitContainer else financeColors.onLossContainer,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                    } else {
+                if (!isClosed) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            "₨ ${String.format("%,.0f", holding.currentValue)}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                         Surface(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            color = (if (isProfit) financeColors.profit else financeColors.loss).copy(alpha = 0.1f),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                "CLOSED",
+                                text = "${if (isProfit) "+" else ""}${String.format("%.2f", holding.profitLossPercentage)}%",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                color = if (isProfit) financeColors.profit else financeColors.loss,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                             )
                         }
                     }
-                    
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Icon(
-                        androidx.compose.material.icons.Icons.Default.KeyboardArrowRight,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                    )
+                } else {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            "CLOSED",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Row 2: Details
-            if (!isClosed) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                if (!isClosed) {
                     DetailLabel(label = "Shares", value = "${holding.quantity}")
-                    DetailLabel(label = "Avg Cost", value = "₨ ${String.format("%,.2f", holding.avgBuyPrice)}")
-                    DetailLabel(label = "Price", value = "₨ ${String.format("%,.2f", holding.currentPrice)}")
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                    DetailLabel(label = "Avg Cost", value = "₨ ${String.format("%,.1f", holding.avgBuyPrice)}")
                     DetailLabel(
-                        label = "Unrealized P/L",
-                        value = "${if (isProfit) "+" else ""}₨ ${String.format("%,.2f", holding.profitLossAmount)}",
+                        label = "P/L", 
+                        value = "${if (isProfit) "+" else ""}₨ ${String.format("%,.0f", holding.profitLossAmount)}",
                         valueColor = if (isProfit) financeColors.profit else financeColors.loss
                     )
-                    if (holding.realizedProfitLoss != 0.0) {
-                        val realizedIsProfit = holding.realizedProfitLoss >= 0
-                        DetailLabel(
-                            label = "Realized P/L",
-                            value = "${if (realizedIsProfit) "+" else ""}₨ ${String.format("%,.2f", holding.realizedProfitLoss)}",
-                            valueColor = if (realizedIsProfit) financeColors.profit else financeColors.loss
-                        )
-                    }
+                } else {
+                    val realizedProfit = holding.realizedProfitLoss >= 0
+                    DetailLabel(
+                        label = "Realized P/L", 
+                        value = "${if (realizedProfit) "+" else ""}₨ ${String.format("%,.0f", holding.realizedProfitLoss)}",
+                        valueColor = if (realizedProfit) financeColors.profit else financeColors.loss
+                    )
                     if (holding.totalDividends > 0) {
                         DetailLabel(
-                            label = "Dividends",
-                            value = "₨ ${String.format("%,.2f", holding.totalDividends)}",
-                            valueColor = financeColors.dividend
-                        )
-                    }
-                }
-            } else {
-                // Closed holdings show realized P/L and dividends
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    if (holding.realizedProfitLoss != 0.0) {
-                        val realizedIsProfit = holding.realizedProfitLoss >= 0
-                        DetailLabel(
-                            label = "Realized P/L",
-                            value = "${if (realizedIsProfit) "+" else ""}₨ ${String.format("%,.2f", holding.realizedProfitLoss)}",
-                            valueColor = if (realizedIsProfit) financeColors.profit else financeColors.loss
-                        )
-                    }
-                    if (holding.totalDividends > 0) {
-                        DetailLabel(
-                            label = "Dividends",
-                            value = "₨ ${String.format("%,.2f", holding.totalDividends)}",
-                            valueColor = financeColors.dividend
+                            label = "Dividends", 
+                            value = "₨ ${String.format("%,.0f", holding.totalDividends)}",
+                            valueColor = Color(0xFF1976D2)
                         )
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                if (isClosed) "Tap to view history" else "Tap to manage",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
         }
     }
 }

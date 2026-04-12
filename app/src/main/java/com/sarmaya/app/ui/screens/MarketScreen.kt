@@ -48,26 +48,28 @@ fun MarketScreen(
         topBar = {
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                 CenterAlignedTopAppBar(
-                    title = { Text("Market", fontWeight = FontWeight.Bold) },
+                    title = { Text("Market Explorer", fontWeight = FontWeight.Bold) },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                         containerColor = MaterialTheme.colorScheme.background
                     )
                 )
                 
-                // Search Bar
+                // Premium Search Bar
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { viewModel.updateSearchQuery(it) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    placeholder = { Text("Search scrips or company name...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    shape = RoundedCornerShape(16.dp),
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    placeholder = { Text("Search symbols or companies...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    shape = RoundedCornerShape(20.dp),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                     )
                 )
                 
@@ -75,8 +77,8 @@ fun MarketScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     FilterChip(
@@ -90,7 +92,18 @@ fun MarketScreen(
                                 modifier = Modifier.size(18.dp)
                             ) 
                         },
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedLeadingIconColor = Color(0xFFFFD700)
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            selected = isOnlyWatchlist,
+                            enabled = true,
+                            borderColor = MaterialTheme.colorScheme.outlineVariant,
+                            selectedBorderColor = Color.Transparent
+                        )
                     )
 
                     var sectorExpanded by remember { mutableStateOf(false) }
@@ -108,12 +121,12 @@ fun MarketScreen(
                                 .menuAnchor()
                                 .fillMaxWidth(),
                             textStyle = MaterialTheme.typography.bodyMedium,
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(14.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                                 unfocusedBorderColor = Color.Transparent,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                             )
                         )
                         ExposedDropdownMenu(
@@ -146,7 +159,7 @@ fun MarketScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(bottom = 16.dp)
+            contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             // Indices Section
             if (indices.isNotEmpty() && searchQuery.isBlank() && selectedSector == null && !isOnlyWatchlist) {
@@ -154,13 +167,13 @@ fun MarketScreen(
                     Column(modifier = Modifier.padding(vertical = 16.dp)) {
                         Text(
                             "Market Indices",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 16.dp)
+                            modifier = Modifier.padding(horizontal = 24.dp)
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
                         LazyRow(
-                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            contentPadding = PaddingValues(horizontal = 24.dp),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(indices) { index ->
@@ -174,14 +187,18 @@ fun MarketScreen(
             // Movers Section (only when not searching/filtering)
             if (searchQuery.isBlank() && selectedSector == null && !isOnlyWatchlist) {
                 item {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(vertical = 16.dp)) {
                         Text(
                             "Top Gainers",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 24.dp)
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
                             items(topMovers.first) { mover ->
                                 MoverMiniCard(
                                     mover = mover, 
@@ -192,15 +209,19 @@ fun MarketScreen(
                             }
                         }
                         
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(32.dp))
                         
                         Text(
                             "Top Losers",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 24.dp)
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
                             items(topMovers.second) { mover ->
                                 MoverMiniCard(
                                     mover = mover, 
@@ -219,9 +240,9 @@ fun MarketScreen(
                 val title = titleForList(searchQuery, selectedSector, isOnlyWatchlist)
                 Text(
                     title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                 )
             }
 
@@ -230,7 +251,8 @@ fun MarketScreen(
                     marketStock = marketStock, 
                     financeColors = financeColors, 
                     onStockClick = onStockClick,
-                    onToggleWatchlist = { viewModel.toggleWatchlist(it) }
+                    onToggleWatchlist = { viewModel.toggleWatchlist(it) },
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
         }
@@ -245,25 +267,35 @@ fun IndexCard(index: com.sarmaya.app.network.api.PsxIndex, financeColors: Sarmay
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(index.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                String.format("%,.0f", index.current),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.ExtraBold
+                text = index.name, 
+                style = MaterialTheme.typography.labelMedium, 
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "${if (isProfit) "+" else ""}${String.format("%.2f", index.change)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isProfit) financeColors.profit else financeColors.loss
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    "(${String.format("%.2f", index.changep)}%)",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isProfit) financeColors.profit else financeColors.loss
-                )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = String.format("%,.0f", index.current),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                color = (if (isProfit) financeColors.profit else financeColors.loss).copy(alpha = 0.1f),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${if (isProfit) "+" else ""}${String.format("%.2f", index.changep)}%",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isProfit) financeColors.profit else financeColors.loss
+                    )
+                }
             }
         }
     }
@@ -336,13 +368,14 @@ fun MarketStockItem(
     marketStock: MarketStock,
     financeColors: SarmayaFinanceColors,
     onStockClick: (String) -> Unit,
-    onToggleWatchlist: (String) -> Unit
+    onToggleWatchlist: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val quote = marketStock.quote
     val isProfit = (quote?.change ?: 0.0) >= 0
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onStockClick(marketStock.stock.symbol) }
             .padding(horizontal = 16.dp, vertical = 12.dp),
