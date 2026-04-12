@@ -36,7 +36,8 @@ class MarketViewModel(
     private val repository: StockDataRepository,
     private val stockDao: StockDao,
     private val quoteCacheDao: StockQuoteCacheDao,
-    private val watchlistDao: WatchlistDao
+    private val watchlistDao: WatchlistDao,
+    private val wsManager: com.sarmaya.app.network.websocket.PsxWebSocketManager
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -56,9 +57,27 @@ class MarketViewModel(
 
     private val allStocksFlow = stockDao.getAllStocks()
     private val watchlistFlow = watchlistDao.getAllItems()
-    
     private val quoteFlow = quoteCacheDao.getAll()
     
+    // Connect websocket tick updates to cache
+    init {
+        viewModelScope.launch {
+            wsManager.tickUpdates.collect { update ->
+                // Update local cache for immediate UI reflection
+                quoteCacheDao.upsert(StockQuoteCache(
+                    symbol = update.symbol,
+                    price = update.price,
+                    change = update.change,
+                    changePercent = update.changePercent,
+                    volume = update.volume,
+                    high = update.high,
+                    low = update.low,
+                    cachedAt = System.currentTimeMillis()
+                ))
+            }
+        }
+    }
+
     private val filterFlow = combine(_searchQuery, _selectedSector, _isOnlyWatchlist) { query, sector, onlyWatchlist ->
         Triple(query, sector, onlyWatchlist)
     }
@@ -94,12 +113,19 @@ class MarketViewModel(
 
     init {
         refreshMarket()
+        // Subscribe to all stocks in viewport (simplified for MVP: all active stocks)
+        wsManager.subscribe("marketData:REG")
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        wsManager.unsubscribe("marketData:REG")
     }
 
     fun refreshMarket() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            repository.syncPsxQuotes()
+            repository.syncPsxQuotes() 
             repository.getIndices().onSuccess {
                 _indices.value = it
             }
@@ -109,24 +135,14 @@ class MarketViewModel(
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
-        if (query.isNotBlank()) {
-            _isOnlyWatchlist.value = false
-            _selectedSector.value = null
-        }
     }
 
     fun selectSector(sector: String?) {
         _selectedSector.value = sector
-        if (sector != null) {
-            _isOnlyWatchlist.value = false
-        }
     }
 
     fun toggleOnlyWatchlist() {
         _isOnlyWatchlist.value = !_isOnlyWatchlist.value
-        if (_isOnlyWatchlist.value) {
-            _selectedSector.value = null
-        }
     }
 
     fun toggleWatchlist(symbol: String) {
@@ -148,7 +164,8 @@ class MarketViewModel(
                     application.container.stockDataRepository,
                     application.container.stockDao,
                     application.container.stockQuoteCacheDao,
-                    application.container.watchlistDao
+                    application.container.watchlistDao,
+                    application.container.psxWebSocketManager
                 ) as T
             }
         }

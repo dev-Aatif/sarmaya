@@ -12,9 +12,13 @@ import com.sarmaya.app.network.CompanyProfile
 import com.sarmaya.app.network.PricePoint
 import com.sarmaya.app.network.StockDataRepository
 import com.sarmaya.app.network.UnifiedQuote
+import com.sarmaya.app.data.*
+import com.sarmaya.app.network.websocket.TickUpdate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 sealed class StockDetailUiState {
@@ -30,6 +34,8 @@ sealed class StockDetailUiState {
 
 class StockDetailViewModel(
     private val repository: StockDataRepository,
+    private val watchlistDao: WatchlistDao,
+    private val wsManager: com.sarmaya.app.network.websocket.PsxWebSocketManager,
     private val symbol: String
 ) : ViewModel() {
 
@@ -39,8 +45,59 @@ class StockDetailViewModel(
     private val _chartRange = MutableStateFlow(ChartRange.ONE_DAY)
     val chartRange: StateFlow<ChartRange> = _chartRange.asStateFlow()
 
+    private val _isWatched = MutableStateFlow(false)
+    val isWatched: StateFlow<Boolean> = _isWatched.asStateFlow()
+
     init {
         refreshAll()
+        checkWatchlist()
+        
+        // WebSocket logic: subscribe to this specific symbol
+        wsManager.subscribe("tick:REG:$symbol")
+        
+        viewModelScope.launch {
+            wsManager.tickUpdates
+                .filter { it.symbol == symbol }
+                .collect { update: TickUpdate ->
+                    val currentState = _uiState.value
+                    if (currentState is StockDetailUiState.Success) {
+                        _uiState.value = currentState.copy(
+                            quote = currentState.quote.copy(
+                                price = update.price,
+                                change = update.change,
+                                changePercent = update.changePercent,
+                                volume = update.volume,
+                                trades = update.trades,
+                                value = update.value,
+                                marketState = update.marketState
+                            )
+                        )
+                    }
+                }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        wsManager.unsubscribe("tick:REG:$symbol")
+    }
+
+    private fun checkWatchlist() {
+        viewModelScope.launch {
+            _isWatched.value = watchlistDao.isInWatchlist(symbol) > 0
+        }
+    }
+
+    fun toggleWatchlist() {
+        viewModelScope.launch {
+            if (_isWatched.value) {
+                watchlistDao.deleteBySymbol(symbol)
+                _isWatched.value = false
+            } else {
+                watchlistDao.insert(com.sarmaya.app.data.WatchlistItem(stockSymbol = symbol))
+                _isWatched.value = true
+            }
+        }
     }
 
     fun refreshAll() {
@@ -50,20 +107,16 @@ class StockDetailViewModel(
             val quoteResult = repository.getQuote(symbol)
             val profileResult = repository.getCompanyProfile(symbol)
             val chartResult = repository.getHistoricalData(symbol, _chartRange.value)
-            val peersResult = repository.getPeers(symbol)
 
-            // Only require the quote to succeed. Profile gracefully degrades to placeholder.
             if (quoteResult.isSuccess) {
                 _uiState.value = StockDetailUiState.Success(
                     quote = quoteResult.getOrThrow(),
                     profile = profileResult.getOrElse { emptyProfile(symbol) },
                     chartData = chartResult.getOrDefault(emptyList()),
-                    peers = peersResult.getOrDefault(emptyList())
+                    peers = emptyList() // Peers logic temporarily disabled in v2
                 )
             } else {
-                val errorMsg = quoteResult.exceptionOrNull()?.message 
-                    ?: "Failed to load stock details"
-                Log.e("StockDetailVM", "Failed to load $symbol: $errorMsg")
+                val errorMsg = quoteResult.exceptionOrNull()?.message ?: "Failed to load"
                 _uiState.value = StockDetailUiState.Error(errorMsg)
             }
         }
@@ -83,19 +136,15 @@ class StockDetailViewModel(
         }
     }
 
-    /**
-     * Creates a placeholder profile when the real profile is unavailable.
-     * This ensures the stock detail screen always renders with at least basic info.
-     */
     private fun emptyProfile(symbol: String) = CompanyProfile(
         symbol = symbol,
         name = symbol,
-        description = "Company profile data is currently unavailable. Please check your internet connection and try again.",
+        description = "Profile missing",
         sector = "",
         industry = "",
         website = "",
         phone = "",
-        country = "Pakistan",
+        country = "PK",
         logoUrl = "",
         marketCap = 0L,
         peRatio = 0.0,
@@ -111,7 +160,12 @@ class StockDetailViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
             val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as SarmayaApplication
-            return StockDetailViewModel(application.container.stockDataRepository, symbol) as T
+            return StockDetailViewModel(
+                application.container.stockDataRepository,
+                application.container.watchlistDao,
+                application.container.psxWebSocketManager,
+                symbol
+            ) as T
         }
     }
 }

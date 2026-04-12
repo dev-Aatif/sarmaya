@@ -17,7 +17,9 @@ class DashboardViewModel(
     private val stockDao: StockDao,
     private val portfolioDao: PortfolioDao,
     private val dataStoreManager: DataStoreManager,
-    private val sarmayaRepository: com.sarmaya.app.network.StockDataRepository
+    private val sarmayaRepository: com.sarmaya.app.network.StockDataRepository,
+    private val quoteCacheDao: StockQuoteCacheDao,
+    private val wsManager: com.sarmaya.app.network.websocket.PsxWebSocketManager
 ) : ViewModel() {
 
     val allPortfolios: StateFlow<List<Portfolio>> = portfolioDao.getAllPortfolios()
@@ -45,12 +47,26 @@ class DashboardViewModel(
 
     val computedHoldings = PortfolioCalculator.getEventSourcedHoldings(
         transactions,
-        stockDao.getAllStocks()
+        stockDao.getAllStocks(),
+        quoteCacheDao.getAll()
     ).stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         emptyList()
     )
+
+    // WebSocket logic for dashboard real-time updates
+    init {
+        viewModelScope.launch {
+            computedHoldings.map { it.filter { h -> h.quantity > 0 }.map { h -> h.stockSymbol } }
+                .distinctUntilChanged()
+                .collect { symbols ->
+                    if (symbols.isNotEmpty()) {
+                        wsManager.subscribe("marketData:REG")
+                    }
+                }
+        }
+    }
 
     val totalPortfolioValue = computedHoldings.map { holdings ->
         holdings.sumOf { it.currentValue }
@@ -169,7 +185,9 @@ class DashboardViewModel(
                     application.container.stockDao,
                     application.container.portfolioDao,
                     application.container.dataStoreManager,
-                    application.container.stockDataRepository
+                    application.container.stockDataRepository,
+                    application.container.stockQuoteCacheDao,
+                    application.container.psxWebSocketManager
                 ) as T
             }
         }

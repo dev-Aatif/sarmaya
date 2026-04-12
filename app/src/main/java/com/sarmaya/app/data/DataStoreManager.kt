@@ -29,6 +29,8 @@ class DataStoreManager(private val context: Context) {
         val KEY_NOTIFICATIONS_MARKET = booleanPreferencesKey("notif_market")
         val KEY_NOTIFICATIONS_UPDATES = booleanPreferencesKey("notif_updates")
         val KEY_ACTIVE_PORTFOLIO_ID = longPreferencesKey("active_portfolio_id")
+        val KEY_IS_FILER = booleanPreferencesKey("is_filer")
+        val KEY_COMMISSION_RATE = stringPreferencesKey("commission_rate") // Saved as string to avoid float precision issues in text field
     }
 
     // ─── Username ───
@@ -40,6 +42,28 @@ class DataStoreManager(private val context: Context) {
     suspend fun setUsername(name: String) {
         context.dataStore.edit { prefs ->
             prefs[KEY_USERNAME] = name
+        }
+    }
+
+    // ─── Filer Status ───
+    val isFiler: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_IS_FILER] ?: true
+    }
+
+    suspend fun setIsFiler(value: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_IS_FILER] = value
+        }
+    }
+
+    // ─── Broker Commission ───
+    val commissionRate: Flow<Double> = context.dataStore.data.map { prefs ->
+        prefs[KEY_COMMISSION_RATE]?.toDoubleOrNull() ?: 0.0015 // Default 0.15%
+    }
+
+    suspend fun setCommissionRate(rate: Double) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_COMMISSION_RATE] = rate.toString()
         }
     }
 
