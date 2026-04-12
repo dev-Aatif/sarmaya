@@ -33,29 +33,44 @@ interface PsxApi {
  */
 interface PsxTerminalApi {
 
-    /**
-     * Fetch live market data for all stocks.
-     */
-    @GET("api/market-data")
-    suspend fun getMarketData(): List<PsxTerminalStock>
+    @GET("api/status")
+    suspend fun getStatus(): PsxTerminalStatus
 
-    /**
-     * Fetch market statistics/indices.
-     */
-    @GET("api/stats")
-    suspend fun getStats(): PsxTerminalStatsResponse
+    @GET("api/symbols")
+    suspend fun getSymbols(): List<PsxTerminalSymbol>
 
-    /**
-     * Fetch company profile/details.
-     */
-    @GET("api/company/{symbol}")
-    suspend fun getCompany(@Path("symbol") symbol: String): PsxTerminalCompany
+    @GET("api/ticks/REG/{symbol}")
+    suspend fun getStockTick(@Path("symbol") symbol: String): PsxTerminalTick
 
-    /**
-     * Fetch fundamental data (PE, yields, etc.)
-     */
-    @GET("api/yields/{symbol}")
-    suspend fun getYields(@Path("symbol") symbol: String): PsxTerminalYields
+    @GET("api/ticks/IDX/{symbol}")
+    suspend fun getIndexTick(@Path("symbol") symbol: String): PsxTerminalTick
+
+    @GET("api/stats/REG")
+    suspend fun getMarketStats(): PsxTerminalStats
+
+    @GET("api/stats/IDX")
+    suspend fun getIndexStats(): PsxTerminalStats
+
+    @GET("api/stats/breadth")
+    suspend fun getMarketBreadth(): PsxTerminalBreadth
+
+    @GET("api/stats/sectors")
+    suspend fun getSectorStats(): List<PsxTerminalSectorStat>
+
+    @GET("api/companies/{symbol}")
+    suspend fun getCompany(@Path("symbol") symbol: String): PsxTerminalCompanyInfo
+
+    @GET("api/fundamentals/{symbol}")
+    suspend fun getFundamentals(@Path("symbol") symbol: String): PsxTerminalFundamentals
+
+    @GET("api/dividends/{symbol}")
+    suspend fun getDividends(@Path("symbol") symbol: String): List<PsxTerminalDividend>
+
+    @GET("api/klines/{symbol}/{tf}")
+    suspend fun getKlines(@Path("symbol") symbol: String, @Path("tf") timeframe: String): List<List<Double>>
+
+    @GET("api/towatch")
+    suspend fun getToWatch(): Map<String, List<PsxTerminalTick>>
 }
 
 // ─── PSX DPS Models ───
@@ -101,83 +116,86 @@ data class PsxIndex(
 
 // ─── PSX Terminal Models ───
 
-@JsonClass(generateAdapter = true)
-data class PsxTerminalStock(
-    @Json(name = "symbol") val symbol: String = "",
-    @Json(name = "name") val name: String? = null,
-    @Json(name = "company") val company: String? = null,
-    @Json(name = "ldcp") val ldcp: Double? = null,       // Last Day Close Price
-    @Json(name = "open") val open: Double? = null,
-    @Json(name = "high") val high: Double? = null,
-    @Json(name = "low") val low: Double? = null,
-    @Json(name = "current") val current: Double? = null,
-    @Json(name = "price") val price: Double? = null,
-    @Json(name = "change") val change: Double? = null,
-    @Json(name = "change_p") val changePercent: Double? = null,
-    @Json(name = "volume") val volume: Long? = null,
-    @Json(name = "vol") val vol: Long? = null,
-    @Json(name = "sector") val sector: String? = null
-) {
-    /** Resolve the effective price from whichever field is populated */
-    fun effectivePrice(): Double = current ?: price ?: 0.0
-    fun effectiveVolume(): Long = volume ?: vol ?: 0L
-    fun effectiveName(): String = name ?: company ?: symbol
-    fun effectiveChange(): Double = change ?: 0.0
-    fun effectiveChangePercent(): Double = changePercent ?: 0.0
-}
+// ─── PSX Terminal Models (v2) ───
 
 @JsonClass(generateAdapter = true)
-data class PsxTerminalStatsResponse(
-    @Json(name = "indices") val indices: List<PsxTerminalIndex>? = null,
-    @Json(name = "stats") val stats: Map<String, Any>? = null
+data class PsxTerminalStatus(
+    val status: String,
+    val marketState: String?
 )
 
 @JsonClass(generateAdapter = true)
-data class PsxTerminalIndex(
-    @Json(name = "name") val name: String = "",
-    @Json(name = "current") val current: Double? = null,
-    @Json(name = "value") val value: Double? = null,
-    @Json(name = "change") val change: Double? = null,
-    @Json(name = "change_p") val changePercent: Double? = null,
-    @Json(name = "high") val high: Double? = null,
-    @Json(name = "low") val low: Double? = null,
-    @Json(name = "prev") val prev: Double? = null,
-    @Json(name = "previous") val previous: Double? = null
-) {
-    fun effectiveValue(): Double = current ?: value ?: 0.0
-    fun effectiveChange(): Double = change ?: 0.0
-    fun effectiveChangePercent(): Double = changePercent ?: 0.0
-    fun effectivePrev(): Double = prev ?: previous ?: 0.0
-}
+data class PsxTerminalSymbol(
+    val symbol: String,
+    val name: String,
+    val sector: String,
+    val market: String
+)
 
 @JsonClass(generateAdapter = true)
-data class PsxTerminalCompany(
-    @Json(name = "symbol") val symbol: String? = null,
-    @Json(name = "name") val name: String? = null,
-    @Json(name = "company") val company: String? = null,
-    @Json(name = "sector") val sector: String? = null,
-    @Json(name = "description") val description: String? = null,
-    @Json(name = "website") val website: String? = null,
-    @Json(name = "phone") val phone: String? = null,
-    @Json(name = "address") val address: String? = null,
-    @Json(name = "industry") val industry: String? = null,
-    @Json(name = "market_cap") val marketCap: Long? = null,
-    @Json(name = "shares") val shares: Long? = null,
-    @Json(name = "free_float") val freeFloat: Double? = null,
-    @Json(name = "face_value") val faceValue: Double? = null
-) {
-    fun effectiveName(): String = name ?: company ?: symbol ?: ""
-}
+data class PsxTerminalTick(
+    val symbol: String,
+    val price: Double = 0.0,
+    val change: Double = 0.0,
+    val changePercent: Double = 0.0,
+    val volume: Long = 0L,
+    val high: Double = 0.0,
+    val low: Double = 0.0,
+    val value: Long = 0L,
+    val trades: Long = 0L,
+    val state: String = "OFFLINE"
+)
 
 @JsonClass(generateAdapter = true)
-data class PsxTerminalYields(
-    @Json(name = "symbol") val symbol: String? = null,
-    @Json(name = "pe") val pe: Double? = null,
-    @Json(name = "eps") val eps: Double? = null,
-    @Json(name = "dividend_yield") val dividendYield: Double? = null,
-    @Json(name = "book_value") val bookValue: Double? = null,
-    @Json(name = "high_52w") val high52w: Double? = null,
-    @Json(name = "low_52w") val low52w: Double? = null,
-    @Json(name = "beta") val beta: Double? = null,
-    @Json(name = "market_cap") val marketCap: Long? = null
+data class PsxTerminalStats(
+    val topGainers: List<PsxTerminalTick> = emptyList(),
+    val topLosers: List<PsxTerminalTick> = emptyList(),
+    val volumeLeaders: List<PsxTerminalTick> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class PsxTerminalBreadth(
+    val total: Int = 0,
+    val advanced: Int = 0,
+    val declined: Int = 0,
+    val unchanged: Int = 0
+)
+
+@JsonClass(generateAdapter = true)
+data class PsxTerminalSectorStat(
+    val sector: String,
+    val symbolCount: Int = 0,
+    val totalVolume: Long = 0L,
+    val totalValue: Long = 0L,
+    val advanced: Int = 0,
+    val declined: Int = 0,
+    val unchanged: Int = 0
+)
+
+@JsonClass(generateAdapter = true)
+data class PsxTerminalCompanyInfo(
+    val symbol: String,
+    val name: String,
+    val description: String = "",
+    val sector: String = "",
+    val industry: String = "",
+    val profileImage: String = ""
+)
+
+@JsonClass(generateAdapter = true)
+data class PsxTerminalFundamentals(
+    val symbol: String,
+    val marketCap: Long = 0L,
+    val peRatio: Double = 0.0,
+    val eps: Double = 0.0,
+    val dividendYield: Double = 0.0,
+    val pbRatio: Double = 0.0,
+    val roe: Double = 0.0
+)
+
+@JsonClass(generateAdapter = true)
+data class PsxTerminalDividend(
+    val exDate: Long,
+    val paymentDate: Long,
+    val amount: Double
 )

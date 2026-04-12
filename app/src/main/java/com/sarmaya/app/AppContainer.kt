@@ -12,7 +12,6 @@ import com.sarmaya.app.data.TransactionDao
 import com.sarmaya.app.data.WatchlistDao
 import com.sarmaya.app.network.ConnectivityChecker
 import com.sarmaya.app.network.StockDataRepository
-import com.sarmaya.app.network.api.GitHubApi
 import com.sarmaya.app.network.api.PsxApi
 import com.sarmaya.app.network.api.PsxTerminalApi
 import com.sarmaya.app.network.api.YahooFinanceApi
@@ -36,6 +35,7 @@ class AppContainer(private val context: Context) {
     val portfolioDao: PortfolioDao by lazy { database.portfolioDao() }
     val priceAlertDao: PriceAlertDao by lazy { database.priceAlertDao() }
     val portfolioSnapshotDao: PortfolioSnapshotDao by lazy { database.portfolioSnapshotDao() }
+    val newsArticleDao: com.sarmaya.app.data.NewsArticleDao by lazy { database.newsArticleDao() }
 
     // ─── DataStore ───
     val dataStoreManager: DataStoreManager by lazy { DataStoreManager(context) }
@@ -64,10 +64,6 @@ class AppContainer(private val context: Context) {
             .build()
     }
 
-    /**
-     * Dedicated OkHttpClient for PSX endpoints with User-Agent header
-     * (PSX may block requests without a browser-like User-Agent)
-     */
     private val psxOkHttpClient: OkHttpClient by lazy {
         okHttpClient.newBuilder()
             .addInterceptor { chain ->
@@ -102,20 +98,11 @@ class AppContainer(private val context: Context) {
 
     val psxTerminalApi: PsxTerminalApi by lazy {
         Retrofit.Builder()
-            .baseUrl("https://psxterminal.com/")
+            .baseUrl("https://api.psxterminal.com/") // Updated to API base URL
             .client(psxOkHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(PsxTerminalApi::class.java)
-    }
-
-    val gitHubApi: GitHubApi by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://api.github.com")
-            .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-            .create(GitHubApi::class.java)
     }
 
     val connectivityChecker: ConnectivityChecker by lazy {
@@ -129,6 +116,25 @@ class AppContainer(private val context: Context) {
             psxTerminalApi = psxTerminalApi,
             stockDao = stockDao,
             quoteCacheDao = stockQuoteCacheDao,
+            connectivityChecker = connectivityChecker
+        )
+    }
+
+    val psxWebSocketManager: com.sarmaya.app.network.websocket.PsxWebSocketManager by lazy {
+        com.sarmaya.app.network.websocket.PsxWebSocketManager(
+            connectivityChecker = connectivityChecker,
+            moshi = moshi
+        )
+    }
+
+    private val googleRssParser: com.sarmaya.app.network.rss.GoogleRssParser by lazy {
+        com.sarmaya.app.network.rss.GoogleRssParser()
+    }
+
+    val newsRepository: com.sarmaya.app.network.repository.NewsRepository by lazy {
+        com.sarmaya.app.network.repository.NewsRepository(
+            newsDao = newsArticleDao,
+            rssParser = googleRssParser,
             connectivityChecker = connectivityChecker
         )
     }

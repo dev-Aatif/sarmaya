@@ -16,6 +16,9 @@ data class UnifiedQuote(
     val dayLow: Double,
     val open: Double,
     val previousClose: Double,
+    val marketState: String = "OFFLINE",
+    val trades: Long = 0L,
+    val value: Long = 0L,
     val timestamp: Long = System.currentTimeMillis()
 )
 
@@ -50,6 +53,39 @@ data class PricePoint(
     val volume: Long
 )
 
+/** Market Breadth representation */
+data class MarketBreadth(
+    val total: Int,
+    val advanced: Int,
+    val declined: Int,
+    val unchanged: Int
+)
+
+/** Sector Statistics */
+data class SectorStat(
+    val sector: String,
+    val symbolCount: Int,
+    val totalVolume: Long,
+    val totalValue: Long,
+    val advanced: Int,
+    val declined: Int,
+    val unchanged: Int
+)
+
+/** Dividend Record */
+data class DividendRecord(
+    val symbol: String,
+    val exDate: Long,
+    val paymentDate: Long,
+    val amount: Double
+)
+
+/** ToWatch scanner category */
+data class ToWatchCategory(
+    val categoryName: String,
+    val items: List<UnifiedQuote>
+)
+
 /** Symbol search result */
 data class SymbolSearchResult(
     val symbol: String,
@@ -58,7 +94,17 @@ data class SymbolSearchResult(
     val type: String
 )
 
-/** Timeframes for historical charts */
+/** Timeframes for historical charts mapped to PSX Terminal API */
+enum class ChartInterval(val apiParam: String, val displayName: String) {
+    ONE_MINUTE("1m", "1M"),
+    FIVE_MINUTES("5m", "5M"),
+    FIFTEEN_MINUTES("15m", "15M"),
+    ONE_HOUR("1h", "1H"),
+    FOUR_HOURS("4h", "4H"),
+    ONE_DAY("1d", "1D")
+}
+
+/** Timeframes for historical charts (backward compatibility) */
 enum class ChartRange(val yahooParam: String, val displayName: String) {
     ONE_DAY("1d", "1D"),
     ONE_WEEK("5d", "1W"),
@@ -69,24 +115,3 @@ enum class ChartRange(val yahooParam: String, val displayName: String) {
     THREE_YEARS("3y", "3Y"),
     FIVE_YEARS("5y", "5Y")
 }
-
-/** Intervals for chart data granularity */
-enum class ChartInterval(val yahooParam: String) {
-    ONE_MINUTE("1m"),
-    FIVE_MINUTES("5m"),
-    FIFTEEN_MINUTES("15m"),
-    ONE_HOUR("1h"),
-    ONE_DAY("1d"),
-    ONE_WEEK("1wk"),
-    ONE_MONTH("1mo")
-}
-
-/** GitHub release info for update notifications */
-data class GitHubRelease(
-    val tagName: String,
-    val name: String,
-    val body: String,
-    val htmlUrl: String,
-    val publishedAt: String,
-    val apkDownloadUrl: String?
-)

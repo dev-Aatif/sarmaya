@@ -35,11 +35,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.ui.components.PortfolioSelector
 import com.sarmaya.app.ui.components.TransactionFlow
-import com.sarmaya.app.ui.components.UpdateBanner
 import com.sarmaya.app.ui.screens.dashboard.*
 import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.DashboardViewModel
-import com.sarmaya.app.viewmodel.UpdateViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -50,8 +48,7 @@ fun DashboardScreen(
     onAlertsClick: () -> Unit,
     onTotalValueClick: () -> Unit,
     onViewAllTransactions: () -> Unit,
-    viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory),
-    updateViewModel: UpdateViewModel = viewModel(factory = UpdateViewModel.Factory)
+    viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
 ) {
     val totalValue by viewModel.totalPortfolioValue.collectAsStateWithLifecycle()
     val totalInvested by viewModel.totalInvested.collectAsStateWithLifecycle()
@@ -70,17 +67,11 @@ fun DashboardScreen(
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-
-    // Update notifier
-    val latestRelease by updateViewModel.latestRelease.collectAsStateWithLifecycle()
-    val showUpdateBanner by updateViewModel.showUpdateBanner.collectAsStateWithLifecycle()
-
     var showUpdatePricesSheet by remember { mutableStateOf(false) }
     var showTypeSelection by remember { mutableStateOf(false) }
     var showTransactionForm by remember { mutableStateOf<String?>(null) } // "BUY", "SELL", etc.
     var selectedStockForForm by remember { mutableStateOf<String?>(null) }
     var showSettingsSheet by remember { mutableStateOf(false) }
-
 
     val financeColors = LocalSarmayaColors.current
 
@@ -109,7 +100,6 @@ fun DashboardScreen(
             onDismiss = { showSettingsSheet = false }
         )
     }
-
 
     Scaffold(
         floatingActionButton = {
@@ -168,17 +158,6 @@ fun DashboardScreen(
                 item { com.sarmaya.app.ui.components.ShimmerCard(height = 100.dp) }
                 item { com.sarmaya.app.ui.components.ShimmerCard(height = 200.dp) }
             } else {
-                // ─── Update Banner ───
-                val release = latestRelease
-                if (release != null) {
-                    item {
-                        UpdateBanner(
-                            release = release,
-                            visible = showUpdateBanner,
-                            onDismiss = { updateViewModel.dismissUpdate() }
-                        )
-                    }
-                }
 
                 // ─── Market Status ───
                 item {

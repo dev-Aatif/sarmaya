@@ -12,6 +12,7 @@ class SyncManager(private val context: Context) {
     companion object {
         private const val SYNC_WORK_NAME = "price_alert_sync_work"
         private const val SNAPSHOT_WORK_NAME = "portfolio_snapshot_work"
+        private const val NEWS_WORK_NAME = "news_polling_work"
         private const val SYNC_INTERVAL_MINUTES = 15L
     }
 
@@ -61,5 +62,25 @@ class SyncManager(private val context: Context) {
     fun runImmediateSnapshot() {
         val request = OneTimeWorkRequestBuilder<PortfolioSnapshotWorker>().build()
         WorkManager.getInstance(context).enqueue(request)
+    }
+
+    fun scheduleNewsPolling() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val newsRequest = PeriodicWorkRequestBuilder<NewsPollingWorker>(
+            1, TimeUnit.HOURS,
+            15, TimeUnit.MINUTES // Flexible interval
+        )
+            .setConstraints(constraints)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.MINUTES)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            NEWS_WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            newsRequest
+        )
     }
 }
