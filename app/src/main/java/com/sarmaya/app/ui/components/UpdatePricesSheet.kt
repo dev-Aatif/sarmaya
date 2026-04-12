@@ -36,6 +36,7 @@ fun UpdatePricesSheet(
     
     // Use TextFieldValue for proper cursor/selection control
     val priceFields = remember { mutableStateMapOf<String, TextFieldValue>() }
+    var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(holdings) {
         holdings.forEach { h ->
@@ -96,7 +97,7 @@ fun UpdatePricesSheet(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             ),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             if (isRefreshing) {
                                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
@@ -126,10 +127,24 @@ fun UpdatePricesSheet(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
-                    items(holdings.filter { it.quantity > 0 }) { holding ->
+                    item {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            label = { Text("Search by symbol or name") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                            )
+                        )
+                    }
+                    items(holdings.filter { it.quantity > 0 && (it.stockSymbol.contains(searchQuery, true) || it.name.contains(searchQuery, true)) }) { holding ->
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = financeColors.cardSurface
                             )
@@ -175,34 +190,38 @@ fun UpdatePricesSheet(
                                 
                                 Spacer(modifier = Modifier.height(10.dp))
                                 
-                                OutlinedTextField(
-                                    value = priceFields[holding.stockSymbol] ?: TextFieldValue(""),
-                                    onValueChange = { newValue ->
-                                        // Filter to allow only digits and one decimal point
-                                        val filtered = newValue.text.replace(',', '.')
-                                        val dotCount = filtered.count { it == '.' }
-                                        if (filtered.isEmpty() || (filtered.all { it.isDigit() || it == '.' } && dotCount <= 1)) {
-                                            priceFields[holding.stockSymbol] = newValue.copy(text = filtered)
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .onFocusChanged { focusState ->
-                                            if (focusState.isFocused) {
-                                                // Select all text on focus for easy replacement
-                                                val current = priceFields[holding.stockSymbol]
-                                                if (current != null) {
-                                                    priceFields[holding.stockSymbol] = current.copy(
-                                                        selection = TextRange(0, current.text.length)
-                                                    )
-                                                }
+                                    OutlinedTextField(
+                                        value = priceFields[holding.stockSymbol] ?: TextFieldValue(""),
+                                        onValueChange = { newValue ->
+                                            // Filter to allow only digits and one decimal point
+                                            val filtered = newValue.text.replace(',', '.')
+                                            val dotCount = filtered.count { it == '.' }
+                                            if (filtered.isEmpty() || (filtered.all { it.isDigit() || it == '.' } && dotCount <= 1)) {
+                                                priceFields[holding.stockSymbol] = newValue.copy(text = filtered)
                                             }
                                         },
-                                    label = { Text("Price (₨)") },
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .onFocusChanged { focusState ->
+                                                if (focusState.isFocused) {
+                                                    // Select all text on focus for easy replacement
+                                                    val current = priceFields[holding.stockSymbol]
+                                                    if (current != null) {
+                                                        priceFields[holding.stockSymbol] = current.copy(
+                                                            selection = TextRange(0, current.text.length)
+                                                        )
+                                                    }
+                                                }
+                                            },
+                                        label = { Text("Price (₨)") },
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                        singleLine = true,
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                                        )
+                                    )
                             }
                         }
                     }
@@ -221,10 +240,10 @@ fun UpdatePricesSheet(
                 ) {
                     OutlinedButton(
                         onClick = onDismissRequest,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Cancel")
+                        Text("Cancel", fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = {
@@ -244,10 +263,10 @@ fun UpdatePricesSheet(
                             viewModel.updatePrices(updates)
                             onDismissRequest()
                         },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Save Prices", style = MaterialTheme.typography.labelLarge)
+                        Text("Save Prices", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                     }
                 }
             }

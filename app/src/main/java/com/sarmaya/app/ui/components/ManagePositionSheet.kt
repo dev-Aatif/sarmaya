@@ -79,7 +79,12 @@ fun ManagePositionSheet(
                         label = { Text("Action") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
@@ -96,11 +101,22 @@ fun ManagePositionSheet(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 if (errorMessage != null) {
-                    Text(errorMessage!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            errorMessage!!, 
+                            color = MaterialTheme.colorScheme.error, 
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 // Grid row: Quantity + Price side by side
@@ -111,26 +127,36 @@ fun ManagePositionSheet(
                     OutlinedTextField(
                         value = quantity,
                         onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
-                        label = { Text(if (selectedType == "DIVIDEND") "Shares" else "Qty") },
+                        label = { Text(if (selectedType == "DIVIDEND") "Shares" else "Quantity") },
                         isError = isQuantityInvalid,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
                     )
 
                     if (selectedType != "BONUS") {
                         OutlinedTextField(
                             value = pricePerShare,
                             onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
-                            label = { Text(if (selectedType == "DIVIDEND") "Per Share (₨)" else "Price (₨)") },
+                            label = { Text(if (selectedType == "DIVIDEND") "\u20A8 / Share" else "Price (\u20A8)") },
                             isError = isPriceInvalid,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(1f),
-                            singleLine = true
+                            singleLine = true,
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                            )
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Notes — full width
                 OutlinedTextField(
@@ -138,9 +164,14 @@ fun ManagePositionSheet(
                     onValueChange = { notes = it },
                     label = { Text("Notes (Optional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    )
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
                 // Action buttons — grid row
                 Row(
@@ -149,10 +180,13 @@ fun ManagePositionSheet(
                 ) {
                     OutlinedButton(
                         onClick = onDismissRequest,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        border = ButtonDefaults.outlinedButtonBorder.copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outlineVariant)
+                        )
                     ) {
-                        Text("Cancel")
+                        Text("Cancel", fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = {
@@ -183,8 +217,8 @@ fun ManagePositionSheet(
                                 )
                             }
                         },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
                         enabled = quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid && !isProcessing
                     ) {
                         if (isProcessing) {
@@ -194,7 +228,7 @@ fun ManagePositionSheet(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Confirm", style = MaterialTheme.typography.labelLarge)
+                            Text("Confirm", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

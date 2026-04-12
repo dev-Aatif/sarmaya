@@ -68,12 +68,12 @@ fun StockDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
-                    Column {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             symbol,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                         if (uiState is StockDetailUiState.Success) {
@@ -99,7 +99,7 @@ fun StockDetailScreen(
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
@@ -230,9 +230,10 @@ private fun StockDetailContent(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.height(44.dp)
             ) {
-                Text("Manage", style = MaterialTheme.typography.labelLarge)
+                Text("Manage", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -370,12 +371,13 @@ private fun StockDetailContent(
             )
             // Use a horizontally scrollable Row so peers don't overflow
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp)
             ) {
                 items(peers) { peer: String ->
                     Surface(
                         modifier = Modifier.clickable { onPeerClick(peer) },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         color = financeColors.cardSurface,
                         border = RowDefaults.cardBorder()
                     ) {
@@ -400,12 +402,12 @@ private fun StatCard(modifier: Modifier = Modifier, label: String, value: String
     val financeColors = LocalSarmayaColors.current
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
     }
 }
