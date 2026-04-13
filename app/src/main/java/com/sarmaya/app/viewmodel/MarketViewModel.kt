@@ -55,6 +55,9 @@ class MarketViewModel(
     private val _indices = MutableStateFlow<List<PsxIndex>>(emptyList())
     val indices: StateFlow<List<PsxIndex>> = _indices.asStateFlow()
 
+    private val _marketStatus = MutableStateFlow(com.sarmaya.app.util.MarketHoursUtil.getMarketState())
+    val marketStatus: StateFlow<String> = _marketStatus.asStateFlow()
+
     private val allStocksFlow = stockDao.getAllStocks()
     private val watchlistFlow = watchlistDao.getAllItems()
     private val quoteFlow = quoteCacheDao.getAll()
@@ -128,6 +131,9 @@ class MarketViewModel(
             repository.syncPsxQuotes() 
             repository.getIndices().onSuccess {
                 _indices.value = it
+            }
+            repository.getMarketStatus().onSuccess {
+                _marketStatus.value = it
             }
             _isRefreshing.value = false
         }

@@ -130,6 +130,9 @@ class DashboardViewModel(
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
 
+    private val _marketStatus = MutableStateFlow(com.sarmaya.app.util.MarketHoursUtil.getMarketState())
+    val marketStatus: StateFlow<String> = _marketStatus.asStateFlow()
+
     init {
         viewModelScope.launch {
             // Give Room a moment to emit initial values
@@ -145,6 +148,9 @@ class DashboardViewModel(
         viewModelScope.launch {
             _isRefreshing.value = true
             sarmayaRepository.syncPsxQuotes()
+            sarmayaRepository.getMarketStatus().onSuccess {
+                _marketStatus.value = it
+            }
             _isRefreshing.value = false
         }
     }

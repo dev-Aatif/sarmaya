@@ -26,6 +26,7 @@ import com.sarmaya.app.ui.theme.LocalSarmayaColors
 import com.sarmaya.app.ui.theme.SarmayaFinanceColors
 import com.sarmaya.app.viewmodel.MarketStock
 import com.sarmaya.app.viewmodel.MarketViewModel
+import com.sarmaya.app.ui.components.MarketStateBadge
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +42,7 @@ fun MarketScreen(
     val isOnlyWatchlist by viewModel.isOnlyWatchlist.collectAsStateWithLifecycle()
     val indices by viewModel.indices.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val marketStatus by viewModel.marketStatus.collectAsStateWithLifecycle()
     
     val financeColors = LocalSarmayaColors.current
 
@@ -48,7 +50,13 @@ fun MarketScreen(
         topBar = {
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                 CenterAlignedTopAppBar(
-                    title = { Text("Market Explorer", fontWeight = FontWeight.Bold) },
+                    title = { 
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Market Explorer", fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            MarketStateBadge(state = marketStatus)
+                        }
+                    },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                         containerColor = MaterialTheme.colorScheme.background
                     )

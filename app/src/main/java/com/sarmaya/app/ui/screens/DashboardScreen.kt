@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.ui.components.PortfolioSelector
 import com.sarmaya.app.ui.components.TransactionFlow
+import com.sarmaya.app.ui.components.MarketStateBadge
 import com.sarmaya.app.ui.screens.dashboard.*
 import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.DashboardViewModel
@@ -68,6 +69,7 @@ fun DashboardScreen(
     val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val marketStatus by viewModel.marketStatus.collectAsStateWithLifecycle()
     
     val newsArticles by newsViewModel.newsArticles.collectAsStateWithLifecycle()
 
@@ -109,12 +111,16 @@ fun DashboardScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(
-                            text = if (username.isNotBlank()) "Salam, $username" else "Sarmaya",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = if (username.isNotBlank()) "Salam, $username" else "Sarmaya",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            MarketStateBadge(state = marketStatus)
+                        }
                         PortfolioSelector(
                             activePortfolio = activePortfolio,
                             allPortfolios = allPortfolios,

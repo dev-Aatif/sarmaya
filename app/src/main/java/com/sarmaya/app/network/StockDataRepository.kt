@@ -270,6 +270,16 @@ class StockDataRepository(
         } catch (e: Exception) { }
         Result.failure(Exception("No index data available"))
     }
+
+    suspend fun getMarketStatus(): Result<String> = withContext(Dispatchers.IO) {
+        if (!connectivityChecker.isOnline()) return@withContext Result.failure(Exception("No internet"))
+        try {
+            val status = psxTerminalApi.getStatus()
+            Result.success(status.marketState ?: "OFFLINE")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
     
     // Additional Terminal API queries exposed directly
     suspend fun getMarketStats() = runCatching { psxTerminalApi.getMarketStats() }
