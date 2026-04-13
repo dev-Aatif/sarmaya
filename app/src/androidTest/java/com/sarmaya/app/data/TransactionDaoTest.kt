@@ -11,62 +11,67 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 class TransactionDaoTest {
-    private lateinit var db: AppDatabase
     private lateinit var transactionDao: TransactionDao
-    private lateinit var stockDao: StockDao
+    private lateinit var db: AppDatabase
 
     @Before
     fun createDb() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        db = Room.inMemoryDatabaseBuilder(
+            context, AppDatabase::class.java).build()
         transactionDao = db.transactionDao()
-        stockDao = db.stockDao()
     }
 
     @After
+    @Throws(IOException::class)
     fun closeDb() {
         db.close()
     }
 
     @Test
-    fun writeAndReadTransaction() = runBlocking {
-        val stock = Stock("AAPL", "Apple Inc.", "Tech", 150.0, System.currentTimeMillis())
-        stockDao.insertStocks(listOf(stock))
-
-        val transaction = Transaction(
-            stockSymbol = "AAPL",
+    fun insertAndRetrieveTransaction() = runBlocking {
+        val tx = Transaction(
+            stockSymbol = "LUCK",
             type = "BUY",
-            quantity = 10,
-            pricePerShare = 150.0,
-            date = System.currentTimeMillis(),
-            notes = "Initial Buy"
+            quantity = 100,
+            pricePerShare = 500.0,
+            date = System.currentTimeMillis()
         )
-        transactionDao.insert(transaction)
-
+        transactionDao.insert(tx)
+        
         val transactions = transactionDao.getAllTransactions().first()
         assertEquals(1, transactions.size)
-        assertEquals("AAPL", transactions[0].stockSymbol)
-        assertEquals(10, transactions[0].quantity)
+        assertEquals("LUCK", transactions[0].stockSymbol)
+        assertEquals(100, transactions[0].quantity)
     }
 
     @Test
-    fun testComputedHoldingsLogic() = runBlocking {
-        val stock = Stock("AAPL", "Apple Inc.", "Tech", 150.0, System.currentTimeMillis())
-        stockDao.insertStocks(listOf(stock))
-
-        val buy = Transaction(stockSymbol = "AAPL", type = "BUY", quantity = 10, pricePerShare = 100.0, date = 0, notes = "")
-        val sell = Transaction(stockSymbol = "AAPL", type = "SELL", quantity = 5, pricePerShare = 150.0, date = 1, notes = "")
+    fun getStockQuantityCalculation() = runBlocking {
+        val buy = Transaction(stockSymbol = "ENGRO", type = "BUY", quantity = 100, pricePerShare = 300.0, date = 1000L)
+        val sell = Transaction(stockSymbol = "ENGRO", type = "SELL", quantity = 40, pricePerShare = 350.0, date = 2000L)
         
         transactionDao.insert(buy)
         transactionDao.insert(sell)
-
-        val holdings = transactionDao.getComputedHoldings().first()
-        assertEquals(1, holdings.size)
         
-        val aaplHolding = holdings[0]
-        assertEquals(5, aaplHolding.quantity) // 10 - 5
+        val qty = transactionDao.getStockQuantity("ENGRO")
+        assertEquals(60, qty)
+    }
+
+    @Test
+    fun updateAndRetrieveById() = runBlocking {
+        val tx = Transaction(id = 1, stockSymbol = "SYS", type = "BUY", quantity = 10, pricePerShare = 400.0, date = 1000L)
+        transactionDao.insert(tx)
+        
+        // Retrieve the auto-generated ID or use a fixed one for testing if not auto-gen
+        val insertedTx = transactionDao.getAllTransactions().first()[0]
+        val updatedTx = insertedTx.copy(quantity = 20)
+        transactionDao.update(updatedTx)
+        
+        val result = transactionDao.getTransactionById(insertedTx.id)
+        assertEquals(20, result?.quantity)
     }
 }
