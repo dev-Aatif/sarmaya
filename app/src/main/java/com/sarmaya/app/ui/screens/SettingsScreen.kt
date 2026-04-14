@@ -16,17 +16,22 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sarmaya.app.BuildConfig
 import com.sarmaya.app.ui.theme.*
+import kotlinx.coroutines.launch
 import com.sarmaya.app.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,8 +49,33 @@ fun SettingsScreen(
     val notifPortfolio by viewModel.notificationsPortfolio.collectAsState()
     val notifMarket by viewModel.notificationsMarket.collectAsState()
     val notifUpdates by viewModel.notificationsUpdates.collectAsState()
+    val isUpdateAvailable by viewModel.isUpdateAvailable.collectAsState()
+    val updateUrl by viewModel.updateUrl.collectAsState()
+    val isImporting by viewModel.isImporting.collectAsState()
     val financeColors = LocalSarmayaColors.current
     val context = LocalContext.current
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri ->
+            uri?.let { viewModel.importPortfolioFromCsv(it) }
+        }
+    )
+
+    val coroutineScope = rememberCoroutineScope()
+    val saveFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv"),
+        onResult = { uri ->
+            uri?.let {
+                coroutineScope.launch {
+                    val csv = viewModel.getPortfolioCsvContent()
+                    context.contentResolver.openOutputStream(it)?.use { out ->
+                        out.write(csv.toByteArray())
+                    }
+                }
+            }
+        }
+    )
 
     var editingUsername by remember { mutableStateOf(false) }
     var usernameInput by remember(username) { mutableStateOf(username) }
@@ -74,6 +104,47 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
         ) {
+            if (isUpdateAvailable != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("🚀", fontSize = 24.sp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "New Update Available: v$isUpdateAvailable",
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    "Check out the latest features and improvements.",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl ?: "https://github.com/dev-Aatif/sarmaya/releases"))
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Download APK")
+                        }
+                    }
+                }
+            }
+
             if (onDismiss == null) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
@@ -274,20 +345,69 @@ fun SettingsScreen(
                 colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Button(
-                        onClick = { viewModel.exportPortfolioToCsv() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(androidx.compose.material.icons.Icons.Default.Share, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Export Portfolio (CSV)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Button(
+                            onClick = { viewModel.exportPortfolioToCsv() },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Icon(androidx.compose.material.icons.Icons.Default.Share, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Share", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        }
+
+                        Button(
+                            onClick = { saveFileLauncher.launch("sarmaya_portfolio_backup.csv") },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        ) {
+                            Icon(androidx.compose.material.icons.Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.graphicsLayer(rotationZ = 90f))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Download", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = { filePickerLauncher.launch(arrayOf("text/comma-separated-values", "text/csv")) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            enabled = !isImporting,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+                                contentColor = MaterialTheme.colorScheme.secondary
+                            )
+                        ) {
+                            if (isImporting) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                            } else {
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.size(24.dp).graphicsLayer(rotationZ = 180f))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Import", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
             }
@@ -320,11 +440,20 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                "Version 1.1 • Build 2",
+                                "Version ${BuildConfig.VERSION_NAME} • Build ${BuildConfig.VERSION_CODE}",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.outline
                             )
                         }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedButton(
+                        onClick = { viewModel.checkForUpdates() },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Check for Updates")
                     }
                     
                     Text(

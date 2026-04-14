@@ -15,6 +15,7 @@ import com.sarmaya.app.network.StockDataRepository
 import com.sarmaya.app.network.api.PsxApi
 import com.sarmaya.app.network.api.PsxTerminalApi
 import com.sarmaya.app.network.api.YahooFinanceApi
+import com.sarmaya.app.network.api.GithubApi
 import com.sarmaya.app.worker.SyncManager
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -103,6 +104,15 @@ class AppContainer(private val context: Context) {
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(PsxTerminalApi::class.java)
+    }
+
+    val githubApi: GithubApi by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.github.com/")
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(GithubApi::class.java)
     }
 
     val connectivityChecker: ConnectivityChecker by lazy {

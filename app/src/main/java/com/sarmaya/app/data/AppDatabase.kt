@@ -42,7 +42,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "sarmaya_database"
                 )
-                .fallbackToDestructiveMigration()
+                // .fallbackToDestructiveMigration() // REMOVED to prevent data loss on schema updates.
+                // Add your migrations here: .addMigrations(MIGRATION_1_2, MIGRATION_2_3, ...)
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)

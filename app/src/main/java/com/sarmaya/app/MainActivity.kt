@@ -25,6 +25,8 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        settingsViewModel.checkForUpdates()
+
         // Migrate old SharedPreferences theme to DataStore (one-time)
         migrateThemePreference()
 

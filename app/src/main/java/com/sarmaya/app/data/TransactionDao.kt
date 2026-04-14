@@ -11,6 +11,9 @@ interface TransactionDao {
     @Insert
     suspend fun insert(transaction: Transaction)
 
+    @Insert
+    suspend fun insertTransactions(transactions: List<Transaction>)
+
     @androidx.room.Update
     suspend fun update(transaction: Transaction)
 
