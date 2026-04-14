@@ -49,6 +49,7 @@ fun DashboardScreen(
     onAlertsClick: () -> Unit,
     onTotalValueClick: () -> Unit,
     onViewAllTransactions: () -> Unit,
+    onSettingsClick: () -> Unit,
     onNewsClick: (com.sarmaya.app.data.NewsArticle) -> Unit,
     viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory),
     newsViewModel: com.sarmaya.app.viewmodel.NewsViewModel = viewModel(factory = com.sarmaya.app.viewmodel.NewsViewModel.Factory)
@@ -76,7 +77,6 @@ fun DashboardScreen(
     var showTypeSelection by remember { mutableStateOf(false) }
     var showTransactionForm by remember { mutableStateOf<String?>(null) } 
     var selectedStockForForm by remember { mutableStateOf<String?>(null) }
-    var showSettingsSheet by remember { mutableStateOf(false) }
 
     val financeColors = LocalSarmayaColors.current
 
@@ -95,9 +95,6 @@ fun DashboardScreen(
         }
     )
 
-    if (showSettingsSheet) {
-        SettingsScreen(onDismiss = { showSettingsSheet = false })
-    }
 
     Scaffold(
         topBar = {
@@ -139,7 +136,7 @@ fun DashboardScreen(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         IconButton(
-                            onClick = { showSettingsSheet = true },
+                            onClick = onSettingsClick,
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))

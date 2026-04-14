@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -60,6 +61,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     }
     object PriceAlerts : Screen("price_alerts", "Price Alerts", Icons.Filled.Notifications)
     object PortfolioSummary : Screen("portfolio_summary", "Portfolio Summary", Icons.Filled.Info)
+    object Settings : Screen("settings", "Settings", Icons.Filled.Settings)
 }
 
 val bottomNavItems = listOf(
@@ -110,6 +112,9 @@ fun SarmayaNavHost() {
                         },
                         onTotalValueClick = {
                             navController.navigate(Screen.PortfolioSummary.route)
+                        },
+                        onSettingsClick = {
+                            navController.navigate(Screen.Settings.route)
                         }
                     )
                 }
@@ -136,6 +141,11 @@ fun SarmayaNavHost() {
                         onBack = { navController.popBackStack() }
                     )
                 }
+                composable(Screen.Settings.route) {
+                    com.sarmaya.app.ui.screens.SettingsScreen(
+                        onDismiss = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }
@@ -150,7 +160,8 @@ fun SarmayaNavHost() {
 private fun MainAppContent(
     onStockClick: (String) -> Unit,
     onAlertsClick: () -> Unit,
-    onTotalValueClick: () -> Unit
+    onTotalValueClick: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -198,6 +209,7 @@ private fun MainAppContent(
                         onStockClick = onStockClick,
                         onAlertsClick = onAlertsClick,
                         onTotalValueClick = onTotalValueClick,
+                        onSettingsClick = onSettingsClick,
                         onViewAllTransactions = { selectedTab = 3 },
                         onNewsClick = { article ->
                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(article.link))

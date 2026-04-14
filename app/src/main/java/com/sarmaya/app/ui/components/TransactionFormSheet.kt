@@ -1,22 +1,31 @@
 package com.sarmaya.app.ui.components
 
+import androidx.compose.animation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.data.Stock
 import com.sarmaya.app.data.Transaction
+import com.sarmaya.app.ui.theme.LocalSarmayaColors
 import com.sarmaya.app.viewmodel.TransactionsViewModel
-import androidx.compose.ui.window.Dialog
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -42,14 +51,18 @@ fun TransactionFormSheet(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
     val searchResults by viewModel.searchResults.collectAsState()
+    val financeColors = LocalSarmayaColors.current
     
-    // Header and Labels logic
-    val (title, qtyLabel, priceLabel, actionLabel) = when (type) {
-        "BUY" -> listOf("Buy Stock", "Quantity", "Purchase Price (₨)", "Record Buy")
-        "SELL" -> listOf("Sell Stock", "Quantity", "Sale Price (₨)", "Record Sell")
-        "DIVIDEND" -> listOf("Add Dividend", "Shares Qualified", "Per Share Amount (₨)", "Record Dividend")
-        "BONUS" -> listOf("Add Bonus", "Bonus Shares", "Cost Basis (Optional)", "Record Bonus")
-        else -> listOf("Transaction", "Quantity", "Price", "Save")
+    val primaryColor = MaterialTheme.colorScheme.primary
+    // UI Config based on type
+    val config = remember(type, primaryColor, financeColors) {
+        when (type) {
+            "BUY" -> TransactionUIConfig("Buy Stock", "Quantity", "Price per share", "Record Purchase", Icons.Default.Add, financeColors.profit)
+            "SELL" -> TransactionUIConfig("Sell Stock", "Quantity", "Sale Price", "Record Sale", Icons.AutoMirrored.Filled.Send, financeColors.loss)
+            "DIVIDEND" -> TransactionUIConfig("Add Dividend", "Shares held", "Dividend/Share", "Record Dividend", Icons.Default.KeyboardArrowUp, financeColors.dividend)
+            "BONUS" -> TransactionUIConfig("Add Bonus", "Bonus Shares", "Cost Basis", "Record Bonus", Icons.Default.Star, financeColors.warning)
+            else -> TransactionUIConfig("Transaction", "Quantity", "Price", "Save", Icons.Default.Info, primaryColor)
+        }
     }
 
     LaunchedEffect(preselectedSymbol ?: existingTransaction?.stockSymbol) {
@@ -72,8 +85,12 @@ fun TransactionFormSheet(
         }
     }
     
-    val isQuantityInvalid = quantity.isNotEmpty() && (quantity.toIntOrNull() ?: 0) <= 0
-    val isPriceInvalid = pricePerShare.isNotEmpty() && (pricePerShare.toDoubleOrNull() ?: -1.0) < 0.0
+    val qtyVal = quantity.toIntOrNull() ?: 0
+    val priceVal = pricePerShare.toDoubleOrNull() ?: 0.0
+    val totalAmount = qtyVal * priceVal
+
+    val isQuantityInvalid = quantity.isNotEmpty() && qtyVal <= 0
+    val isPriceInvalid = pricePerShare.isNotEmpty() && priceVal < 0.0
 
     if (showStockPicker && existingTransaction == null) {
         StockPickerSheet(
@@ -81,253 +98,341 @@ fun TransactionFormSheet(
             onStockSelected = {
                 selectedStock = it
                 showStockPicker = false
+                if (pricePerShare.isEmpty() && (it.currentPrice) > 0) {
+                    pricePerShare = it.currentPrice.toString()
+                }
             }
         )
     }
 
-    Dialog(
+    ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        properties = androidx.compose.ui.window.DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)) },
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+        tonalElevation = 0.dp
     ) {
-        Card(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 32.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 48.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp)
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Stock Selector
-                OutlinedButton(
-                    onClick = { if (existingTransaction == null) showStockPicker = true },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = existingTransaction == null,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outlineVariant)
-                    )
-                ) {
+                Column {
                     Text(
-                        selectedStock?.let { "${it.symbol} — ${it.name}" } 
-                            ?: existingTransaction?.stockSymbol 
-                            ?: "Select Stock Asset",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
+                        config.title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "Enter the details of your transaction",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Spacer(modifier = Modifier.height(20.dp))
+                Surface(
+                    shape = androidx.compose.foundation.shape.CircleShape,
+                    color = config.color.copy(alpha = 0.15f),
+                    modifier = Modifier.size(52.dp)
+                ) {
+                    Icon(
+                        config.icon,
+                        contentDescription = null,
+                        tint = config.color,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
 
-                if (errorMessage != null) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Asset Selection Card
+            Surface(
+                onClick = { if (existingTransaction == null) showStockPicker = true },
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            errorMessage!!, 
-                            color = MaterialTheme.colorScheme.error, 
+                            text = (selectedStock?.symbol?.take(1) ?: existingTransaction?.stockSymbol?.take(1) ?: "?").uppercase(),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = selectedStock?.symbol ?: existingTransaction?.stockSymbol ?: "Select Asset",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = selectedStock?.name ?: "Tap to choose a stock",
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
                         )
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
+                    if (existingTransaction == null) {
+                        Icon(
+                            Icons.Default.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                    }
                 }
+            }
 
-                // Grid row: Quantity + Price
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Summary Section (Modern Touch)
+            AnimatedVisibility(
+                visible = totalAmount > 0,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                    color = config.color.copy(alpha = 0.05f),
+                    modifier = Modifier.padding(bottom = 24.dp).fillMaxWidth()
                 ) {
-                    OutlinedTextField(
-                        value = quantity,
-                        onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) quantity = it },
-                        label = { Text(qtyLabel) },
-                        isError = isQuantityInvalid,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            if (type == "DIVIDEND") "Total Dividend" else "Total Value",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = config.color
                         )
-                    )
-                    OutlinedTextField(
-                        value = pricePerShare,
-                        onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
-                        label = { Text(priceLabel) },
-                        isError = isPriceInvalid,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        Text(
+                            "₨ ${String.format("%,.2f", totalAmount)}",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Black,
+                            color = config.color
                         )
-                    )
+                    }
                 }
-                
-                if (type == "DIVIDEND" && quantity.isNotEmpty() && pricePerShare.isNotEmpty() && !isQuantityInvalid && !isPriceInvalid) {
-                    val total = (quantity.toIntOrNull() ?: 0) * (pricePerShare.toDoubleOrNull() ?: 0.0)
-                    Text(
-                        "Estimated Dividend: \u20A8 ${String.format("%,.2f", total)}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 8.dp, start = 4.dp)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Date display (simplified)
-                OutlinedTextField(
-                    value = SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault()).format(Date(date)),
-                    onValueChange = {},
-                    label = { Text("Transaction Date") },
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = false,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Notes
-                OutlinedTextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = { Text("Notes (Optional)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                    )
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // Action buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+            if (errorMessage != null) {
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()
                 ) {
-                    OutlinedButton(
-                        onClick = onDismissRequest,
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        border = ButtonDefaults.outlinedButtonBorder.copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outlineVariant)
-                        )
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Cancel", fontWeight = FontWeight.SemiBold)
+                        Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(errorMessage!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     }
-                    Button(
-                        onClick = {
-                            val now = System.currentTimeMillis()
-                            if (now - lastClickTime < 500) return@Button
-                            lastClickTime = now
+                }
+            }
 
-                            val sym = selectedStock?.symbol ?: existingTransaction?.stockSymbol
-                            if (sym != null && quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid) {
-                                isProcessing = true
-                                val qty = quantity.toIntOrNull()
-                                val price = if (pricePerShare.isEmpty() && type == "BONUS") 0.0 else pricePerShare.toDoubleOrNull()
-                                
-                                if (qty == null || price == null) {
-                                    errorMessage = "Invalid input values"
+            // Inputs
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ModernTextField(
+                    value = quantity,
+                    onValueChange = { if (it.isEmpty() || it.all { c -> c.isDigit() }) quantity = it },
+                    label = config.qtyLabel,
+                    isError = isQuantityInvalid,
+                    keyboardType = KeyboardType.Number,
+                    modifier = Modifier.weight(1f)
+                )
+                ModernTextField(
+                    value = pricePerShare,
+                    onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
+                    label = config.priceLabel,
+                    isError = isPriceInvalid,
+                    keyboardType = KeyboardType.Decimal,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ModernTextField(
+                value = SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault()).format(Date(date)),
+                onValueChange = {},
+                label = "Transaction Date",
+                readOnly = true,
+                enabled = false,
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = { Icon(Icons.Default.DateRange, null, tint = MaterialTheme.colorScheme.outline) }
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ModernTextField(
+                value = notes,
+                onValueChange = { notes = it },
+                label = "Notes (Optional)",
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = false
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Action Button
+            Button(
+                onClick = {
+                    val now = System.currentTimeMillis()
+                    if (now - lastClickTime < 500) return@Button
+                    lastClickTime = now
+
+                    val sym = selectedStock?.symbol ?: existingTransaction?.stockSymbol
+                    if (sym != null && quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid) {
+                        isProcessing = true
+                        val qty = quantity.toIntOrNull()
+                        val price = if (pricePerShare.isEmpty() && type == "BONUS") 0.0 else pricePerShare.toDoubleOrNull()
+                        
+                        if (qty == null || price == null) {
+                            errorMessage = "Invalid input values"
+                            isProcessing = false
+                            return@Button
+                        }
+                        
+                        errorMessage = null
+                        if (existingTransaction == null) {
+                            viewModel.addTransaction(
+                                stockSymbol = sym,
+                                type = type,
+                                quantity = qty,
+                                pricePerShare = price,
+                                date = date,
+                                notes = notes,
+                                onSuccess = { 
                                     isProcessing = false
-                                    return@Button
+                                    onDismissRequest() 
+                                },
+                                onError = { 
+                                    isProcessing = false
+                                    errorMessage = it 
                                 }
-                                
-                                errorMessage = null
-                                if (existingTransaction == null) {
-                                    viewModel.addTransaction(
-                                        stockSymbol = sym,
-                                        type = type,
-                                        quantity = qty,
-                                        pricePerShare = price,
-                                        date = date,
-                                        notes = notes,
-                                        onSuccess = { 
-                                            isProcessing = false
-                                            onDismissRequest() 
-                                        },
-                                        onError = { 
-                                            isProcessing = false
-                                            errorMessage = it 
-                                        }
-                                    )
-                                } else {
-                                    viewModel.updateTransaction(
-                                        transactionId = existingTransaction.id,
-                                        stockSymbol = sym,
-                                        type = type,
-                                        quantity = qty,
-                                        pricePerShare = price,
-                                        date = date,
-                                        notes = notes,
-                                        onSuccess = {
-                                            isProcessing = false
-                                            onDismissRequest()
-                                        },
-                                        onError = {
-                                            isProcessing = false
-                                            errorMessage = it
-                                        }
-                                    )
-                                }
-                            }
-                        },
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        enabled = (selectedStock != null || existingTransaction != null) && quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid && !isProcessing
-                    ) {
-                        if (isProcessing) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
                             )
                         } else {
-                            Text(
-                                text = if (existingTransaction != null) "Update" else actionLabel, 
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
+                            viewModel.updateTransaction(
+                                transactionId = existingTransaction.id,
+                                stockSymbol = sym,
+                                type = type,
+                                quantity = qty,
+                                pricePerShare = price,
+                                date = date,
+                                notes = notes,
+                                onSuccess = {
+                                    isProcessing = false
+                                    onDismissRequest()
+                                },
+                                onError = {
+                                    isProcessing = false
+                                    errorMessage = it
+                                }
                             )
                         }
                     }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                enabled = (selectedStock != null || existingTransaction != null) && quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid && !isProcessing,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = config.color,
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 2.dp)
+            ) {
+                if (isProcessing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 3.dp
+                    )
+                } else {
+                    Text(
+                        text = if (existingTransaction != null) "Update Transaction" else config.actionLabel, 
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
     }
 }
+
+@Composable
+fun ModernTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    readOnly: Boolean = false,
+    enabled: Boolean = true,
+    singleLine: Boolean = true,
+    trailingIcon: @Composable (() -> Unit)? = null
+) {
+    Column(modifier = modifier) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+            fontWeight = FontWeight.Medium
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            isError = isError,
+            readOnly = readOnly,
+            enabled = enabled,
+            singleLine = singleLine,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                disabledBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                errorBorderColor = MaterialTheme.colorScheme.error,
+                focusedContainerColor = if (enabled) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
+                unfocusedContainerColor = if (enabled) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
+            ),
+            trailingIcon = trailingIcon
+        )
+    }
+}
+
+data class TransactionUIConfig(
+    val title: String,
+    val qtyLabel: String,
+    val priceLabel: String,
+    val actionLabel: String,
+    val icon: ImageVector,
+    val color: Color
+)
