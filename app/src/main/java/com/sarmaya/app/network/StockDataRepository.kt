@@ -35,13 +35,32 @@ class StockDataRepository(
     suspend fun getSymbols(): Result<List<SymbolSearchResult>> = withContext(Dispatchers.IO) {
         if (!connectivityChecker.isOnline()) return@withContext Result.failure(Exception("No internet"))
         try {
-            val symbols = psxTerminalApi.getSymbols()
+            val response = psxTerminalApi.getSymbols()
+            val symbols = response.data
+            // Side effect: Populate local Stock table while we have the full list
+            if (symbols.isNotEmpty()) {
+                val stockEntities = symbols.map { symbol ->
+                    com.sarmaya.app.data.Stock(
+                        symbol = symbol,
+                        name = symbol, // Fallback as new API doesn't provide name here
+                        sector = "Other",
+                        currentPrice = 0.0,
+                        priceUpdatedAt = System.currentTimeMillis()
+                    )
+                }
+                stockDao.insertStocks(stockEntities)
+            }
             Result.success(symbols.map { 
-                SymbolSearchResult(it.symbol, it.name, "PSX", it.market)
+                SymbolSearchResult(it, it, "PSX", "REG")
             })
         } catch (e: Exception) {
+            Log.e(TAG, "getSymbols failed: ${e.message}")
             Result.failure(e)
         }
+    }
+
+    suspend fun syncAllSymbols(): Result<Unit> = withContext(Dispatchers.IO) {
+        getSymbols().map { Unit }
     }
 
     suspend fun getQuote(psxSymbol: String): Result<UnifiedQuote> = withContext(Dispatchers.IO) {
@@ -52,7 +71,8 @@ class StockDataRepository(
 
         if (connectivityChecker.isOnline()) {
             try {
-                val tick = psxTerminalApi.getStockTick(psxSymbol)
+                val response = psxTerminalApi.getStockTick(psxSymbol)
+                val tick = response.data
                 val quote = UnifiedQuote(
                     symbol = tick.symbol,
                     price = tick.price,
@@ -65,7 +85,7 @@ class StockDataRepository(
                     previousClose = tick.price - tick.change,
                     marketState = tick.state,
                     trades = tick.trades,
-                    value = tick.value
+                    value = tick.value.toLong()
                 )
                 cacheQuote(quote)
                 stockDao.updatePrice(psxSymbol, quote.price)
@@ -129,7 +149,8 @@ class StockDataRepository(
         
         // 1. Terminal App (Stats for gainers/losers/active)
         try {
-            val stats = psxTerminalApi.getMarketStats()
+            val response = psxTerminalApi.getMarketStats()
+            val stats = response.data
             val allTicks = mutableListOf<UnifiedQuote>()
             
             val convert = { tick: PsxTerminalTick ->
@@ -137,7 +158,7 @@ class StockDataRepository(
                     symbol = tick.symbol, price = tick.price, change = tick.change,
                     changePercent = tick.changePercent, volume = tick.volume, dayHigh = tick.high,
                     dayLow = tick.low, open = 0.0, previousClose = tick.price - tick.change,
-                    trades = tick.trades, value = tick.value, marketState = tick.state
+                    trades = tick.trades, value = tick.value.toLong(), marketState = tick.state
                 )
             }
             
@@ -177,7 +198,8 @@ class StockDataRepository(
         try {
             // Attempt V2 Terminal Klines
             val tf = interval?.apiParam ?: "1d"
-            val klines = psxTerminalApi.getKlines(psxSymbol, tf)
+            val response = psxTerminalApi.getKlines(psxSymbol, tf)
+            val klines = response.data
             val points = klines.map { candle -> 
                 PricePoint(
                     timestamp = candle[0].toLong() * 1000,
@@ -217,9 +239,13 @@ class StockDataRepository(
     suspend fun getCompanyProfile(psxSymbol: String): Result<CompanyProfile> = withContext(Dispatchers.IO) {
         if (connectivityChecker.isOnline()) {
             try {
-                val company = psxTerminalApi.getCompany(psxSymbol)
+                val companyRes = psxTerminalApi.getCompany(psxSymbol)
+                val company = companyRes.data
                 var fundas: com.sarmaya.app.network.api.PsxTerminalFundamentals? = null
-                try { fundas = psxTerminalApi.getFundamentals(psxSymbol) } catch (e: Exception) {}
+                try { 
+                    val fundasRes = psxTerminalApi.getFundamentals(psxSymbol)
+                    fundas = fundasRes.data
+                } catch (e: Exception) {}
                 
                 return@withContext Result.success(
                     CompanyProfile(
@@ -262,22 +288,44 @@ class StockDataRepository(
 
     suspend fun getIndices(): Result<List<PsxIndex>> = withContext(Dispatchers.IO) {
         if (!connectivityChecker.isOnline()) return@withContext Result.failure(Exception("No internet"))
-        // DPS has the easiest indices object. We can use DPS directly for indices if Terminal API returns something different.
+        
+        // Try DPS first (Legacy)
         try {
             val response = psxApi.getIndices()
             val indices = response.indices
             if (!indices.isNullOrEmpty()) return@withContext Result.success(indices)
         } catch (e: Exception) { }
+
+        // Fallback to Terminal API for major indices
+        try {
+            val majorIndices = listOf("KSE100", "KSE30", "KMI30", "ALLSHR")
+            val indices = majorIndices.map { symbol ->
+                val tick = psxTerminalApi.getIndexTick(symbol).data
+                PsxIndex(
+                    name = symbol,
+                    current = tick.price,
+                    change = tick.change,
+                    changep = tick.changePercent * 100, // API returns decimal, model expects percentage
+                    high = tick.high,
+                    low = tick.low,
+                    prev = tick.price - tick.change
+                )
+            }
+            if (indices.isNotEmpty()) return@withContext Result.success(indices)
+        } catch (e: Exception) {
+            Log.e(TAG, "getIndices Fallback failed: ${e.message}")
+        }
+        
         Result.failure(Exception("No index data available"))
     }
 
     suspend fun getMarketStatus(): Result<String> = withContext(Dispatchers.IO) {
         if (!connectivityChecker.isOnline()) return@withContext Result.failure(Exception("No internet"))
         try {
-            val status = psxTerminalApi.getStatus()
-            Result.success(status.marketState ?: "OFFLINE")
+            val response = psxTerminalApi.getStatus()
+            Result.success(response.marketState ?: com.sarmaya.app.util.MarketHoursUtil.getMarketState())
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.success(com.sarmaya.app.util.MarketHoursUtil.getMarketState())
         }
     }
     
@@ -290,17 +338,39 @@ class StockDataRepository(
 
     private suspend fun bulkCacheAndUpdate(quotes: List<UnifiedQuote>) {
         try {
+            val now = System.currentTimeMillis()
             val cacheEntities = quotes.map { quote ->
                 StockQuoteCache(
                     symbol = quote.symbol, price = quote.price, change = quote.change,
                     changePercent = quote.changePercent, volume = quote.volume,
-                    high = quote.dayHigh, low = quote.dayLow, cachedAt = System.currentTimeMillis()
+                    high = quote.dayHigh, low = quote.dayLow, cachedAt = now
                 )
             }
             quoteCacheDao.upsertAll(cacheEntities)
+            
+            // Check for missing stocks and insert them as well
+            val symbols = quotes.map { it.symbol }
+            val existing = stockDao.getStocksSync(symbols).map { it.symbol }.toSet()
+            val missing = quotes.filter { it.symbol !in existing }
+            
+            if (missing.isNotEmpty()) {
+                val newStocks = missing.map { 
+                    com.sarmaya.app.data.Stock(
+                        symbol = it.symbol,
+                        name = it.symbol, // We don't have the full name here, but better than nothing
+                        sector = "Other",
+                        currentPrice = it.price,
+                        priceUpdatedAt = now
+                    )
+                }
+                stockDao.insertStocks(newStocks)
+            }
+
             val priceUpdates = quotes.associate { it.symbol to it.price }
             stockDao.updatePrices(priceUpdates)
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+            Log.e(TAG, "bulkCacheAndUpdate failed: ${e.message}")
+        }
     }
 
     private suspend fun cacheQuote(quote: UnifiedQuote) {

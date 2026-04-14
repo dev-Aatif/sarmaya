@@ -128,6 +128,9 @@ class MarketViewModel(
     fun refreshMarket() {
         viewModelScope.launch {
             _isRefreshing.value = true
+            // Sync full symbol list first to ensure Master data is available
+            repository.getSymbols()
+            
             repository.syncPsxQuotes() 
             repository.getIndices().onSuccess {
                 _indices.value = it

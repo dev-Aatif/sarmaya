@@ -37,41 +37,47 @@ interface PsxTerminalApi {
     suspend fun getStatus(): PsxTerminalStatus
 
     @GET("api/symbols")
-    suspend fun getSymbols(): List<PsxTerminalSymbol>
+    suspend fun getSymbols(): PsxTerminalResponse<List<String>>
 
     @GET("api/ticks/REG/{symbol}")
-    suspend fun getStockTick(@Path("symbol") symbol: String): PsxTerminalTick
+    suspend fun getStockTick(@Path("symbol") symbol: String): PsxTerminalResponse<PsxTerminalTick>
 
     @GET("api/ticks/IDX/{symbol}")
-    suspend fun getIndexTick(@Path("symbol") symbol: String): PsxTerminalTick
+    suspend fun getIndexTick(@Path("symbol") symbol: String): PsxTerminalResponse<PsxTerminalTick>
 
     @GET("api/stats/REG")
-    suspend fun getMarketStats(): PsxTerminalStats
+    suspend fun getMarketStats(): PsxTerminalResponse<PsxTerminalStats>
 
     @GET("api/stats/IDX")
-    suspend fun getIndexStats(): PsxTerminalStats
+    suspend fun getIndexStats(): PsxTerminalResponse<PsxTerminalStats>
 
     @GET("api/stats/breadth")
-    suspend fun getMarketBreadth(): PsxTerminalBreadth
+    suspend fun getMarketBreadth(): PsxTerminalResponse<PsxTerminalBreadth>
 
     @GET("api/stats/sectors")
-    suspend fun getSectorStats(): List<PsxTerminalSectorStat>
+    suspend fun getSectorStats(): PsxTerminalResponse<Map<String, PsxTerminalSectorStat>>
 
     @GET("api/companies/{symbol}")
-    suspend fun getCompany(@Path("symbol") symbol: String): PsxTerminalCompanyInfo
+    suspend fun getCompany(@Path("symbol") symbol: String): PsxTerminalResponse<PsxTerminalCompanyInfo>
 
     @GET("api/fundamentals/{symbol}")
-    suspend fun getFundamentals(@Path("symbol") symbol: String): PsxTerminalFundamentals
+    suspend fun getFundamentals(@Path("symbol") symbol: String): PsxTerminalResponse<PsxTerminalFundamentals>
 
     @GET("api/dividends/{symbol}")
-    suspend fun getDividends(@Path("symbol") symbol: String): List<PsxTerminalDividend>
+    suspend fun getDividends(@Path("symbol") symbol: String): PsxTerminalResponse<List<PsxTerminalDividend>>
 
     @GET("api/klines/{symbol}/{tf}")
-    suspend fun getKlines(@Path("symbol") symbol: String, @Path("tf") timeframe: String): List<List<Double>>
+    suspend fun getKlines(@Path("symbol") symbol: String, @Path("tf") timeframe: String): PsxTerminalResponse<List<List<Double>>>
 
     @GET("api/towatch")
-    suspend fun getToWatch(): Map<String, List<PsxTerminalTick>>
+    suspend fun getToWatch(): PsxTerminalResponse<Map<String, List<PsxTerminalTick>>>
 }
+
+@JsonClass(generateAdapter = true)
+data class PsxTerminalResponse<T>(
+    val success: Boolean,
+    val data: T
+)
 
 // ─── PSX DPS Models ───
 
@@ -121,7 +127,9 @@ data class PsxIndex(
 @JsonClass(generateAdapter = true)
 data class PsxTerminalStatus(
     val status: String,
-    val marketState: String?
+    val timestamp: String? = null,
+    val uptime: Double? = null,
+    val marketState: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -141,9 +149,9 @@ data class PsxTerminalTick(
     val volume: Long = 0L,
     val high: Double = 0.0,
     val low: Double = 0.0,
-    val value: Long = 0L,
+    val value: Double = 0.0, // Changed to Double as it can be large/decimal
     val trades: Long = 0L,
-    val state: String = "OFFLINE"
+    @Json(name = "st") val state: String = "OFFLINE"
 )
 
 @JsonClass(generateAdapter = true)
@@ -163,13 +171,15 @@ data class PsxTerminalBreadth(
 
 @JsonClass(generateAdapter = true)
 data class PsxTerminalSectorStat(
-    val sector: String,
-    val symbolCount: Int = 0,
     val totalVolume: Long = 0L,
-    val totalValue: Long = 0L,
-    val advanced: Int = 0,
-    val declined: Int = 0,
-    val unchanged: Int = 0
+    val totalValue: Double = 0.0,
+    val totalTrades: Int = 0,
+    val gainers: Int = 0,
+    val losers: Int = 0,
+    val unchanged: Int = 0,
+    val avgChange: Double = 0.0,
+    val avgChangePercent: Double = 0.0,
+    val symbols: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)

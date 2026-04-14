@@ -98,7 +98,7 @@ class AppContainer(private val context: Context) {
 
     val psxTerminalApi: PsxTerminalApi by lazy {
         Retrofit.Builder()
-            .baseUrl("https://api.psxterminal.com/") // Updated to API base URL
+            .baseUrl("https://psxterminal.com/") // Reverted to main domain to match /api/ paths
             .client(psxOkHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()

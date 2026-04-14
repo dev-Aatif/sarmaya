@@ -147,6 +147,7 @@ class DashboardViewModel(
     fun refreshPrices() {
         viewModelScope.launch {
             _isRefreshing.value = true
+            sarmayaRepository.getSymbols()
             sarmayaRepository.syncPsxQuotes()
             sarmayaRepository.getMarketStatus().onSuccess {
                 _marketStatus.value = it
