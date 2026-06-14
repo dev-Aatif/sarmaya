@@ -50,7 +50,7 @@ fun TransactionsScreen(
 
     var selectedFilter by remember { mutableStateOf("All") }
 
-    val filterOptions = listOf("All", "BUY", "SELL", "DIVIDEND", "BONUS")
+    val filterOptions = listOf("All", "BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
     val filteredTransactions = if (selectedFilter == "All") {
         transactions
     } else {
@@ -146,7 +146,7 @@ fun TransactionsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showTypeSelection = true },
+                onClick = { showTransactionForm = "BUY" to null },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(20.dp)
@@ -210,6 +210,7 @@ fun TransactionItem(
         "SELL" -> financeColors.lossContainer to financeColors.onLossContainer
         "DIVIDEND" -> financeColors.dividendContainer to financeColors.dividend
         "BONUS" -> financeColors.warningContainer to financeColors.warning
+        "SPLIT" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
     }
 

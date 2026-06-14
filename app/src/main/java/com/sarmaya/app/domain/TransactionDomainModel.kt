@@ -34,7 +34,7 @@ data class TransactionDomainModel(
         if (pricePerShare.isNaN() || pricePerShare.isInfinite()) {
             return "Price cannot be NaN or Infinite"
         }
-        if (quantity <= 0) {
+        if (quantity <= 0 && type != "DIVIDEND" && type != "SPLIT") {
             return "Quantity must be strictly positive"
         }
         if (date > System.currentTimeMillis() + 86400000L) { // Allow up to 1 day in the future just in case of timezone delays

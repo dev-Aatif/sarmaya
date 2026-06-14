@@ -107,7 +107,7 @@ fun HoldingsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showTypeSelection = true },
+                onClick = { showTransactionForm = "BUY" },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(20.dp)

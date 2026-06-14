@@ -28,7 +28,8 @@ object PortfolioCalculator {
                     when (tx.type) {
                         "BUY" -> {
                             qty += tx.quantity
-                            invested += (tx.quantity * tx.pricePerShare)
+                            val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * tx.quantity else tx.commissionAmount
+                            invested += (tx.quantity * tx.pricePerShare) + commission
                         }
                         "BONUS" -> {
                             qty += tx.quantity
@@ -37,16 +38,17 @@ object PortfolioCalculator {
                             if (qty > 0) {
                                 val sellQty = minOf(tx.quantity, qty)
                                 val avgCost = invested / qty
-                                // Realized P/L = (sell price - avg cost) * quantity sold
-                                realizedPL += (tx.pricePerShare - avgCost) * sellQty
+                                val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * tx.quantity else tx.commissionAmount
+                                // Realized P/L = (sell price - avg cost) * quantity sold - commission
+                                realizedPL += (tx.pricePerShare - avgCost) * sellQty - commission
                                 qty -= sellQty
                                 // Proportional reduction of cost basis, floored at 0
                                 invested = maxOf(0.0, invested - (sellQty * avgCost))
                             }
                         }
                         "DIVIDEND" -> {
-                            // Dividend payout uses the user-entered quantity of shares paying the dividend
-                            divs += (tx.quantity * tx.pricePerShare)
+                            // Dividend payout uses the chronologically correct running balance (qty)
+                            divs += (qty * tx.pricePerShare)
                         }
                         "SPLIT" -> {
                             // pricePerShare stores the split factor (e.g. 2 for 2:1, 0.5 for 1:2)
@@ -99,19 +101,21 @@ object PortfolioCalculator {
                 when (tx.type) {
                     "BUY" -> {
                         qty += tx.quantity
-                        invested += (tx.quantity * tx.pricePerShare)
+                        val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * tx.quantity else tx.commissionAmount
+                        invested += (tx.quantity * tx.pricePerShare) + commission
                     }
                     "BONUS" -> qty += tx.quantity
                     "SELL" -> {
                         if (qty > 0) {
                             val avgCost = invested / qty
                             val sellQty = minOf(tx.quantity, qty)
-                            realizedPL += (tx.pricePerShare - avgCost) * sellQty
+                            val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * tx.quantity else tx.commissionAmount
+                            realizedPL += (tx.pricePerShare - avgCost) * sellQty - commission
                             qty -= sellQty
                             invested = maxOf(0.0, invested - (sellQty * avgCost))
                         }
                     }
-                    "DIVIDEND" -> divs += (tx.quantity * tx.pricePerShare)
+                    "DIVIDEND" -> divs += (qty * tx.pricePerShare)
                     "SPLIT" -> {
                         val factor = if (tx.pricePerShare <= 0.0) 1.0 else tx.pricePerShare
                         qty = (qty * factor).toInt()

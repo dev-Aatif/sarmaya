@@ -15,6 +15,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -61,6 +64,7 @@ fun StockDetailScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val chartRange by viewModel.chartRange.collectAsStateWithLifecycle()
+    val isWatched by viewModel.isWatched.collectAsStateWithLifecycle()
     val financeColors = LocalSarmayaColors.current
     
     val alertViewModel: PriceAlertViewModel = viewModel(factory = PriceAlertViewModel.Factory)
@@ -92,6 +96,13 @@ fun StockDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.toggleWatchlist() }) {
+                        Icon(
+                            if (isWatched) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Watchlist",
+                            tint = if (isWatched) financeColors.profit else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     IconButton(onClick = { showAddAlertSheet = true }) {
                         Icon(Icons.Default.Notifications, contentDescription = "Add Price Alert")
                     }
@@ -142,16 +153,39 @@ fun StockDetailScreen(
                     }
                 }
                 is StockDetailUiState.Success -> {
-                    StockDetailContent(
-                        quote = state.quote,
-                        profile = state.profile,
-                        chartData = state.chartData,
-                        peers = state.peers,
-                        currentRange = chartRange,
-                        onRangeSelected = { viewModel.setChartRange(it) },
-                        financeColors = financeColors,
-                        onPeerClick = onPeerClick
-                    )
+                    var showManageSheet by remember { mutableStateOf(false) }
+                    
+                    if (showManageSheet) {
+                        com.sarmaya.app.ui.components.ManagePositionSheet(
+                            stockSymbol = symbol,
+                            onDismissRequest = { showManageSheet = false }
+                        )
+                    }
+
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        StockDetailContent(
+                            quote = state.quote,
+                            profile = state.profile,
+                            chartData = state.chartData,
+                            peers = state.peers,
+                            currentRange = chartRange,
+                            onRangeSelected = { viewModel.setChartRange(it) },
+                            financeColors = financeColors,
+                            onPeerClick = onPeerClick
+                        )
+
+                        FloatingActionButton(
+                            onClick = { showManageSheet = true },
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(24.dp),
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Record Transaction")
+                        }
+                    }
                 }
             }
         }
@@ -181,14 +215,6 @@ private fun StockDetailContent(
 ) {
     val scrollState = rememberScrollState()
     val isProfit = quote.change >= 0
-    var showManageSheet by remember { mutableStateOf(false) }
-
-    if (showManageSheet) {
-        com.sarmaya.app.ui.components.ManagePositionSheet(
-            stockSymbol = quote.symbol,
-            onDismissRequest = { showManageSheet = false }
-        )
-    }
 
     Column(
         modifier = Modifier
@@ -222,18 +248,6 @@ private fun StockDetailContent(
                         color = if (isProfit) financeColors.profit else financeColors.loss
                     )
                 }
-            }
-
-            Button(
-                onClick = { showManageSheet = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.height(44.dp)
-            ) {
-                Text("Manage", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
             }
         }
 

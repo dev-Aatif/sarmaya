@@ -4,6 +4,8 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -32,7 +34,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionFormSheet(
-    type: String, // "BUY", "SELL", "DIVIDEND", "BONUS"
+    type: String, // "BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT"
     onDismissRequest: () -> Unit,
     existingTransaction: Transaction? = null,
     preselectedSymbol: String? = null,
@@ -43,11 +45,17 @@ fun TransactionFormSheet(
     var isProcessing by remember { mutableStateOf(false) }
     var lastClickTime by remember { mutableStateOf(0L) }
 
-    var quantity by remember { mutableStateOf(existingTransaction?.quantity?.toString() ?: "") }
-    var pricePerShare by remember { mutableStateOf(existingTransaction?.pricePerShare?.toString() ?: "") }
+    var currentType by remember(existingTransaction) { mutableStateOf(existingTransaction?.type ?: type) }
+
+    var quantity by remember { mutableStateOf(if(existingTransaction?.type != "DIVIDEND" && existingTransaction?.type != "SPLIT") existingTransaction?.quantity?.toString() ?: "" else "") }
+    var pricePerShare by remember { mutableStateOf(if(existingTransaction?.type != "BONUS") existingTransaction?.pricePerShare?.toString() ?: "" else "") }
     var date by remember { mutableStateOf(existingTransaction?.date ?: System.currentTimeMillis()) }
     var notes by remember { mutableStateOf(existingTransaction?.notes ?: "") }
+    var commissionAmount by remember { mutableStateOf(existingTransaction?.commissionAmount?.takeIf { it > 0.0 }?.toString() ?: "") }
     
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = date)
+
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
     val searchResults by viewModel.searchResults.collectAsState()
@@ -55,12 +63,13 @@ fun TransactionFormSheet(
     
     val primaryColor = MaterialTheme.colorScheme.primary
     // UI Config based on type
-    val config = remember(type, primaryColor, financeColors) {
-        when (type) {
+    val config = remember(currentType, primaryColor, financeColors) {
+        when (currentType) {
             "BUY" -> TransactionUIConfig("Buy Stock", "Quantity", "Price per share", "Record Purchase", Icons.Default.Add, financeColors.profit)
             "SELL" -> TransactionUIConfig("Sell Stock", "Quantity", "Sale Price", "Record Sale", Icons.AutoMirrored.Filled.Send, financeColors.loss)
-            "DIVIDEND" -> TransactionUIConfig("Add Dividend", "Shares held", "Dividend/Share", "Record Dividend", Icons.Default.KeyboardArrowUp, financeColors.dividend)
-            "BONUS" -> TransactionUIConfig("Add Bonus", "Bonus Shares", "Cost Basis", "Record Bonus", Icons.Default.Star, financeColors.warning)
+            "DIVIDEND" -> TransactionUIConfig("Add Dividend", "N/A", "Dividend/Share", "Record Dividend", Icons.Default.KeyboardArrowUp, financeColors.dividend)
+            "BONUS" -> TransactionUIConfig("Add Bonus", "Bonus Shares", "N/A", "Record Bonus", Icons.Default.Star, financeColors.warning)
+            "SPLIT" -> TransactionUIConfig("Stock Split", "N/A", "Split Ratio", "Record Split", Icons.Default.Refresh, primaryColor)
             else -> TransactionUIConfig("Transaction", "Quantity", "Price", "Save", Icons.Default.Info, primaryColor)
         }
     }
@@ -78,7 +87,7 @@ fun TransactionFormSheet(
             val stock = searchResults.find { it.symbol == sym }
             if (stock != null) {
                 selectedStock = stock
-                if (pricePerShare.isEmpty() && stock.currentPrice > 0 && existingTransaction == null) {
+                if (pricePerShare.isEmpty() && stock.currentPrice > 0 && existingTransaction == null && currentType != "BONUS") {
                     pricePerShare = stock.currentPrice.toString()
                 }
             }
@@ -89,8 +98,12 @@ fun TransactionFormSheet(
     val priceVal = pricePerShare.toDoubleOrNull() ?: 0.0
     val totalAmount = qtyVal * priceVal
 
-    val isQuantityInvalid = quantity.isNotEmpty() && qtyVal <= 0
-    val isPriceInvalid = pricePerShare.isNotEmpty() && priceVal < 0.0
+    val showQty = currentType != "DIVIDEND" && currentType != "SPLIT"
+    val showPrice = currentType != "BONUS"
+    val showCommission = currentType == "BUY" || currentType == "SELL"
+
+    val isQuantityInvalid = showQty && quantity.isNotEmpty() && qtyVal <= 0
+    val isPriceInvalid = showPrice && pricePerShare.isNotEmpty() && priceVal < 0.0
 
     if (showStockPicker && existingTransaction == null) {
         StockPickerSheet(
@@ -98,11 +111,28 @@ fun TransactionFormSheet(
             onStockSelected = {
                 selectedStock = it
                 showStockPicker = false
-                if (pricePerShare.isEmpty() && (it.currentPrice) > 0) {
+                if (pricePerShare.isEmpty() && (it.currentPrice) > 0 && currentType != "BONUS") {
                     pricePerShare = it.currentPrice.toString()
                 }
             }
         )
+    }
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { date = it }
+                    showDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 
     ModalBottomSheet(
@@ -152,7 +182,32 @@ fun TransactionFormSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Segmented Control for Type (only if not editing)
+            if (existingTransaction == null) {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val types = listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
+                    items(types) { t ->
+                        FilterChip(
+                            selected = currentType == t,
+                            onClick = { 
+                                currentType = t
+                                errorMessage = null
+                            },
+                            label = { Text(t, fontWeight = FontWeight.Bold) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = config.color.copy(alpha = 0.2f),
+                                selectedLabelColor = config.color
+                            )
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Asset Selection Card
             Surface(
@@ -207,7 +262,7 @@ fun TransactionFormSheet(
 
             // Summary Section (Modern Touch)
             AnimatedVisibility(
-                visible = totalAmount > 0,
+                visible = showQty && showPrice && totalAmount > 0,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut()
             ) {
@@ -218,7 +273,7 @@ fun TransactionFormSheet(
                 ) {
                     Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            if (type == "DIVIDEND") "Total Dividend" else "Total Value",
+                            if (currentType == "DIVIDEND") "Total Dividend" else "Total Value",
                             style = MaterialTheme.typography.labelMedium,
                             color = config.color
                         )
@@ -254,35 +309,53 @@ fun TransactionFormSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                if (showQty) {
+                    ModernTextField(
+                        value = quantity,
+                        onValueChange = { if (it.isEmpty() || it.all { c -> c.isDigit() }) quantity = it },
+                        label = config.qtyLabel,
+                        isError = isQuantityInvalid,
+                        keyboardType = KeyboardType.Number,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                if (showPrice) {
+                    ModernTextField(
+                        value = pricePerShare,
+                        onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
+                        label = config.priceLabel,
+                        isError = isPriceInvalid,
+                        keyboardType = KeyboardType.Decimal,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            if (showCommission) {
+                Spacer(modifier = Modifier.height(16.dp))
                 ModernTextField(
-                    value = quantity,
-                    onValueChange = { if (it.isEmpty() || it.all { c -> c.isDigit() }) quantity = it },
-                    label = config.qtyLabel,
-                    isError = isQuantityInvalid,
-                    keyboardType = KeyboardType.Number,
-                    modifier = Modifier.weight(1f)
-                )
-                ModernTextField(
-                    value = pricePerShare,
-                    onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) pricePerShare = it },
-                    label = config.priceLabel,
-                    isError = isPriceInvalid,
+                    value = commissionAmount,
+                    onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) commissionAmount = it },
+                    label = "Commission (₨)",
                     keyboardType = KeyboardType.Decimal,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            ModernTextField(
-                value = SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault()).format(Date(date)),
-                onValueChange = {},
-                label = "Transaction Date",
-                readOnly = true,
-                enabled = false,
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = { Icon(Icons.Default.DateRange, null, tint = MaterialTheme.colorScheme.outline) }
-            )
+            Box(modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }) {
+                ModernTextField(
+                    value = SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault()).format(Date(date)),
+                    onValueChange = {},
+                    label = "Transaction Date",
+                    readOnly = true,
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = { Icon(Icons.Default.DateRange, null, tint = MaterialTheme.colorScheme.outline) }
+                )
+                Box(modifier = Modifier.matchParentSize().background(Color.Transparent))
+            }
             
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -304,10 +377,14 @@ fun TransactionFormSheet(
                     lastClickTime = now
 
                     val sym = selectedStock?.symbol ?: existingTransaction?.stockSymbol
-                    if (sym != null && quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid) {
+                    val isQtyValid = if (showQty) quantity.isNotBlank() && !isQuantityInvalid else true
+                    val isPriceValid = if (showPrice) pricePerShare.isNotBlank() && !isPriceInvalid else true
+
+                    if (sym != null && isQtyValid && isPriceValid) {
                         isProcessing = true
-                        val qty = quantity.toIntOrNull()
-                        val price = if (pricePerShare.isEmpty() && type == "BONUS") 0.0 else pricePerShare.toDoubleOrNull()
+                        val qty = if (showQty) quantity.toIntOrNull() else 0
+                        val price = if (showPrice) pricePerShare.toDoubleOrNull() else 0.0
+                        val comm = commissionAmount.toDoubleOrNull() ?: 0.0
                         
                         if (qty == null || price == null) {
                             errorMessage = "Invalid input values"
@@ -319,11 +396,12 @@ fun TransactionFormSheet(
                         if (existingTransaction == null) {
                             viewModel.addTransaction(
                                 stockSymbol = sym,
-                                type = type,
+                                type = currentType,
                                 quantity = qty,
                                 pricePerShare = price,
                                 date = date,
                                 notes = notes,
+                                commissionAmount = comm,
                                 onSuccess = { 
                                     isProcessing = false
                                     onDismissRequest() 
@@ -337,11 +415,12 @@ fun TransactionFormSheet(
                             viewModel.updateTransaction(
                                 transactionId = existingTransaction.id,
                                 stockSymbol = sym,
-                                type = type,
+                                type = currentType,
                                 quantity = qty,
                                 pricePerShare = price,
                                 date = date,
                                 notes = notes,
+                                commissionAmount = comm,
                                 onSuccess = {
                                     isProcessing = false
                                     onDismissRequest()
@@ -358,7 +437,10 @@ fun TransactionFormSheet(
                     .fillMaxWidth()
                     .height(64.dp),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
-                enabled = (selectedStock != null || existingTransaction != null) && quantity.isNotBlank() && !isQuantityInvalid && !isPriceInvalid && !isProcessing,
+                enabled = (selectedStock != null || existingTransaction != null) && 
+                          (if (showQty) quantity.isNotBlank() && !isQuantityInvalid else true) && 
+                          (if (showPrice) pricePerShare.isNotBlank() && !isPriceInvalid else true) && 
+                          !isProcessing,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = config.color,
                     contentColor = Color.White

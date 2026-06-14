@@ -81,6 +81,7 @@ class TransactionsViewModel(
         pricePerShare: Double, 
         date: Long, 
         notes: String = "",
+        commissionAmount: Double = 0.0,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -94,7 +95,8 @@ class TransactionsViewModel(
                     quantity = quantity,
                     pricePerShare = pricePerShare,
                     date = date,
-                    notes = notes
+                    notes = notes,
+                    commissionAmount = commissionAmount
                 )
                 val validationError = domainModel.validate()
                 if (validationError != null) {
@@ -158,6 +160,7 @@ class TransactionsViewModel(
         pricePerShare: Double, 
         date: Long, 
         notes: String = "",
+        commissionAmount: Double = 0.0,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -176,7 +179,8 @@ class TransactionsViewModel(
                     quantity = quantity,
                     pricePerShare = pricePerShare,
                     date = date,
-                    notes = notes
+                    notes = notes,
+                    commissionAmount = commissionAmount
                 )
                 val validationError = domainModel.validate()
                 if (validationError != null) {
