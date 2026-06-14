@@ -43,12 +43,11 @@ fun TransactionFormSheet(
     var selectedStock by remember { mutableStateOf<Stock?>(null) }
     var showStockPicker by remember { mutableStateOf(false) }
     var isProcessing by remember { mutableStateOf(false) }
-    var lastClickTime by remember { mutableStateOf(0L) }
 
     var currentType by remember(existingTransaction) { mutableStateOf(existingTransaction?.type ?: type) }
 
     var quantity by remember { mutableStateOf(if(existingTransaction?.type != "DIVIDEND" && existingTransaction?.type != "SPLIT") existingTransaction?.quantity?.toString() ?: "" else "") }
-    var pricePerShare by remember { mutableStateOf(if(existingTransaction?.type != "BONUS") existingTransaction?.pricePerShare?.toString() ?: "" else "") }
+    var pricePerShare by remember { mutableStateOf(if(existingTransaction?.type == "SPLIT") existingTransaction.splitRatio?.takeIf { it > 0.0 }?.toString() ?: "" else if(existingTransaction?.type != "BONUS") existingTransaction?.pricePerShare?.takeIf { it > 0.0 }?.toString() ?: "" else "") }
     var date by remember { mutableStateOf(existingTransaction?.date ?: System.currentTimeMillis()) }
     var notes by remember { mutableStateOf(existingTransaction?.notes ?: "") }
     var commissionAmount by remember { mutableStateOf(existingTransaction?.commissionAmount?.takeIf { it > 0.0 }?.toString() ?: "") }
@@ -372,10 +371,6 @@ fun TransactionFormSheet(
             // Action Button
             Button(
                 onClick = {
-                    val now = System.currentTimeMillis()
-                    if (now - lastClickTime < 500) return@Button
-                    lastClickTime = now
-
                     val sym = selectedStock?.symbol ?: existingTransaction?.stockSymbol
                     val isQtyValid = if (showQty) quantity.isNotBlank() && !isQuantityInvalid else true
                     val isPriceValid = if (showPrice) pricePerShare.isNotBlank() && !isPriceInvalid else true
@@ -391,6 +386,9 @@ fun TransactionFormSheet(
                             isProcessing = false
                             return@Button
                         }
+
+                        val splitRatio = if (currentType == "SPLIT") price else null
+                        val finalPrice = if (currentType == "SPLIT") 0.0 else price
                         
                         errorMessage = null
                         if (existingTransaction == null) {
@@ -398,10 +396,11 @@ fun TransactionFormSheet(
                                 stockSymbol = sym,
                                 type = currentType,
                                 quantity = qty,
-                                pricePerShare = price,
+                                pricePerShare = finalPrice,
                                 date = date,
                                 notes = notes,
                                 commissionAmount = comm,
+                                splitRatio = splitRatio,
                                 onSuccess = { 
                                     isProcessing = false
                                     onDismissRequest() 
@@ -417,10 +416,11 @@ fun TransactionFormSheet(
                                 stockSymbol = sym,
                                 type = currentType,
                                 quantity = qty,
-                                pricePerShare = price,
+                                pricePerShare = finalPrice,
                                 date = date,
                                 notes = notes,
                                 commissionAmount = comm,
+                                splitRatio = splitRatio,
                                 onSuccess = {
                                     isProcessing = false
                                     onDismissRequest()

@@ -51,8 +51,7 @@ object PortfolioCalculator {
                             divs += (qty * tx.pricePerShare)
                         }
                         "SPLIT" -> {
-                            // pricePerShare stores the split factor (e.g. 2 for 2:1, 0.5 for 1:2)
-                            val factor = if (tx.pricePerShare <= 0.0) 1.0 else tx.pricePerShare
+                            val factor = tx.splitRatio ?: if (tx.pricePerShare > 0.0) tx.pricePerShare else 1.0
                             qty = (qty * factor).toInt()
                             // Invested value (cost basis) remains the same, but price per share reduces
                         }
@@ -117,7 +116,7 @@ object PortfolioCalculator {
                     }
                     "DIVIDEND" -> divs += (qty * tx.pricePerShare)
                     "SPLIT" -> {
-                        val factor = if (tx.pricePerShare <= 0.0) 1.0 else tx.pricePerShare
+                        val factor = tx.splitRatio ?: if (tx.pricePerShare > 0.0) tx.pricePerShare else 1.0
                         qty = (qty * factor).toInt()
                     }
                 }

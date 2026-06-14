@@ -16,7 +16,8 @@ data class TransactionDomainModel(
     val date: Long,
     val notes: String = "",
     val commissionType: String = "FLAT",
-    val commissionAmount: Double = 0.0
+    val commissionAmount: Double = 0.0,
+    val splitRatio: Double? = null
 ) {
     companion object {
         val VALID_TYPES = listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
@@ -43,8 +44,13 @@ data class TransactionDomainModel(
         if (pricePerShare < 0.01 && (type == "BUY" || type == "SELL")) {
             return "Price must be at least 0.01 for BUY/SELL"
         }
-        if (pricePerShare < 0.0 && type != "BONUS") {
+        if (pricePerShare < 0.0 && type != "BONUS" && type != "SPLIT") {
             return "Price must be non-negative"
+        }
+        if (type == "SPLIT") {
+            if (splitRatio == null || splitRatio <= 0.0 || splitRatio.isNaN() || splitRatio.isInfinite()) {
+                return "Valid split ratio must be provided for SPLIT"
+            }
         }
         if (notes.length > 500) {
             return "Notes cannot exceed 500 characters"
@@ -72,7 +78,8 @@ data class TransactionDomainModel(
             date = date,
             notes = notes,
             commissionType = commissionType,
-            commissionAmount = commissionAmount
+            commissionAmount = commissionAmount,
+            splitRatio = splitRatio
         )
     }
 }

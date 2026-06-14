@@ -142,7 +142,6 @@ fun HoldingsScreen(
                     items(activeHoldings) { holding ->
                         HoldingItem(
                             holding = holding,
-                            financeColors = financeColors,
                             onClick = { onStockClick(holding.stockSymbol) },
                             modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                         )
@@ -162,7 +161,6 @@ fun HoldingsScreen(
                     items(closedHoldings) { holding ->
                         HoldingItem(
                             holding = holding,
-                            financeColors = financeColors,
                             onClick = { onStockClick(holding.stockSymbol) },
                             modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                         )
@@ -202,10 +200,10 @@ fun HoldingsScreen(
 @Composable
 fun HoldingItem(
     holding: ComputedHolding, 
-    financeColors: SarmayaFinanceColors, 
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val financeColors = LocalSarmayaColors.current
     val isProfit = holding.profitLossAmount >= 0
     val isClosed = holding.quantity == 0
 

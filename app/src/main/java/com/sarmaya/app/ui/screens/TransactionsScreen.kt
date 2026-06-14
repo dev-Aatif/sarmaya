@@ -182,7 +182,6 @@ fun TransactionsScreen(
                 items(filteredTransactions) { tx ->
                     TransactionItem(
                         tx = tx,
-                        financeColors = financeColors,
                         onEdit = { showTransactionForm = tx.type to tx },
                         onDelete = { transactionToDelete = it },
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
@@ -196,11 +195,11 @@ fun TransactionsScreen(
 @Composable
 fun TransactionItem(
     tx: Transaction,
-    financeColors: SarmayaFinanceColors,
     onEdit: (Transaction) -> Unit,
     onDelete: (Transaction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val financeColors = LocalSarmayaColors.current
     val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
     val dateStr = dateFormat.format(Date(tx.date))
     var expanded by remember { mutableStateOf(false) }

@@ -82,6 +82,7 @@ class TransactionsViewModel(
         date: Long, 
         notes: String = "",
         commissionAmount: Double = 0.0,
+        splitRatio: Double? = null,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -96,7 +97,8 @@ class TransactionsViewModel(
                     pricePerShare = pricePerShare,
                     date = date,
                     notes = notes,
-                    commissionAmount = commissionAmount
+                    commissionAmount = commissionAmount,
+                    splitRatio = splitRatio
                 )
                 val validationError = domainModel.validate()
                 if (validationError != null) {
@@ -108,17 +110,10 @@ class TransactionsViewModel(
                 if (type != "DIVIDEND") {
                     val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, currentPortfolioId).toMutableList()
                     allTxs.add(t)
-                    allTxs.sortBy { it.date }
-                    var runningBalance = 0
-                    for (txn in allTxs) {
-                        when (txn.type) {
-                            "BUY", "BONUS" -> runningBalance += txn.quantity
-                            "SELL" -> runningBalance -= txn.quantity
-                        }
-                        if (runningBalance < 0) {
-                            onError("Transaction drops chronological holding below zero at point-in-time.")
-                            return@launch
-                        }
+                    val error = validateChronologicalBalance(allTxs)
+                    if (error != null) {
+                        onError("Transaction drops chronological holding below zero at point-in-time.")
+                        return@launch
                     }
                 }
 
@@ -161,6 +156,7 @@ class TransactionsViewModel(
         date: Long, 
         notes: String = "",
         commissionAmount: Double = 0.0,
+        splitRatio: Double? = null,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -180,7 +176,8 @@ class TransactionsViewModel(
                     pricePerShare = pricePerShare,
                     date = date,
                     notes = notes,
-                    commissionAmount = commissionAmount
+                    commissionAmount = commissionAmount,
+                    splitRatio = splitRatio
                 )
                 val validationError = domainModel.validate()
                 if (validationError != null) {
@@ -199,17 +196,10 @@ class TransactionsViewModel(
                     }
                     // We sort and calculate running balance to ensure NO chronological 
                     // point in time goes negative, preventing time travel paradoxes.
-                    allTxs.sortBy { it.date }
-                    var runningBalance = 0
-                    for (txn in allTxs) {
-                        when (txn.type) {
-                            "BUY", "BONUS" -> runningBalance += txn.quantity
-                            "SELL" -> runningBalance -= txn.quantity
-                        }
-                        if (runningBalance < 0) {
-                            onError("Transaction edit drops chronological holding below zero at point-in-time.")
-                            return@launch
-                        }
+                    val error = validateChronologicalBalance(allTxs)
+                    if (error != null) {
+                        onError("Transaction edit drops chronological holding below zero at point-in-time.")
+                        return@launch
                     }
                 }
                 
@@ -238,17 +228,10 @@ class TransactionsViewModel(
                     allTxs.removeIf { it.id == transaction.id }
                     // We sort and recalculate running balance to prevent deleting 
                     // a BUY that subsequent SELLs depend on, avoiding state corruption.
-                    allTxs.sortBy { it.date }
-                    var runningBalance = 0
-                    for (txn in allTxs) {
-                        when (txn.type) {
-                            "BUY", "BONUS" -> runningBalance += txn.quantity
-                            "SELL" -> runningBalance -= txn.quantity
-                        }
-                        if (runningBalance < 0) {
-                            onError("Deleting this transaction drops chronological holding below zero.")
-                            return@launch
-                        }
+                    val error = validateChronologicalBalance(allTxs)
+                    if (error != null) {
+                        onError("Deleting this transaction drops chronological holding below zero.")
+                        return@launch
                     }
                 }
                 
@@ -258,6 +241,25 @@ class TransactionsViewModel(
                 onSuccess()
             }
         }
+    }
+
+    private fun validateChronologicalBalance(transactions: List<Transaction>): String? {
+        val sorted = transactions.sortedBy { it.date }
+        var runningBalance = 0
+        for (txn in sorted) {
+            when (txn.type) {
+                "BUY", "BONUS" -> runningBalance += txn.quantity
+                "SELL" -> runningBalance -= txn.quantity
+                "SPLIT" -> {
+                    val factor = txn.splitRatio ?: if (txn.pricePerShare > 0.0) txn.pricePerShare else 1.0
+                    runningBalance = (runningBalance * factor).toInt()
+                }
+            }
+            if (runningBalance < 0) {
+                return "Balance drops below zero."
+            }
+        }
+        return null
     }
 
     fun selectPortfolio(portfolioId: Long) {
