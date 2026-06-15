@@ -34,7 +34,6 @@ sealed class StockDetailUiState {
 
 class StockDetailViewModel(
     private val repository: StockDataRepository,
-    private val watchlistDao: WatchlistDao,
     private val wsManager: com.sarmaya.app.network.websocket.PsxWebSocketManager,
     private val symbol: String
 ) : ViewModel() {
@@ -45,12 +44,8 @@ class StockDetailViewModel(
     private val _chartRange = MutableStateFlow(ChartRange.ONE_DAY)
     val chartRange: StateFlow<ChartRange> = _chartRange.asStateFlow()
 
-    private val _isWatched = MutableStateFlow(false)
-    val isWatched: StateFlow<Boolean> = _isWatched.asStateFlow()
-
     init {
         refreshAll()
-        checkWatchlist()
         
         // WebSocket logic: subscribe to this specific symbol
         wsManager.subscribe("tick:REG:$symbol")
@@ -82,23 +77,7 @@ class StockDetailViewModel(
         wsManager.unsubscribe("tick:REG:$symbol")
     }
 
-    private fun checkWatchlist() {
-        viewModelScope.launch {
-            _isWatched.value = watchlistDao.isInWatchlist(symbol) > 0
-        }
-    }
 
-    fun toggleWatchlist() {
-        viewModelScope.launch {
-            if (_isWatched.value) {
-                watchlistDao.deleteBySymbol(symbol)
-                _isWatched.value = false
-            } else {
-                watchlistDao.insert(com.sarmaya.app.data.WatchlistItem(stockSymbol = symbol))
-                _isWatched.value = true
-            }
-        }
-    }
 
     fun refreshAll() {
         viewModelScope.launch {
@@ -162,7 +141,6 @@ class StockDetailViewModel(
             val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as SarmayaApplication
             return StockDetailViewModel(
                 application.container.stockDataRepository,
-                application.container.watchlistDao,
                 application.container.psxWebSocketManager,
                 symbol
             ) as T

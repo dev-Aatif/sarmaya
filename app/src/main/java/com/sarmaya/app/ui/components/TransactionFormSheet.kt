@@ -66,7 +66,7 @@ fun TransactionFormSheet(
         when (currentType) {
             "BUY" -> TransactionUIConfig("Buy Stock", "Quantity", "Price per share", "Record Purchase", Icons.Default.Add, financeColors.profit)
             "SELL" -> TransactionUIConfig("Sell Stock", "Quantity", "Sale Price", "Record Sale", Icons.AutoMirrored.Filled.Send, financeColors.loss)
-            "DIVIDEND" -> TransactionUIConfig("Add Dividend", "N/A", "Dividend/Share", "Record Dividend", Icons.Default.KeyboardArrowUp, financeColors.dividend)
+            "DIVIDEND" -> TransactionUIConfig("Add Dividend", "N/A", "Total Dividend", "Record Dividend", Icons.Default.KeyboardArrowUp, financeColors.dividend)
             "BONUS" -> TransactionUIConfig("Add Bonus", "Bonus Shares", "N/A", "Record Bonus", Icons.Default.Star, financeColors.warning)
             "SPLIT" -> TransactionUIConfig("Stock Split", "N/A", "Split Ratio", "Record Split", Icons.Default.Refresh, primaryColor)
             else -> TransactionUIConfig("Transaction", "Quantity", "Price", "Save", Icons.Default.Info, primaryColor)
@@ -335,7 +335,7 @@ fun TransactionFormSheet(
                 ModernTextField(
                     value = commissionAmount,
                     onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) commissionAmount = it },
-                    label = "Commission (₨)",
+                    label = "Fee (Optional)",
                     keyboardType = KeyboardType.Decimal,
                     modifier = Modifier.fillMaxWidth()
                 )

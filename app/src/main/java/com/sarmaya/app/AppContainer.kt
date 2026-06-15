@@ -5,11 +5,9 @@ import com.sarmaya.app.data.AppDatabase
 import com.sarmaya.app.data.DataStoreManager
 import com.sarmaya.app.data.PortfolioDao
 import com.sarmaya.app.data.PortfolioSnapshotDao
-import com.sarmaya.app.data.PriceAlertDao
 import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.StockQuoteCacheDao
 import com.sarmaya.app.data.TransactionDao
-import com.sarmaya.app.data.WatchlistDao
 import com.sarmaya.app.network.ConnectivityChecker
 import com.sarmaya.app.network.StockDataRepository
 import com.sarmaya.app.network.api.PsxApi
@@ -31,12 +29,9 @@ class AppContainer(private val context: Context) {
     val database: AppDatabase by lazy { AppDatabase.getInstance(context) }
     val stockDao: StockDao by lazy { database.stockDao() }
     val transactionDao: TransactionDao by lazy { database.transactionDao() }
-    val watchlistDao: WatchlistDao by lazy { database.watchlistDao() }
     val stockQuoteCacheDao: StockQuoteCacheDao by lazy { database.stockQuoteCacheDao() }
     val portfolioDao: PortfolioDao by lazy { database.portfolioDao() }
-    val priceAlertDao: PriceAlertDao by lazy { database.priceAlertDao() }
     val portfolioSnapshotDao: PortfolioSnapshotDao by lazy { database.portfolioSnapshotDao() }
-    val newsArticleDao: com.sarmaya.app.data.NewsArticleDao by lazy { database.newsArticleDao() }
 
     // ─── DataStore ───
     val dataStoreManager: DataStoreManager by lazy { DataStoreManager(context) }
@@ -137,17 +132,7 @@ class AppContainer(private val context: Context) {
         )
     }
 
-    private val googleRssParser: com.sarmaya.app.network.rss.GoogleRssParser by lazy {
-        com.sarmaya.app.network.rss.GoogleRssParser()
-    }
 
-    val newsRepository: com.sarmaya.app.network.repository.NewsRepository by lazy {
-        com.sarmaya.app.network.repository.NewsRepository(
-            newsDao = newsArticleDao,
-            rssParser = googleRssParser,
-            connectivityChecker = connectivityChecker
-        )
-    }
 
     // ─── Workers ───
     val syncManager: SyncManager by lazy { SyncManager(context) }

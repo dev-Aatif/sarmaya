@@ -12,8 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.List
@@ -35,7 +33,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.ui.components.PortfolioSelector
 import com.sarmaya.app.ui.components.TransactionFlow
-import com.sarmaya.app.ui.components.MarketStateBadge
 import com.sarmaya.app.ui.screens.dashboard.*
 import com.sarmaya.app.ui.theme.*
 import com.sarmaya.app.viewmodel.DashboardViewModel
@@ -46,13 +43,10 @@ import java.util.*
 @Composable
 fun DashboardScreen(
     onStockClick: (String) -> Unit,
-    onAlertsClick: () -> Unit,
     onTotalValueClick: () -> Unit,
     onViewAllTransactions: () -> Unit,
     onSettingsClick: () -> Unit,
-    onNewsClick: (com.sarmaya.app.data.NewsArticle) -> Unit,
-    viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory),
-    newsViewModel: com.sarmaya.app.viewmodel.NewsViewModel = viewModel(factory = com.sarmaya.app.viewmodel.NewsViewModel.Factory)
+    viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
 ) {
     val totalValue by viewModel.totalPortfolioValue.collectAsStateWithLifecycle()
     val totalInvested by viewModel.totalInvested.collectAsStateWithLifecycle()
@@ -62,17 +56,11 @@ fun DashboardScreen(
     val totalReturn by viewModel.totalReturn.collectAsStateWithLifecycle()
     val holdingsCount by viewModel.holdingsCount.collectAsStateWithLifecycle()
     val sectorAllocation by viewModel.sectorAllocation.collectAsStateWithLifecycle()
-    val topGainers by viewModel.topGainers.collectAsStateWithLifecycle()
-    val topLosers by viewModel.topLosers.collectAsStateWithLifecycle()
     val recentTransactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
-    val lastPriceUpdate by viewModel.lastPriceUpdate.collectAsStateWithLifecycle()
     val username by viewModel.username.collectAsStateWithLifecycle()
     val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val marketStatus by viewModel.marketStatus.collectAsStateWithLifecycle()
-    
-    val newsArticles by newsViewModel.newsArticles.collectAsStateWithLifecycle()
 
     var showTypeSelection by remember { mutableStateOf(false) }
     var showTransactionForm by remember { mutableStateOf<String?>(null) } 
@@ -115,8 +103,6 @@ fun DashboardScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            MarketStateBadge(state = marketStatus)
                         }
                         PortfolioSelector(
                             activePortfolio = activePortfolio,
@@ -126,15 +112,6 @@ fun DashboardScreen(
                         )
                     }
                     Row {
-                        IconButton(
-                            onClick = onAlertsClick,
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                        ) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Alerts")
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
                         IconButton(
                             onClick = onSettingsClick,
                             modifier = Modifier
@@ -222,37 +199,7 @@ fun DashboardScreen(
                     }
                 }
 
-                // ─── Market News Section ───
-                if (newsArticles.isNotEmpty()) {
-                    item {
-                        com.sarmaya.app.ui.components.NewsSection(
-                            articles = newsArticles,
-                            onArticleClick = onNewsClick
-                        )
-                    }
-                }
 
-                // ─── Top Movers / Gainers ───
-                if (topGainers.isNotEmpty() || topLosers.isNotEmpty()) {
-                    item {
-                        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-                            Text(
-                                "Top Performers",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                items(topGainers) { holding ->
-                                    MoverChip(holding = holding, isGainer = true, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
-                                }
-                                items(topLosers) { holding ->
-                                    MoverChip(holding = holding, isGainer = false, financeColors = financeColors, onClick = { onStockClick(holding.stockSymbol) })
-                                }
-                            }
-                        }
-                    }
-                }
 
                 // ─── Recent Activity ───
                 if (recentTransactions.isNotEmpty()) {

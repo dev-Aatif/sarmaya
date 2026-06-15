@@ -10,8 +10,6 @@ import com.sarmaya.app.data.PortfolioDao
 import com.sarmaya.app.data.Stock
 import com.sarmaya.app.data.StockDao
 import com.sarmaya.app.data.Transaction
-import com.sarmaya.app.data.WatchlistDao
-import com.sarmaya.app.data.WatchlistItem
 import com.sarmaya.app.data.TransactionDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -27,7 +25,6 @@ class TransactionsViewModel(
     private val stockDao: StockDao,
     private val portfolioDao: PortfolioDao,
     private val dataStoreManager: DataStoreManager,
-    private val watchlistDao: WatchlistDao,
     private val dbTransactionRunner: suspend (suspend () -> Unit) -> Unit = { it() }
 ) : ViewModel() {
 
@@ -107,17 +104,17 @@ class TransactionsViewModel(
                 }
                 val t = domainModel.toEntity()
 
-                if (type != "DIVIDEND") {
-                    val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, currentPortfolioId).toMutableList()
-                    allTxs.add(t)
-                    val error = validateChronologicalBalance(allTxs)
-                    if (error != null) {
-                        onError("Transaction drops chronological holding below zero at point-in-time.")
-                        return@launch
-                    }
-                }
-
                 dbTransactionRunner {
+                    if (type != "DIVIDEND") {
+                        val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, currentPortfolioId).toMutableList()
+                        allTxs.add(t)
+                        val error = validateChronologicalBalance(allTxs)
+                        if (error != null) {
+                            onError("Transaction drops chronological holding below zero at point-in-time.")
+                            return@dbTransactionRunner
+                        }
+                    }
+
                     val existingStocks = stockDao.getStocksSync(listOf(stockSymbol))
                     if (existingStocks.isEmpty()) {
                         stockDao.insertStocks(listOf(Stock(
@@ -134,13 +131,6 @@ class TransactionsViewModel(
                         }
                     }
                     transactionDao.insert(t)
-                    // Auto-add stock to watchlist on BUY
-                    if (type == "BUY") {
-                        val isWatched = watchlistDao.isInWatchlist(stockSymbol)
-                        if (isWatched == 0) {
-                            watchlistDao.insert(WatchlistItem(stockSymbol = stockSymbol))
-                        }
-                    }
                 }
                 onSuccess()
             }
@@ -186,24 +176,24 @@ class TransactionsViewModel(
                 }
                 val t = domainModel.toEntity()
 
-                if (type != "DIVIDEND" || oldTx.type != "DIVIDEND") {
-                    val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, oldTx.portfolioId).toMutableList()
-                    val index = allTxs.indexOfFirst { it.id == transactionId }
-                    if (index != -1) {
-                        allTxs[index] = t
-                    } else {
-                        allTxs.add(t)
-                    }
-                    // We sort and calculate running balance to ensure NO chronological 
-                    // point in time goes negative, preventing time travel paradoxes.
-                    val error = validateChronologicalBalance(allTxs)
-                    if (error != null) {
-                        onError("Transaction edit drops chronological holding below zero at point-in-time.")
-                        return@launch
-                    }
-                }
-                
                 dbTransactionRunner {
+                    if (type != "DIVIDEND" || oldTx.type != "DIVIDEND") {
+                        val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, oldTx.portfolioId).toMutableList()
+                        val index = allTxs.indexOfFirst { it.id == transactionId }
+                        if (index != -1) {
+                            allTxs[index] = t
+                        } else {
+                            allTxs.add(t)
+                        }
+                        // We sort and calculate running balance to ensure NO chronological 
+                        // point in time goes negative, preventing time travel paradoxes.
+                        val error = validateChronologicalBalance(allTxs)
+                        if (error != null) {
+                            onError("Transaction edit drops chronological holding below zero at point-in-time.")
+                            return@dbTransactionRunner
+                        }
+                    }
+                
                     transactionDao.update(t)
                     // When editing a BUY, also update the stock's currentPrice
                     // to match the new buy price (same behavior as addTransaction)
@@ -223,19 +213,19 @@ class TransactionsViewModel(
     ) {
         viewModelScope.launch {
             mutex.withLock {
-                if (transaction.type != "DIVIDEND") {
-                    val allTxs = transactionDao.getTransactionsForStockInPortfolio(transaction.stockSymbol, transaction.portfolioId).toMutableList()
-                    allTxs.removeIf { it.id == transaction.id }
-                    // We sort and recalculate running balance to prevent deleting 
-                    // a BUY that subsequent SELLs depend on, avoiding state corruption.
-                    val error = validateChronologicalBalance(allTxs)
-                    if (error != null) {
-                        onError("Deleting this transaction drops chronological holding below zero.")
-                        return@launch
-                    }
-                }
-                
                 dbTransactionRunner {
+                    if (transaction.type != "DIVIDEND") {
+                        val allTxs = transactionDao.getTransactionsForStockInPortfolio(transaction.stockSymbol, transaction.portfolioId).toMutableList()
+                        allTxs.removeIf { it.id == transaction.id }
+                        // We sort and recalculate running balance to prevent deleting 
+                        // a BUY that subsequent SELLs depend on, avoiding state corruption.
+                        val error = validateChronologicalBalance(allTxs)
+                        if (error != null) {
+                            onError("Deleting this transaction drops chronological holding below zero.")
+                            return@dbTransactionRunner
+                        }
+                    }
+                
                     transactionDao.delete(transaction)
                 }
                 onSuccess()
@@ -251,7 +241,7 @@ class TransactionsViewModel(
                 "BUY", "BONUS" -> runningBalance += txn.quantity
                 "SELL" -> runningBalance -= txn.quantity
                 "SPLIT" -> {
-                    val factor = txn.splitRatio ?: if (txn.pricePerShare > 0.0) txn.pricePerShare else 1.0
+                    val factor = txn.splitRatio ?: 1.0
                     runningBalance = (runningBalance * factor).toInt()
                 }
             }
@@ -289,7 +279,6 @@ class TransactionsViewModel(
                     application.container.stockDao,
                     application.container.portfolioDao,
                     application.container.dataStoreManager,
-                    application.container.watchlistDao,
                     { block: suspend () -> Unit -> application.container.database.withTransaction { block() } }
                 ) as T
             }

@@ -46,36 +46,8 @@ fun SettingsScreen(
     BackHandler(enabled = onDismiss != null) {
         onDismiss?.invoke()
     }
-    val notifPortfolio by viewModel.notificationsPortfolio.collectAsState()
-    val notifMarket by viewModel.notificationsMarket.collectAsState()
-    val notifUpdates by viewModel.notificationsUpdates.collectAsState()
-    val isUpdateAvailable by viewModel.isUpdateAvailable.collectAsState()
-    val updateUrl by viewModel.updateUrl.collectAsState()
-    val isImporting by viewModel.isImporting.collectAsState()
     val financeColors = LocalSarmayaColors.current
     val context = LocalContext.current
-
-    val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument(),
-        onResult = { uri ->
-            uri?.let { viewModel.importPortfolioFromCsv(it) }
-        }
-    )
-
-    val coroutineScope = rememberCoroutineScope()
-    val saveFileLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("text/csv"),
-        onResult = { uri ->
-            uri?.let {
-                coroutineScope.launch {
-                    val csv = viewModel.getPortfolioCsvContent()
-                    context.contentResolver.openOutputStream(it)?.use { out ->
-                        out.write(csv.toByteArray())
-                    }
-                }
-            }
-        }
-    )
 
     var editingUsername by remember { mutableStateOf(false) }
     var usernameInput by remember(username) { mutableStateOf(username) }
@@ -104,46 +76,7 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
         ) {
-            if (isUpdateAvailable != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🚀", fontSize = 24.sp)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    "New Update Available: v$isUpdateAvailable",
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                Text(
-                                    "Check out the latest features and improvements.",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Button(
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl ?: "https://github.com/dev-Aatif/sarmaya/releases"))
-                                context.startActivity(intent)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("Download APK")
-                        }
-                    }
-                }
-            }
+
 
             if (onDismiss == null) {
                 Spacer(modifier = Modifier.height(24.dp))
@@ -296,121 +229,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
 
-            // ─── Notifications ───
-            SettingsSectionHeader("Notifications")
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    NotificationToggle(
-                        title = "Portfolio Updates",
-                        subtitle = "Daily P/L summaries",
-                        checked = notifPortfolio,
-                        onCheckedChange = { viewModel.setNotificationPortfolio(it) }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                    )
-                    NotificationToggle(
-                        title = "Market Status",
-                        subtitle = "PSX open/close alerts",
-                        checked = notifMarket,
-                        onCheckedChange = { viewModel.setNotificationMarket(it) }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                    )
-                    NotificationToggle(
-                        title = "App Updates",
-                        subtitle = "New version notifications",
-                        checked = notifUpdates,
-                        onCheckedChange = { viewModel.setNotificationUpdates(it) }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // ─── Data Management ───
-            SettingsSectionHeader("Data Management")
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = financeColors.cardSurface)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Button(
-                            onClick = { viewModel.exportPortfolioToCsv() },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Icon(androidx.compose.material.icons.Icons.Default.Share, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Share", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                        }
-
-                        Button(
-                            onClick = { saveFileLauncher.launch("sarmaya_portfolio_backup.csv") },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            )
-                        ) {
-                            Icon(androidx.compose.material.icons.Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.graphicsLayer(rotationZ = 90f))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Download", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Button(
-                            onClick = { filePickerLauncher.launch(arrayOf("text/comma-separated-values", "text/csv")) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            enabled = !isImporting,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
-                                contentColor = MaterialTheme.colorScheme.secondary
-                            )
-                        ) {
-                            if (isImporting) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                            } else {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.size(24.dp).graphicsLayer(rotationZ = 180f))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Import", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                }
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -525,40 +344,7 @@ private fun SettingsSectionHeader(title: String) {
     )
 }
 
-@Composable
-private fun NotificationToggle(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = MaterialTheme.colorScheme.primary
-            )
-        )
-    }
-}
+
 
 @Composable
 private fun CreditRow(label: String, value: String) {

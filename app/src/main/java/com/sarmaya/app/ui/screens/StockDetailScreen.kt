@@ -13,11 +13,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -47,7 +44,6 @@ import com.sarmaya.app.network.CompanyProfile
 import com.sarmaya.app.network.UnifiedQuote
 import com.sarmaya.app.ui.theme.LocalSarmayaColors
 import com.sarmaya.app.ui.theme.SarmayaFinanceColors
-import com.sarmaya.app.viewmodel.PriceAlertViewModel
 import com.sarmaya.app.viewmodel.StockDetailUiState
 import com.sarmaya.app.viewmodel.StockDetailViewModel
 
@@ -64,11 +60,7 @@ fun StockDetailScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val chartRange by viewModel.chartRange.collectAsStateWithLifecycle()
-    val isWatched by viewModel.isWatched.collectAsStateWithLifecycle()
     val financeColors = LocalSarmayaColors.current
-    
-    val alertViewModel: PriceAlertViewModel = viewModel(factory = PriceAlertViewModel.Factory)
-    var showAddAlertSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -96,16 +88,6 @@ fun StockDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.toggleWatchlist() }) {
-                        Icon(
-                            if (isWatched) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Watchlist",
-                            tint = if (isWatched) financeColors.profit else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(onClick = { showAddAlertSheet = true }) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Add Price Alert")
-                    }
                     IconButton(onClick = { viewModel.refreshAll() }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
@@ -191,15 +173,6 @@ fun StockDetailScreen(
         }
     }
 
-    if (showAddAlertSheet) {
-        AddPriceAlertSheet(
-            onDismiss = { showAddAlertSheet = false },
-            onAdd = { sym, price, type ->
-                alertViewModel.addAlert(sym, price, type)
-                showAddAlertSheet = false
-            }
-        )
-    }
 }
 
 @Composable

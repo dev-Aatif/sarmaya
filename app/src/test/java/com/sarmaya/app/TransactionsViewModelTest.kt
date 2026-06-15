@@ -20,12 +20,12 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import com.sarmaya.app.data.PortfolioDao
 import com.sarmaya.app.data.DataStoreManager
-import com.sarmaya.app.data.WatchlistDao
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TransactionsViewModelTest {
 
     open class FakeStockDao : StockDao {
+        override suspend fun updateTickData(symbol: String, price: Double, change: Double, changePercent: Double, volume: Long, trades: Long, value: Long, high: Double, low: Double, state: String, updatedAt: Long) {}
         var insertedStocks = mutableListOf<Stock>()
         override fun getAllStocks() = flowOf(emptyList<Stock>())
         override fun searchStocks(sq: String) = flowOf(emptyList<Stock>())
@@ -40,6 +40,7 @@ class TransactionsViewModelTest {
     }
 
     class FakeTransactionDao : TransactionDao {
+        override suspend fun insertTransactions(transactions: List<com.sarmaya.app.data.Transaction>) {}
         var insertedTransactions = mutableListOf<Transaction>()
         override suspend fun insert(t: Transaction) {
             insertedTransactions.add(t)
@@ -79,9 +80,8 @@ class TransactionsViewModelTest {
         val dataStoreManager = mock(DataStoreManager::class.java)
         `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(1L))
 
-        val watchlistDao = mock(WatchlistDao::class.java)
-
-        viewModel = TransactionsViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager, watchlistDao)
+        
+        viewModel = TransactionsViewModel(transactionDao, stockDao, portfolioDao, dataStoreManager)
     }
 
     @After
@@ -172,9 +172,8 @@ class TransactionsViewModelTest {
         val dataStoreManager = mock(DataStoreManager::class.java)
         `when`(dataStoreManager.activePortfolioId).thenReturn(flowOf(1L))
 
-        val watchlistDao2 = mock(WatchlistDao::class.java)
-
-        val viewModel2 = TransactionsViewModel(transactionDao, trackingStockDao, portfolioDao, dataStoreManager, watchlistDao2)
+        
+        val viewModel2 = TransactionsViewModel(transactionDao, trackingStockDao, portfolioDao, dataStoreManager)
 
         viewModel2.updateTransaction(
             transactionId = insertedTx.id,

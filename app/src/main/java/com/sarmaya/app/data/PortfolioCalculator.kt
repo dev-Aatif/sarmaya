@@ -2,6 +2,8 @@ package com.sarmaya.app.data
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.Dispatchers
 
 object PortfolioCalculator {
     fun getEventSourcedHoldings(
@@ -38,7 +40,7 @@ object PortfolioCalculator {
                             if (qty > 0) {
                                 val sellQty = minOf(tx.quantity, qty)
                                 val avgCost = invested / qty
-                                val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * tx.quantity else tx.commissionAmount
+                                val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * sellQty else tx.commissionAmount
                                 // Realized P/L = (sell price - avg cost) * quantity sold - commission
                                 realizedPL += (tx.pricePerShare - avgCost) * sellQty - commission
                                 qty -= sellQty
@@ -47,11 +49,11 @@ object PortfolioCalculator {
                             }
                         }
                         "DIVIDEND" -> {
-                            // Dividend payout uses the chronologically correct running balance (qty)
-                            divs += (qty * tx.pricePerShare)
+                            // Dividend payout uses the total cash dividend input
+                            divs += tx.pricePerShare
                         }
                         "SPLIT" -> {
-                            val factor = tx.splitRatio ?: if (tx.pricePerShare > 0.0) tx.pricePerShare else 1.0
+                            val factor = tx.splitRatio ?: 1.0
                             qty = (qty * factor).toInt()
                             // Invested value (cost basis) remains the same, but price per share reduces
                         }
@@ -76,7 +78,7 @@ object PortfolioCalculator {
                 }
             }
             holdingsMap.values.toList().sortedBy { it.stockSymbol }
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     /**
@@ -108,15 +110,15 @@ object PortfolioCalculator {
                         if (qty > 0) {
                             val avgCost = invested / qty
                             val sellQty = minOf(tx.quantity, qty)
-                            val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * tx.quantity else tx.commissionAmount
+                            val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * sellQty else tx.commissionAmount
                             realizedPL += (tx.pricePerShare - avgCost) * sellQty - commission
                             qty -= sellQty
                             invested = maxOf(0.0, invested - (sellQty * avgCost))
                         }
                     }
-                    "DIVIDEND" -> divs += (qty * tx.pricePerShare)
+                    "DIVIDEND" -> divs += tx.pricePerShare
                     "SPLIT" -> {
-                        val factor = tx.splitRatio ?: if (tx.pricePerShare > 0.0) tx.pricePerShare else 1.0
+                        val factor = tx.splitRatio ?: 1.0
                         qty = (qty * factor).toInt()
                     }
                 }

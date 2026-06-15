@@ -11,12 +11,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [
         Stock::class,
         Transaction::class,
-        WatchlistItem::class,
         StockQuoteCache::class,
         Portfolio::class,
-        PriceAlert::class,
-        PortfolioSnapshot::class,
-        NewsArticle::class
+        PortfolioSnapshot::class
     ],
     version = 6,
     exportSchema = true
@@ -24,12 +21,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 abstract class AppDatabase : RoomDatabase() {
     abstract fun stockDao(): StockDao
     abstract fun transactionDao(): TransactionDao
-    abstract fun watchlistDao(): WatchlistDao
     abstract fun stockQuoteCacheDao(): StockQuoteCacheDao
     abstract fun portfolioDao(): PortfolioDao
-    abstract fun priceAlertDao(): PriceAlertDao
     abstract fun portfolioSnapshotDao(): PortfolioSnapshotDao
-    abstract fun newsArticleDao(): NewsArticleDao
 
     companion object {
         @Volatile

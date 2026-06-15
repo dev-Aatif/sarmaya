@@ -72,7 +72,7 @@ class PsxApiParsingTest {
               "low": 840.0,
               "value": 42500000,
               "trades": 500,
-              "state": "OPN"
+              "st": "OPN"
             }
         """.trimIndent()
 

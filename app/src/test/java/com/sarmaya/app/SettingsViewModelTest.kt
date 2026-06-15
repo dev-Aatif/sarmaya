@@ -13,6 +13,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.*
+import com.sarmaya.app.network.api.GithubApi
 import com.sarmaya.app.data.TransactionDao
 import kotlinx.coroutines.launch
 
@@ -38,7 +39,8 @@ class SettingsViewModelTest {
         `when`(dataStoreManager.notificationsMarket).thenReturn(flowOf(true))
         `when`(dataStoreManager.notificationsUpdates).thenReturn(flowOf(true))
         
-        viewModel = SettingsViewModel(mockContext, transactionDao, dataStoreManager)
+        val githubApi = mock(GithubApi::class.java)
+        viewModel = SettingsViewModel(mockContext, transactionDao, dataStoreManager, githubApi)
     }
 
     @After

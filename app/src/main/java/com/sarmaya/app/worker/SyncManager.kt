@@ -16,29 +16,7 @@ class SyncManager(private val context: Context) {
         private const val SYNC_INTERVAL_MINUTES = 15L
     }
 
-    fun scheduleBackgroundSync() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
 
-        val syncRequest = PeriodicWorkRequestBuilder<PriceAlertWorker>(
-            SYNC_INTERVAL_MINUTES, TimeUnit.MINUTES,
-            5, TimeUnit.MINUTES // Flexible interval
-        )
-            .setConstraints(constraints)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.MINUTES)
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            SYNC_WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP, // Keep existing to avoid resetting the timer
-            syncRequest
-        )
-    }
-    
-    fun cancelSync() {
-        WorkManager.getInstance(context).cancelUniqueWork(SYNC_WORK_NAME)
-    }
 
     fun scheduleSnapshotWork() {
         // Daily snapshot
@@ -64,23 +42,5 @@ class SyncManager(private val context: Context) {
         WorkManager.getInstance(context).enqueue(request)
     }
 
-    fun scheduleNewsPolling() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
 
-        val newsRequest = PeriodicWorkRequestBuilder<NewsPollingWorker>(
-            1, TimeUnit.HOURS,
-            15, TimeUnit.MINUTES // Flexible interval
-        )
-            .setConstraints(constraints)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.MINUTES)
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            NEWS_WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
-            newsRequest
-        )
-    }
 }

@@ -104,17 +104,7 @@ class DashboardViewModel(
             .sortedByDescending { it.second }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val topGainers = computedHoldings.map { holdings ->
-        holdings.filter { it.quantity > 0 && it.profitLossPercentage > 0 }
-            .sortedByDescending { it.profitLossPercentage }
-            .take(3)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val topLosers = computedHoldings.map { holdings ->
-        holdings.filter { it.quantity > 0 && it.profitLossPercentage < 0 }
-            .sortedBy { it.profitLossPercentage }
-            .take(3)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val recentTransactions = transactions
         .map { it.take(5) }
@@ -130,8 +120,7 @@ class DashboardViewModel(
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
 
-    private val _marketStatus = MutableStateFlow(com.sarmaya.app.util.MarketHoursUtil.getMarketState())
-    val marketStatus: StateFlow<String> = _marketStatus.asStateFlow()
+
 
     init {
         viewModelScope.launch {
@@ -149,9 +138,7 @@ class DashboardViewModel(
             _isRefreshing.value = true
             sarmayaRepository.getSymbols()
             sarmayaRepository.syncPsxQuotes()
-            sarmayaRepository.getMarketStatus().onSuccess {
-                _marketStatus.value = it
-            }
+            sarmayaRepository.getMarketStatus()
             _isRefreshing.value = false
         }
     }

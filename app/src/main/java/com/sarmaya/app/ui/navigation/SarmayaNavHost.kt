@@ -10,10 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -44,22 +42,18 @@ import com.sarmaya.app.ui.screens.HoldingsScreen
 import com.sarmaya.app.ui.screens.OnboardingScreen
 import com.sarmaya.app.ui.screens.StockDetailScreen
 import com.sarmaya.app.ui.screens.TransactionsScreen
-import com.sarmaya.app.ui.screens.WatchlistScreen
-import com.sarmaya.app.ui.screens.MarketScreen
-import com.sarmaya.app.ui.screens.PriceAlertsScreen
+import com.sarmaya.app.ui.screens.TransactionsScreen
 import com.sarmaya.app.ui.screens.PortfolioSummaryScreen
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Dashboard : Screen("dashboard", "Home", Icons.Filled.Home)
     object Holdings : Screen("holdings", "Portfolio", Icons.AutoMirrored.Filled.List)
-    object Watchlist : Screen("watchlist", "Market", Icons.Filled.Star)
     object Transactions : Screen("transactions", "History", Icons.Filled.ShoppingCart)
     
     // Non-tab screens
     object StockDetail : Screen("stock_detail/{symbol}", "Stock Detail", Icons.Filled.Info) {
         fun createRoute(symbol: String) = "stock_detail/$symbol"
     }
-    object PriceAlerts : Screen("price_alerts", "Price Alerts", Icons.Filled.Notifications)
     object PortfolioSummary : Screen("portfolio_summary", "Portfolio Summary", Icons.Filled.Info)
     object Settings : Screen("settings", "Settings", Icons.Filled.Settings)
 }
@@ -67,7 +61,6 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 val bottomNavItems = listOf(
     Screen.Dashboard,
     Screen.Holdings,
-    Screen.Watchlist,
     Screen.Transactions
 )
 
@@ -107,9 +100,6 @@ fun SarmayaNavHost() {
                         onStockClick = { symbol ->
                             navController.navigate(Screen.StockDetail.createRoute(symbol))
                         },
-                        onAlertsClick = {
-                            navController.navigate(Screen.PriceAlerts.route)
-                        },
                         onTotalValueClick = {
                             navController.navigate(Screen.PortfolioSummary.route)
                         },
@@ -131,11 +121,7 @@ fun SarmayaNavHost() {
                         }
                     )
                 }
-                composable(Screen.PriceAlerts.route) {
-                    PriceAlertsScreen(
-                        onDismiss = { navController.popBackStack() }
-                    )
-                }
+
                 composable(Screen.PortfolioSummary.route) {
                     com.sarmaya.app.ui.screens.PortfolioSummaryScreen(
                         onBack = { navController.popBackStack() }
@@ -159,7 +145,6 @@ fun SarmayaNavHost() {
 @Composable
 private fun MainAppContent(
     onStockClick: (String) -> Unit,
-    onAlertsClick: () -> Unit,
     onTotalValueClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -207,19 +192,13 @@ private fun MainAppContent(
                     val context = androidx.compose.ui.platform.LocalContext.current
                     DashboardScreen(
                         onStockClick = onStockClick,
-                        onAlertsClick = onAlertsClick,
                         onTotalValueClick = onTotalValueClick,
                         onSettingsClick = onSettingsClick,
-                        onViewAllTransactions = { selectedTab = 3 },
-                        onNewsClick = { article ->
-                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(article.link))
-                            context.startActivity(intent)
-                        }
+                        onViewAllTransactions = { selectedTab = 2 }
                     )
                 }
                 1 -> HoldingsScreen(onStockClick = onStockClick)
-                2 -> MarketScreen(onStockClick = onStockClick)
-                3 -> TransactionsScreen()
+                2 -> TransactionsScreen()
             }
         }
     }

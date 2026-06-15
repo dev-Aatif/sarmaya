@@ -169,7 +169,7 @@ class PortfolioCalculatorTest {
         val result = compute(
             listOf(
                 Transaction(stockSymbol = "A", type = "BUY", quantity = 10, pricePerShare = 100.0, date = 1L),
-                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 10, pricePerShare = 5.0, date = 2L)
+                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 10, pricePerShare = 50.0, date = 2L)
             ),
             listOf(Stock("A", "Stock A", "Tech", currentPrice = 100.0))
         ).first()
@@ -187,7 +187,7 @@ class PortfolioCalculatorTest {
         val result = compute(
             listOf(
                 Transaction(stockSymbol = "A", type = "BUY", quantity = 20, pricePerShare = 100.0, date = 1L),
-                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 10, pricePerShare = 5.0, date = 2L)
+                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 10, pricePerShare = 50.0, date = 2L)
             ),
             listOf(Stock("A", "Stock A", "Tech", currentPrice = 100.0))
         ).first()
@@ -203,8 +203,8 @@ class PortfolioCalculatorTest {
         val result = compute(
             listOf(
                 Transaction(stockSymbol = "A", type = "BUY", quantity = 10, pricePerShare = 100.0, date = 1L),
-                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 10, pricePerShare = 5.0, date = 2L),
-                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 10, pricePerShare = 3.0, date = 3L)
+                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 10, pricePerShare = 50.0, date = 2L),
+                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 10, pricePerShare = 30.0, date = 3L)
             ),
             listOf(Stock("A", "Stock A", "Tech", currentPrice = 100.0))
         ).first()
@@ -238,7 +238,7 @@ class PortfolioCalculatorTest {
         val result = compute(
             listOf(
                 Transaction(stockSymbol = "A", type = "BUY", quantity = 10, pricePerShare = 200.0, date = 1L),
-                Transaction(stockSymbol = "A", type = "SPLIT", quantity = 2, pricePerShare = 0.0, date = 2L)
+                Transaction(stockSymbol = "A", type = "SPLIT", quantity = 2, splitRatio = 2.0, pricePerShare = 0.0, date = 2L)
             ),
             listOf(Stock("A", "Stock A", "Tech", currentPrice = 100.0))
         ).first()
@@ -258,7 +258,7 @@ class PortfolioCalculatorTest {
             listOf(
                 Transaction(stockSymbol = "A", type = "BUY", quantity = 20, pricePerShare = 50.0, date = 1L),
                 Transaction(stockSymbol = "A", type = "SELL", quantity = 5, pricePerShare = 70.0, date = 2L),
-                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 15, pricePerShare = 2.0, date = 3L),
+                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 15, pricePerShare = 30.0, date = 3L),
                 Transaction(stockSymbol = "A", type = "BONUS", quantity = 3, pricePerShare = 0.0, date = 4L)
             ),
             listOf(Stock("A", "Stock A", "Tech", currentPrice = 60.0))
@@ -355,7 +355,7 @@ class PortfolioCalculatorTest {
             listOf(
                 Transaction(stockSymbol = "A", type = "BUY", quantity = 10, pricePerShare = 100.0, date = 1L),
                 Transaction(stockSymbol = "A", type = "SELL", quantity = 5, pricePerShare = 130.0, date = 2L),
-                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 5, pricePerShare = 10.0, date = 3L)
+                Transaction(stockSymbol = "A", type = "DIVIDEND", quantity = 5, pricePerShare = 50.0, date = 3L)
             ),
             listOf(Stock("A", "Stock A", "Tech", currentPrice = 120.0))
         ).first()
