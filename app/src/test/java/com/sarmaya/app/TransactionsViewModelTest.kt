@@ -25,6 +25,7 @@ import com.sarmaya.app.data.DataStoreManager
 class TransactionsViewModelTest {
 
     open class FakeStockDao : StockDao {
+        override suspend fun getStocksCount(): Int = 0
         override suspend fun updateTickData(symbol: String, price: Double, change: Double, changePercent: Double, volume: Long, trades: Long, value: Long, high: Double, low: Double, state: String, updatedAt: Long) {}
         var insertedStocks = mutableListOf<Stock>()
         override fun getAllStocks() = flowOf(emptyList<Stock>())

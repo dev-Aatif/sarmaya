@@ -157,7 +157,7 @@ fun RecentTransactionRow(
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                androidx.compose.material.icons.Icons.Default.KeyboardArrowRight,
+                androidx.compose.material.icons.Icons.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)

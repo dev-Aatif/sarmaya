@@ -1,0 +1,3271 @@
+[
+  {
+    "symbol": "786",
+    "name": "786",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AHL",
+    "name": "AHL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DLL",
+    "name": "DLL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ENGROH",
+    "name": "ENGROH",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FCEL",
+    "name": "FCEL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FCSC",
+    "name": "FCSC",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FDPL",
+    "name": "FDPL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FNEL",
+    "name": "FNEL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ICIBL",
+    "name": "ICIBL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JSGCL",
+    "name": "JSGCL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LSEVL",
+    "name": "LSEVL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PASL",
+    "name": "PASL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PIAHCLA",
+    "name": "PIAHCLA",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PSX",
+    "name": "PSX",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TSBL",
+    "name": "TSBL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AKDSL",
+    "name": "AKDSL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LSECL",
+    "name": "LSECL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ESBL",
+    "name": "ESBL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DEL",
+    "name": "DEL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NEXT",
+    "name": "NEXT",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JSCL",
+    "name": "JSCL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AMBL",
+    "name": "AMBL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JSIL",
+    "name": "JSIL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FCIBL",
+    "name": "FCIBL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PIAHCLB",
+    "name": "PIAHCLB",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IMS",
+    "name": "IMS",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SIBL",
+    "name": "SIBL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MCBIM",
+    "name": "MCBIM",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LSEFSL",
+    "name": "LSEFSL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "OLPL",
+    "name": "OLPL",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IML",
+    "name": "IML",
+    "sector": "INV BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ADAMS",
+    "name": "ADAMS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AGSML",
+    "name": "AGSML",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ALNRS",
+    "name": "ALNRS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ANSM",
+    "name": "ANSM",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FRSM",
+    "name": "FRSM",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HRPL",
+    "name": "HRPL",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JSML",
+    "name": "JSML",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KPUS",
+    "name": "KPUS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TICL",
+    "name": "TICL",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DWSM",
+    "name": "DWSM",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TSML",
+    "name": "TSML",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TCORP",
+    "name": "TCORP",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SKRS",
+    "name": "SKRS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JDWS",
+    "name": "JDWS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PMRS",
+    "name": "PMRS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MIRKS",
+    "name": "MIRKS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BAFS",
+    "name": "BAFS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SML",
+    "name": "SML",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MRNS",
+    "name": "MRNS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SHSML",
+    "name": "SHSML",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HWQS",
+    "name": "HWQS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AABS",
+    "name": "AABS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HABSM",
+    "name": "HABSM",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SANSM",
+    "name": "SANSM",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NONS",
+    "name": "NONS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SHJS",
+    "name": "SHJS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CHAS",
+    "name": "CHAS",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SASML",
+    "name": "SASML",
+    "sector": "SUGAR",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ABOT",
+    "name": "ABOT",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AGP",
+    "name": "AGP",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BFBIO",
+    "name": "BFBIO",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CPHL",
+    "name": "CPHL",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FEROZ",
+    "name": "FEROZ",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GLAXO",
+    "name": "GLAXO",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HALEON",
+    "name": "HALEON",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HINOON",
+    "name": "HINOON",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IBLHL",
+    "name": "IBLHL",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LIVEN",
+    "name": "LIVEN",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MACTER",
+    "name": "MACTER",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "OTSU",
+    "name": "OTSU",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SEARL",
+    "name": "SEARL",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HPL",
+    "name": "HPL",
+    "sector": "PHARMA",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ACPL",
+    "name": "ACPL",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BWCL",
+    "name": "BWCL",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CHCC",
+    "name": "CHCC",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DBCI",
+    "name": "DBCI",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DCL",
+    "name": "DCL",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DGKC",
+    "name": "DGKC",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FCCL",
+    "name": "FCCL",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FECTC",
+    "name": "FECTC",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FLYNG",
+    "name": "FLYNG",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GWLC",
+    "name": "GWLC",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KOHC",
+    "name": "KOHC",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LUCK",
+    "name": "LUCK",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MLCF",
+    "name": "MLCF",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PIOC",
+    "name": "PIOC",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "POWER",
+    "name": "POWER",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "THCCL",
+    "name": "THCCL",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DNCC",
+    "name": "DNCC",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SMCPL",
+    "name": "SMCPL",
+    "sector": "CEMENT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ARUJ",
+    "name": "ARUJ",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CHBL",
+    "name": "CHBL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CRTM",
+    "name": "CRTM",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FML",
+    "name": "FML",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GATM",
+    "name": "GATM",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GFIL",
+    "name": "GFIL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ILP",
+    "name": "ILP",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "INKL",
+    "name": "INKL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KOIL",
+    "name": "KOIL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KTML",
+    "name": "KTML",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MEHT",
+    "name": "MEHT",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MSOT",
+    "name": "MSOT",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NCL",
+    "name": "NCL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NML",
+    "name": "NML",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PASM",
+    "name": "PASM",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SFL",
+    "name": "SFL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "STYLERS",
+    "name": "STYLERS",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SURC",
+    "name": "SURC",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ZAHID",
+    "name": "ZAHID",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ANL",
+    "name": "ANL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ADMM",
+    "name": "ADMM",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TOWL",
+    "name": "TOWL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HAEL",
+    "name": "HAEL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JUBS",
+    "name": "JUBS",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KML",
+    "name": "KML",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "REDCO",
+    "name": "REDCO",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FZCM",
+    "name": "FZCM",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SAPT",
+    "name": "SAPT",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ANTM",
+    "name": "ANTM",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BTL",
+    "name": "BTL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AHTM",
+    "name": "AHTM",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "STML",
+    "name": "STML",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KHYT",
+    "name": "KHYT",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "QUET",
+    "name": "QUET",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "REWM",
+    "name": "REWM",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BHAT",
+    "name": "BHAT",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FSWL",
+    "name": "FSWL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FASM",
+    "name": "FASM",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HAFL",
+    "name": "HAFL",
+    "sector": "TEXTILE COMP",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AGHA",
+    "name": "AGHA",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ASL",
+    "name": "ASL",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ASTL",
+    "name": "ASTL",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BCL",
+    "name": "BCL",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BECO",
+    "name": "BECO",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CSAP",
+    "name": "CSAP",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DSL",
+    "name": "DSL",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "INIL",
+    "name": "INIL",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ISL",
+    "name": "ISL",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ITTEFAQ",
+    "name": "ITTEFAQ",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MUGHAL",
+    "name": "MUGHAL",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KSBP",
+    "name": "KSBP",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MSCL",
+    "name": "MSCL",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DADX",
+    "name": "DADX",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PECO",
+    "name": "PECO",
+    "sector": "ENGINEERING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AHCL",
+    "name": "AHCL",
+    "sector": "FERTILIZER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "EFERT",
+    "name": "EFERT",
+    "sector": "FERTILIZER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FATIMA",
+    "name": "FATIMA",
+    "sector": "FERTILIZER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FFC",
+    "name": "FFC",
+    "sector": "FERTILIZER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AIRLINK",
+    "name": "AIRLINK",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AVN",
+    "name": "AVN",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HUMNL",
+    "name": "HUMNL",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NETSOL",
+    "name": "NETSOL",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PTC",
+    "name": "PTC",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "STL",
+    "name": "STL",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SYM",
+    "name": "SYM",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SYS",
+    "name": "SYS",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TELE",
+    "name": "TELE",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TPL",
+    "name": "TPL",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TRG",
+    "name": "TRG",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "WTL",
+    "name": "WTL",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ZAL",
+    "name": "ZAL",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MDTL",
+    "name": "MDTL",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PAKD",
+    "name": "PAKD",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "OCTOPUS",
+    "name": "OCTOPUS",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TPLT",
+    "name": "TPLT",
+    "sector": "TECH & COMM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AKBL",
+    "name": "AKBL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BAFL",
+    "name": "BAFL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BAHL",
+    "name": "BAHL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BIPL",
+    "name": "BIPL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BML",
+    "name": "BML",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BOK",
+    "name": "BOK",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BOP",
+    "name": "BOP",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FABL",
+    "name": "FABL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HBL",
+    "name": "HBL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HMB",
+    "name": "HMB",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JSBL",
+    "name": "JSBL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MCB",
+    "name": "MCB",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MEBL",
+    "name": "MEBL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NBP",
+    "name": "NBP",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SNBL",
+    "name": "SNBL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UBL",
+    "name": "UBL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SBL",
+    "name": "SBL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ABL",
+    "name": "ABL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SCBPL",
+    "name": "SCBPL",
+    "sector": "BANKS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AICL",
+    "name": "AICL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ALAC",
+    "name": "ALAC",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ATIL",
+    "name": "ATIL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IGIHL",
+    "name": "IGIHL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IGIL",
+    "name": "IGIL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JGICL",
+    "name": "JGICL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PAKRI",
+    "name": "PAKRI",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "EFUG",
+    "name": "EFUG",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CSIL",
+    "name": "CSIL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ASIC",
+    "name": "ASIC",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AGIC",
+    "name": "AGIC",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UVIC",
+    "name": "UVIC",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JLICL",
+    "name": "JLICL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UNIC",
+    "name": "UNIC",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PKGI",
+    "name": "PKGI",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PIL",
+    "name": "PIL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SHNI",
+    "name": "SHNI",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CENI",
+    "name": "CENI",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "EFUL",
+    "name": "EFUL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PINL",
+    "name": "PINL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HICL",
+    "name": "HICL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TPLI",
+    "name": "TPLI",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "RICL",
+    "name": "RICL",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ALIFE",
+    "name": "ALIFE",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "EWIC",
+    "name": "EWIC",
+    "sector": "INSURANCE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JSMFETF",
+    "name": "JSMFETF",
+    "sector": "ETFS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MIIETF",
+    "name": "MIIETF",
+    "sector": "ETFS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MZNPETF",
+    "name": "MZNPETF",
+    "sector": "ETFS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UBLPETF",
+    "name": "UBLPETF",
+    "sector": "ETFS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HBLTETF",
+    "name": "HBLTETF",
+    "sector": "ETFS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NBPGETF",
+    "name": "NBPGETF",
+    "sector": "ETFS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NITGETF",
+    "name": "NITGETF",
+    "sector": "ETFS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ACIETF",
+    "name": "ACIETF",
+    "sector": "ETFS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JSGBETF",
+    "name": "JSGBETF",
+    "sector": "ETFS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "EPQL",
+    "name": "EPQL",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HUBC",
+    "name": "HUBC",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KAPCO",
+    "name": "KAPCO",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KEL",
+    "name": "KEL",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KOHE",
+    "name": "KOHE",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KOHP",
+    "name": "KOHP",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LPL",
+    "name": "LPL",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NCPL",
+    "name": "NCPL",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NPL",
+    "name": "NPL",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SGPL",
+    "name": "SGPL",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SPWL",
+    "name": "SPWL",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TSPL",
+    "name": "TSPL",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PKGP",
+    "name": "PKGP",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ALTN",
+    "name": "ALTN",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SEL",
+    "name": "SEL",
+    "sector": "POWER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AMTEX",
+    "name": "AMTEX",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ARCTM",
+    "name": "ARCTM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ASTM",
+    "name": "ASTM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CTM",
+    "name": "CTM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DFSM",
+    "name": "DFSM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DSIL",
+    "name": "DSIL",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ELCM",
+    "name": "ELCM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GUSM",
+    "name": "GUSM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HIRAT",
+    "name": "HIRAT",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IDRT",
+    "name": "IDRT",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IDSM",
+    "name": "IDSM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JDMT",
+    "name": "JDMT",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KOHTM",
+    "name": "KOHTM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KOSM",
+    "name": "KOSM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SAIF",
+    "name": "SAIF",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SERT",
+    "name": "SERT",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SHDT",
+    "name": "SHDT",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SLYT",
+    "name": "SLYT",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SSML",
+    "name": "SSML",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SZTM",
+    "name": "SZTM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TATM",
+    "name": "TATM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KSTM",
+    "name": "KSTM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GADT",
+    "name": "GADT",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "RUBY",
+    "name": "RUBY",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CCM",
+    "name": "CCM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DINT",
+    "name": "DINT",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IDYM",
+    "name": "IDYM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NCML",
+    "name": "NCML",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ELSM",
+    "name": "ELSM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TPLL",
+    "name": "TPLL",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JATM",
+    "name": "JATM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MQTM",
+    "name": "MQTM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NAGC",
+    "name": "NAGC",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GSPM",
+    "name": "GSPM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SHCM",
+    "name": "SHCM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AATM",
+    "name": "AATM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SUTM",
+    "name": "SUTM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SNAI",
+    "name": "SNAI",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JKSM",
+    "name": "JKSM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CFL",
+    "name": "CFL",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DWTM",
+    "name": "DWTM",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PRET",
+    "name": "PRET",
+    "sector": "TEXTILE SPIN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "APL",
+    "name": "APL",
+    "sector": "O&G MKT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BPL",
+    "name": "BPL",
+    "sector": "O&G MKT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HASCOL",
+    "name": "HASCOL",
+    "sector": "O&G MKT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HTL",
+    "name": "HTL",
+    "sector": "O&G MKT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "OBOY",
+    "name": "OBOY",
+    "sector": "O&G MKT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PSO",
+    "name": "PSO",
+    "sector": "O&G MKT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SNGP",
+    "name": "SNGP",
+    "sector": "O&G MKT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SSGC",
+    "name": "SSGC",
+    "sector": "O&G MKT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "WAFI",
+    "name": "WAFI",
+    "sector": "O&G MKT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AGIL",
+    "name": "AGIL",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ATBA",
+    "name": "ATBA",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "EXIDE",
+    "name": "EXIDE",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GTYR",
+    "name": "GTYR",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LOADS",
+    "name": "LOADS",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TBL",
+    "name": "TBL",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "THALL",
+    "name": "THALL",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DWAE",
+    "name": "DWAE",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BWHL",
+    "name": "BWHL",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PTL",
+    "name": "PTL",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BELA",
+    "name": "BELA",
+    "sector": "AUTO PARTS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AGTL",
+    "name": "AGTL",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ATLH",
+    "name": "ATLH",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DFML",
+    "name": "DFML",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GAL",
+    "name": "GAL",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GHNI",
+    "name": "GHNI",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HCAR",
+    "name": "HCAR",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HINO",
+    "name": "HINO",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MTL",
+    "name": "MTL",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SAZEW",
+    "name": "SAZEW",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "INDU",
+    "name": "INDU",
+    "sector": "AUTO ASSEMBLER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ATRL",
+    "name": "ATRL",
+    "sector": "REFINERY",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CNERGY",
+    "name": "CNERGY",
+    "sector": "REFINERY",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NRL",
+    "name": "NRL",
+    "sector": "REFINERY",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PRL",
+    "name": "PRL",
+    "sector": "REFINERY",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ASC",
+    "name": "ASC",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BBFL",
+    "name": "BBFL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BFAGRO",
+    "name": "BFAGRO",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BNL",
+    "name": "BNL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CLOV",
+    "name": "CLOV",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FCEPL",
+    "name": "FCEPL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FFL",
+    "name": "FFL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MFL",
+    "name": "MFL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NATF",
+    "name": "NATF",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PREMA",
+    "name": "PREMA",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "QUICE",
+    "name": "QUICE",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TOMCL",
+    "name": "TOMCL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TREET",
+    "name": "TREET",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UNITY",
+    "name": "UNITY",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UPFL",
+    "name": "UPFL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "COLG",
+    "name": "COLG",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MUREB",
+    "name": "MUREB",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "RMPL",
+    "name": "RMPL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SHEZ",
+    "name": "SHEZ",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MFFL",
+    "name": "MFFL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NESTLE",
+    "name": "NESTLE",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SCL",
+    "name": "SCL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ZIL",
+    "name": "ZIL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ISIL",
+    "name": "ISIL",
+    "sector": "FOOD & CARE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BGL",
+    "name": "BGL",
+    "sector": "GLASS & CERAM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GGGL",
+    "name": "GGGL",
+    "sector": "GLASS & CERAM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GHGL",
+    "name": "GHGL",
+    "sector": "GLASS & CERAM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GVGL",
+    "name": "GVGL",
+    "sector": "GLASS & CERAM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "STCL",
+    "name": "STCL",
+    "sector": "GLASS & CERAM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TGL",
+    "name": "TGL",
+    "sector": "GLASS & CERAM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FRCL",
+    "name": "FRCL",
+    "sector": "GLASS & CERAM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KCL",
+    "name": "KCL",
+    "sector": "GLASS & CERAM",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AGL",
+    "name": "AGL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ARPL",
+    "name": "ARPL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BERG",
+    "name": "BERG",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BIFO",
+    "name": "BIFO",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DAAG",
+    "name": "DAAG",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "EPCL",
+    "name": "EPCL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GCIL",
+    "name": "GCIL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GGL",
+    "name": "GGL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ICL",
+    "name": "ICL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LCI",
+    "name": "LCI",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LOTCHEM",
+    "name": "LOTCHEM",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PAKOXY",
+    "name": "PAKOXY",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PPVC",
+    "name": "PPVC",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LPGL",
+    "name": "LPGL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NRSL",
+    "name": "NRSL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SPL",
+    "name": "SPL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DOL",
+    "name": "DOL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BAPL",
+    "name": "BAPL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DYNO",
+    "name": "DYNO",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BUXL",
+    "name": "BUXL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SARC",
+    "name": "SARC",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NICL",
+    "name": "NICL",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SITC",
+    "name": "SITC",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "WAHN",
+    "name": "WAHN",
+    "sector": "CHEMICAL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CPPL",
+    "name": "CPPL",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IPAK",
+    "name": "IPAK",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MACFL",
+    "name": "MACFL",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MERIT",
+    "name": "MERIT",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PKGS",
+    "name": "PKGS",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "RPL",
+    "name": "RPL",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SEPL",
+    "name": "SEPL",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SPEL",
+    "name": "SPEL",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PPP",
+    "name": "PPP",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CEPB",
+    "name": "CEPB",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GEMPAPL",
+    "name": "GEMPAPL",
+    "sector": "PAPER & PACK",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CLVL",
+    "name": "CLVL",
+    "sector": "TRANSPORT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PIBTL",
+    "name": "PIBTL",
+    "sector": "TRANSPORT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PNSC",
+    "name": "PNSC",
+    "sector": "TRANSPORT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SLGL",
+    "name": "SLGL",
+    "sector": "TRANSPORT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PICT",
+    "name": "PICT",
+    "sector": "TRANSPORT",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DCR",
+    "name": "DCR",
+    "sector": "REAL ESTATE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GRR",
+    "name": "GRR",
+    "sector": "REAL ESTATE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TPLRF1",
+    "name": "TPLRF1",
+    "sector": "REAL ESTATE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "DIIL",
+    "name": "DIIL",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ECOP",
+    "name": "ECOP",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GAMON",
+    "name": "GAMON",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SHFA",
+    "name": "SHFA",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "STPL",
+    "name": "STPL",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TRIPF",
+    "name": "TRIPF",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UDPL",
+    "name": "UDPL",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UBDL",
+    "name": "UBDL",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PSEL",
+    "name": "PSEL",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ARPAK",
+    "name": "ARPAK",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AKDHL",
+    "name": "AKDHL",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PABC",
+    "name": "PABC",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UDLI",
+    "name": "UDLI",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "AKGL",
+    "name": "AKGL",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MWMP",
+    "name": "MWMP",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GOC",
+    "name": "GOC",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "OML",
+    "name": "OML",
+    "sector": "MISC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FCL",
+    "name": "FCL",
+    "sector": "CABLE & ELEC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PAEL",
+    "name": "PAEL",
+    "sector": "CABLE & ELEC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PCAL",
+    "name": "PCAL",
+    "sector": "CABLE & ELEC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "WAVES",
+    "name": "WAVES",
+    "sector": "CABLE & ELEC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "WAVESAPP",
+    "name": "WAVESAPP",
+    "sector": "CABLE & ELEC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "EMCO",
+    "name": "EMCO",
+    "sector": "CABLE & ELEC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SIEM",
+    "name": "SIEM",
+    "sector": "CABLE & ELEC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BFMOD",
+    "name": "BFMOD",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FANM",
+    "name": "FANM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FEM",
+    "name": "FEM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FFLM",
+    "name": "FFLM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FPJM",
+    "name": "FPJM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SINDM",
+    "name": "SINDM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TRSM",
+    "name": "TRSM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "UCAPM",
+    "name": "UCAPM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FIBLM",
+    "name": "FIBLM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FECM",
+    "name": "FECM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FTMM",
+    "name": "FTMM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ORM",
+    "name": "ORM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FHAM",
+    "name": "FHAM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PIM",
+    "name": "PIM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FPRM",
+    "name": "FPRM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FTSM",
+    "name": "FTSM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "OLPM",
+    "name": "OLPM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GEMBCEM",
+    "name": "GEMBCEM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FIMM",
+    "name": "FIMM",
+    "sector": "MODARABAS",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GRYL",
+    "name": "GRYL",
+    "sector": "LEASING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PGLC",
+    "name": "PGLC",
+    "sector": "LEASING",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "GATI",
+    "name": "GATI",
+    "sector": "SYNTHETIC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IBFL",
+    "name": "IBFL",
+    "sector": "SYNTHETIC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "IMAGE",
+    "name": "IMAGE",
+    "sector": "SYNTHETIC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "NSRM",
+    "name": "NSRM",
+    "sector": "SYNTHETIC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PSYL",
+    "name": "PSYL",
+    "sector": "SYNTHETIC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "RUPL",
+    "name": "RUPL",
+    "sector": "SYNTHETIC",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "JVDC",
+    "name": "JVDC",
+    "sector": "PROPERTY",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PACE",
+    "name": "PACE",
+    "sector": "PROPERTY",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TPLP",
+    "name": "TPLP",
+    "sector": "PROPERTY",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BRRG",
+    "name": "BRRG",
+    "sector": "PROPERTY",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HUSI",
+    "name": "HUSI",
+    "sector": "PROPERTY",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SGF",
+    "name": "SGF",
+    "sector": "LEATHER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SRVI",
+    "name": "SRVI",
+    "sector": "LEATHER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "LEUL",
+    "name": "LEUL",
+    "sector": "LEATHER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BATA",
+    "name": "BATA",
+    "sector": "LEATHER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PAKL",
+    "name": "PAKL",
+    "sector": "LEATHER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "FIL",
+    "name": "FIL",
+    "sector": "LEATHER",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "MARI",
+    "name": "MARI",
+    "sector": "O&G EXPL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "OGDC",
+    "name": "OGDC",
+    "sector": "O&G EXPL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "POL",
+    "name": "POL",
+    "sector": "O&G EXPL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PPL",
+    "name": "PPL",
+    "sector": "O&G EXPL",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "TSMF",
+    "name": "TSMF",
+    "sector": "MUTUAL FUND",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HGFA",
+    "name": "HGFA",
+    "sector": "MUTUAL FUND",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "HIFA",
+    "name": "HIFA",
+    "sector": "MUTUAL FUND",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "YOUW",
+    "name": "YOUW",
+    "sector": "TEXTILE WEAV",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ZTL",
+    "name": "ZTL",
+    "sector": "TEXTILE WEAV",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ICCI",
+    "name": "ICCI",
+    "sector": "TEXTILE WEAV",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "STJT",
+    "name": "STJT",
+    "sector": "TEXTILE WEAV",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PRWM",
+    "name": "PRWM",
+    "sector": "TEXTILE WEAV",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "ASHT",
+    "name": "ASHT",
+    "sector": "TEXTILE WEAV",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "KHTC",
+    "name": "KHTC",
+    "sector": "TOBACCO",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "PAKT",
+    "name": "PAKT",
+    "sector": "TOBACCO",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SSOM",
+    "name": "SSOM",
+    "sector": "VANASPATI",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "POML",
+    "name": "POML",
+    "sector": "VANASPATI",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "CJPL",
+    "name": "CJPL",
+    "sector": "JUTE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "SUHJ",
+    "name": "SUHJ",
+    "sector": "JUTE",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  },
+  {
+    "symbol": "BNWM",
+    "name": "BNWM",
+    "sector": "WOOLLEN",
+    "currentPrice": 0.0,
+    "priceUpdatedAt": 0
+  }
+]

@@ -249,7 +249,7 @@ fun TransactionFormSheet(
                     }
                     if (existingTransaction == null) {
                         Icon(
-                            Icons.Default.KeyboardArrowRight,
+                            Icons.Filled.KeyboardArrowRight,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.outline
                         )

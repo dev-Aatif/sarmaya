@@ -398,7 +398,7 @@ private fun LinkRow(label: String, url: String, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                androidx.compose.material.icons.Icons.Default.KeyboardArrowRight,
+                androidx.compose.material.icons.Icons.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
                 tint = MaterialTheme.colorScheme.primary

@@ -94,7 +94,7 @@ fun EditTransactionSheet(
                             onValueChange = { },
                             label = { Text("Type") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            modifier = Modifier.menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
                             singleLine = true
                         )
                         ExposedDropdownMenu(
