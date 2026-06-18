@@ -30,6 +30,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+
+import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.ui.components.PortfolioSelector
 import com.sarmaya.app.ui.components.TransactionFlow
@@ -84,6 +87,8 @@ fun DashboardScreen(
     )
 
 
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
@@ -112,6 +117,15 @@ fun DashboardScreen(
                         )
                     }
                     Row {
+                        IconButton(
+                            onClick = { viewModel.refreshPrices() },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Refresh Prices")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
                         IconButton(
                             onClick = onSettingsClick,
                             modifier = Modifier
@@ -151,13 +165,16 @@ fun DashboardScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 100.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+        androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refreshPrices() },
+            modifier = Modifier.padding(paddingValues).fillMaxSize()
         ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 100.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
             item { Spacer(modifier = Modifier.height(8.dp)) }
 
             if (isLoading) {
@@ -294,6 +311,7 @@ fun DashboardScreen(
                     }
                 }
             }
+        }
         }
     }
 }

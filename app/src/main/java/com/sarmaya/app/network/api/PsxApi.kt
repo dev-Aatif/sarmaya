@@ -67,7 +67,7 @@ interface PsxTerminalApi {
     suspend fun getDividends(@Path("symbol") symbol: String): PsxTerminalResponse<List<PsxTerminalDividend>>
 
     @GET("api/klines/{symbol}/{tf}")
-    suspend fun getKlines(@Path("symbol") symbol: String, @Path("tf") timeframe: String): PsxTerminalResponse<List<List<Double>>>
+    suspend fun getKlines(@Path("symbol") symbol: String, @Path("tf") timeframe: String): PsxTerminalResponse<List<PsxTerminalKline>>
 
     @GET("api/towatch")
     suspend fun getToWatch(): PsxTerminalResponse<Map<String, List<PsxTerminalTick>>>
@@ -195,7 +195,7 @@ data class PsxTerminalCompanyInfo(
 @JsonClass(generateAdapter = true)
 data class PsxTerminalFundamentals(
     val symbol: String,
-    val marketCap: Long = 0L,
+    val marketCap: String = "",
     val peRatio: Double = 0.0,
     val eps: Double = 0.0,
     val dividendYield: Double = 0.0,
@@ -208,4 +208,16 @@ data class PsxTerminalDividend(
     val exDate: Long,
     val paymentDate: Long,
     val amount: Double
+)
+
+@JsonClass(generateAdapter = true)
+data class PsxTerminalKline(
+    val symbol: String,
+    val timeframe: String,
+    val timestamp: Long,
+    val open: Double,
+    val high: Double,
+    val low: Double,
+    val close: Double,
+    val volume: Long
 )

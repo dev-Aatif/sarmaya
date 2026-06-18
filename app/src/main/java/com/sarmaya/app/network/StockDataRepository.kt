@@ -121,6 +121,24 @@ class StockDataRepository(
 
         if (cached != null) return@withContext Result.success(cached.toUnifiedQuote())
         
+        val fallbackStock = stockDao.getStocksSync(listOf(psxSymbol)).firstOrNull()
+        if (fallbackStock != null) {
+            return@withContext Result.success(
+                UnifiedQuote(
+                    symbol = psxSymbol,
+                    price = fallbackStock.currentPrice,
+                    change = 0.0,
+                    changePercent = 0.0,
+                    volume = 0L,
+                    dayHigh = fallbackStock.currentPrice,
+                    dayLow = fallbackStock.currentPrice,
+                    open = fallbackStock.currentPrice,
+                    previousClose = fallbackStock.currentPrice,
+                    timestamp = fallbackStock.priceUpdatedAt ?: System.currentTimeMillis()
+                )
+            )
+        }
+
         Result.failure(Exception("No data available"))
     }
 
@@ -202,12 +220,12 @@ class StockDataRepository(
             val klines = response.data
             val points = klines.map { candle -> 
                 PricePoint(
-                    timestamp = candle[0].toLong() * 1000,
-                    open = candle[1],
-                    high = candle[2],
-                    low = candle[3],
-                    close = candle[4],
-                    volume = candle[5].toLong()
+                    timestamp = candle.timestamp,
+                    open = candle.open,
+                    high = candle.high,
+                    low = candle.low,
+                    close = candle.close,
+                    volume = candle.volume
                 )
             }
             if (points.isNotEmpty()) return@withContext Result.success(points)
@@ -252,7 +270,7 @@ class StockDataRepository(
                         symbol = psxSymbol, name = company.name, description = company.description,
                         sector = company.sector, industry = company.industry, website = "", phone = "",
                         country = "Pakistan", logoUrl = company.profileImage,
-                        marketCap = fundas?.marketCap ?: 0L, peRatio = fundas?.peRatio ?: 0.0,
+                        marketCap = parseMarketCap(fundas?.marketCap ?: ""), peRatio = fundas?.peRatio ?: 0.0,
                         eps = fundas?.eps ?: 0.0, beta = 0.0, weekHigh52 = 0.0, weekLow52 = 0.0,
                         dividendYield = fundas?.dividendYield ?: 0.0, earningsDate = ""
                     )
@@ -403,3 +421,18 @@ private fun StockQuoteCache.toUnifiedQuote() = UnifiedQuote(
     symbol = symbol, price = price, change = change, changePercent = changePercent,
     volume = volume, dayHigh = high, dayLow = low, open = 0.0, previousClose = 0.0, timestamp = cachedAt
 )
+
+private fun parseMarketCap(capStr: String): Long {
+    if (capStr.isBlank()) return 0L
+    return try {
+        when {
+            capStr.endsWith("T", ignoreCase = true) -> (capStr.dropLast(1).toDouble() * 1_000_000_000_000L).toLong()
+            capStr.endsWith("B", ignoreCase = true) -> (capStr.dropLast(1).toDouble() * 1_000_000_000L).toLong()
+            capStr.endsWith("M", ignoreCase = true) -> (capStr.dropLast(1).toDouble() * 1_000_000L).toLong()
+            capStr.endsWith("K", ignoreCase = true) -> (capStr.dropLast(1).toDouble() * 1_000L).toLong()
+            else -> capStr.replace(",", "").toDouble().toLong()
+        }
+    } catch (e: Exception) {
+        0L
+    }
+}
