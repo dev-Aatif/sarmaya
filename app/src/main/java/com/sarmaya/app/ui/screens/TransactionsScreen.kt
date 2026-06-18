@@ -43,7 +43,7 @@ fun TransactionsScreen(
     val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
     
-    var showTypeSelection by remember { mutableStateOf(false) }
+
     var showTransactionForm by remember { mutableStateOf<Pair<String, Transaction?>?>(null) }
     var selectedStockForForm by remember { mutableStateOf<String?>(null) }
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
@@ -60,15 +60,12 @@ fun TransactionsScreen(
     val financeColors = LocalSarmayaColors.current
 
     TransactionFlow(
-        showTypeSelection = showTypeSelection,
+        showTypeSelection = false,
         showTransactionForm = showTransactionForm?.first,
         existingTransaction = showTransactionForm?.second,
         preselectedSymbol = selectedStockForForm,
-        onTypeSelected = { type ->
-            showTypeSelection = false
-            showTransactionForm = type to null
-        },
-        onDismissTypeSelection = { showTypeSelection = false },
+        onTypeSelected = { },
+        onDismissTypeSelection = { },
         onDismissForm = {
             showTransactionForm = null
             selectedStockForForm = null
@@ -265,8 +262,13 @@ fun TransactionItem(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    val detailText = when (tx.type) {
+                        "DIVIDEND" -> "Total: ₨ ${String.format("%,.2f", tx.pricePerShare)}"
+                        "SPLIT" -> "Ratio: ${String.format("%,.2f", tx.splitRatio ?: 0.0)}"
+                        else -> "${tx.quantity} shares @ ₨ ${String.format("%,.2f", tx.pricePerShare)}"
+                    }
                     Text(
-                        "${tx.quantity} shares @ ₨ ${String.format("%,.2f", tx.pricePerShare)}",
+                        detailText,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

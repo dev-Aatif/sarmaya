@@ -125,12 +125,7 @@ class AppContainer(private val context: Context) {
         )
     }
 
-    val psxWebSocketManager: com.sarmaya.app.network.websocket.PsxWebSocketManager by lazy {
-        com.sarmaya.app.network.websocket.PsxWebSocketManager(
-            connectivityChecker = connectivityChecker,
-            moshi = moshi
-        )
-    }
+
 
 
 

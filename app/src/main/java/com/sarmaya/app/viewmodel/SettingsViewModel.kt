@@ -201,7 +201,7 @@ class SettingsViewModel(
                         try {
                             val parts = parseCsvLine(line)
                             if (parts.size >= 10) {
-                                val t = Transaction(
+                                val domainModel = com.sarmaya.app.domain.TransactionDomainModel(
                                     portfolioId = parts[1].toLongOrNull() ?: 1,
                                     stockSymbol = parts[2],
                                     type = parts[3],
@@ -212,7 +212,12 @@ class SettingsViewModel(
                                     commissionAmount = parts[8].toDoubleOrNull() ?: 0.0,
                                     notes = parts[9].trim('\"').replace("\"\"", "\"")
                                 )
-                                transactions.add(t)
+                                val validationError = domainModel.validate()
+                                if (validationError == null) {
+                                    transactions.add(domainModel.toEntity())
+                                } else {
+                                    Log.e("SettingsVM", "Validation failed for line: $line. Reason: $validationError")
+                                }
                             }
                         } catch (e: Exception) {
                             Log.e("SettingsVM", "Failed to parse CSV line: $line", e)

@@ -138,8 +138,9 @@ fun StockDetailScreen(
                     var showManageSheet by remember { mutableStateOf(false) }
                     
                     if (showManageSheet) {
-                        com.sarmaya.app.ui.components.ManagePositionSheet(
-                            stockSymbol = symbol,
+                        com.sarmaya.app.ui.components.TransactionFormSheet(
+                            type = "BUY",
+                            preselectedSymbol = symbol,
                             onDismissRequest = { showManageSheet = false }
                         )
                     }

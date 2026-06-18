@@ -20,61 +20,10 @@ object PortfolioCalculator {
                 val stock = stockMap[symbol] ?: return@forEach
                 val quote = quoteMap[symbol]
                 val currentPrice = quote?.price ?: stock.currentPrice
-                var qty = 0
-                var invested = 0.0
-                var divs = 0.0
-                var realizedPL = 0.0
                 
-                // Chronological replay to properly account for re-entry and cost-drag
-                txList.sortedBy { it.date }.forEach { tx ->
-                    when (tx.type) {
-                        "BUY" -> {
-                            qty += tx.quantity
-                            val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * tx.quantity else tx.commissionAmount
-                            invested += (tx.quantity * tx.pricePerShare) + commission
-                        }
-                        "BONUS" -> {
-                            qty += tx.quantity
-                        }
-                        "SELL" -> {
-                            if (qty > 0) {
-                                val sellQty = minOf(tx.quantity, qty)
-                                val avgCost = invested / qty
-                                val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * sellQty else tx.commissionAmount
-                                // Realized P/L = (sell price - avg cost) * quantity sold - commission
-                                realizedPL += (tx.pricePerShare - avgCost) * sellQty - commission
-                                qty -= sellQty
-                                // Proportional reduction of cost basis, floored at 0
-                                invested = maxOf(0.0, invested - (sellQty * avgCost))
-                            }
-                        }
-                        "DIVIDEND" -> {
-                            // Dividend payout uses the total cash dividend input
-                            divs += tx.pricePerShare
-                        }
-                        "SPLIT" -> {
-                            val factor = tx.splitRatio ?: 1.0
-                            qty = (qty * factor).toInt()
-                            // Invested value (cost basis) remains the same, but price per share reduces
-                        }
-                    }
-                    if (qty <= 0) {
-                        qty = 0
-                        invested = 0.0
-                    }
-                }
-                
-                if (qty > 0 || invested > 0.0 || divs > 0.0 || realizedPL != 0.0) {
-                    holdingsMap[symbol] = ComputedHolding(
-                        stockSymbol = symbol,
-                        name = stock.name,
-                        sector = stock.sector,
-                        currentPrice = currentPrice,
-                        quantity = qty,
-                        totalInvested = invested,
-                        totalDividends = divs,
-                        realizedProfitLoss = realizedPL
-                    )
+                val holding = calculateHolding(symbol, stock.name, stock.sector, currentPrice, txList)
+                if (holding != null) {
+                    holdingsMap[symbol] = holding
                 }
             }
             holdingsMap.values.toList().sortedBy { it.stockSymbol }
@@ -93,50 +42,85 @@ object PortfolioCalculator {
         
         transactions.groupBy { it.stockSymbol }.forEach { (symbol, txList) ->
             val stock = stockMap[symbol] ?: return@forEach
-            var qty = 0
-            var invested = 0.0
-            var divs = 0.0
-            var realizedPL = 0.0
-            
-            txList.sortedBy { it.date }.forEach { tx ->
-                when (tx.type) {
-                    "BUY" -> {
-                        qty += tx.quantity
-                        val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * tx.quantity else tx.commissionAmount
-                        invested += (tx.quantity * tx.pricePerShare) + commission
-                    }
-                    "BONUS" -> qty += tx.quantity
-                    "SELL" -> {
-                        if (qty > 0) {
-                            val avgCost = invested / qty
-                            val sellQty = minOf(tx.quantity, qty)
-                            val commission = if (tx.commissionType == "PER_SHARE") tx.commissionAmount * sellQty else tx.commissionAmount
-                            realizedPL += (tx.pricePerShare - avgCost) * sellQty - commission
-                            qty -= sellQty
-                            invested = maxOf(0.0, invested - (sellQty * avgCost))
-                        }
-                    }
-                    "DIVIDEND" -> divs += tx.pricePerShare
-                    "SPLIT" -> {
-                        val factor = tx.splitRatio ?: 1.0
-                        qty = (qty * factor).toInt()
-                    }
-                }
-            }
-            
-            if (qty > 0 || invested > 0.0 || divs > 0.0 || realizedPL != 0.0) {
-                holdingsMap[symbol] = ComputedHolding(
-                    stockSymbol = symbol,
-                    name = stock.name,
-                    sector = stock.sector,
-                    currentPrice = stock.currentPrice,
-                    quantity = qty,
-                    totalInvested = invested,
-                    totalDividends = divs,
-                    realizedProfitLoss = realizedPL
-                )
+            val holding = calculateHolding(symbol, stock.name, stock.sector, stock.currentPrice, txList)
+            if (holding != null) {
+                holdingsMap[symbol] = holding
             }
         }
-        return holdingsMap.values.toList()
+        return holdingsMap.values.toList().sortedBy { it.stockSymbol }
+    }
+
+    private fun calculateHolding(
+        symbol: String,
+        name: String,
+        sector: String,
+        currentPrice: Double,
+        txList: List<Transaction>
+    ): ComputedHolding? {
+        var qty = 0
+        var invested = java.math.BigDecimal.ZERO
+        var divs = java.math.BigDecimal.ZERO
+        var realizedPL = java.math.BigDecimal.ZERO
+
+        txList.sortedBy { it.date }.forEach { tx ->
+            val txQuantity = java.math.BigDecimal(tx.quantity)
+            val txPrice = tx.pricePerShare.toSafeBigDecimal()
+            val txCommission = tx.commissionAmount.toSafeBigDecimal()
+
+            when (tx.type) {
+                "BUY" -> {
+                    qty += tx.quantity
+                    val commission = if (tx.commissionType == "PER_SHARE") txCommission.multiply(txQuantity) else txCommission
+                    invested = invested.add(txQuantity.multiply(txPrice)).add(commission)
+                }
+                "BONUS" -> {
+                    qty += tx.quantity
+                }
+                "SELL" -> {
+                    if (qty > 0) {
+                        val sellQtyInt = minOf(tx.quantity, qty)
+                        val sellQty = java.math.BigDecimal(sellQtyInt)
+                        val qtyDecimal = java.math.BigDecimal(qty)
+                        
+                        val avgCost = invested.safeDivide(qtyDecimal)
+                        val commission = if (tx.commissionType == "PER_SHARE") txCommission.multiply(sellQty) else txCommission
+                        
+                        // Realized P/L = (sell price - avg cost) * quantity sold - commission
+                        val profitFromShares = txPrice.subtract(avgCost).multiply(sellQty)
+                        realizedPL = realizedPL.add(profitFromShares).subtract(commission)
+                        
+                        qty -= sellQtyInt
+                        // Proportional reduction of cost basis, floored at 0
+                        val costBasisReduction = sellQty.multiply(avgCost)
+                        invested = invested.subtract(costBasisReduction).max(java.math.BigDecimal.ZERO)
+                    }
+                }
+                "DIVIDEND" -> {
+                    divs = divs.add(txPrice)
+                }
+                "SPLIT" -> {
+                    val factor = tx.splitRatio ?: 1.0
+                    qty = (qty * factor).toInt()
+                }
+            }
+            if (qty <= 0) {
+                qty = 0
+                invested = java.math.BigDecimal.ZERO
+            }
+        }
+
+        if (qty > 0 || invested > java.math.BigDecimal.ZERO || divs > java.math.BigDecimal.ZERO || realizedPL.compareTo(java.math.BigDecimal.ZERO) != 0) {
+            return ComputedHolding(
+                stockSymbol = symbol,
+                name = name,
+                sector = sector,
+                currentPrice = currentPrice,
+                quantity = qty,
+                totalInvested = invested.toDouble(),
+                totalDividends = divs.toDouble(),
+                realizedProfitLoss = realizedPL.toDouble()
+            )
+        }
+        return null
     }
 }

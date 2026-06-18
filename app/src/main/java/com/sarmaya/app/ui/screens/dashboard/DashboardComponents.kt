@@ -142,8 +142,13 @@ fun RecentTransactionRow(
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
                 )
+                val detailText = when (tx.type) {
+                    "DIVIDEND" -> "Total: ₨ ${String.format("%,.2f", tx.pricePerShare)}"
+                    "SPLIT" -> "Ratio: ${String.format("%,.2f", tx.splitRatio ?: 0.0)}"
+                    else -> "${tx.quantity} shares @ ₨ ${String.format("%,.2f", tx.pricePerShare)}"
+                }
                 Text(
-                    "${tx.quantity} shares @ ₨ ${String.format("%,.2f", tx.pricePerShare)}",
+                    detailText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -157,7 +162,7 @@ fun RecentTransactionRow(
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                androidx.compose.material.icons.Icons.Filled.KeyboardArrowRight,
+                androidx.compose.material.icons.Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)

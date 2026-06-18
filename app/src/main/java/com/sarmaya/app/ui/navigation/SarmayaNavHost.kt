@@ -42,7 +42,7 @@ import com.sarmaya.app.ui.screens.HoldingsScreen
 import com.sarmaya.app.ui.screens.OnboardingScreen
 import com.sarmaya.app.ui.screens.StockDetailScreen
 import com.sarmaya.app.ui.screens.TransactionsScreen
-import com.sarmaya.app.ui.screens.TransactionsScreen
+
 import com.sarmaya.app.ui.screens.PortfolioSummaryScreen
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {

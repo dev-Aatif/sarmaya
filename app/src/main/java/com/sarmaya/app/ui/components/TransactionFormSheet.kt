@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarmaya.app.data.Stock
 import com.sarmaya.app.data.Transaction
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.sarmaya.app.ui.theme.LocalSarmayaColors
 import com.sarmaya.app.viewmodel.TransactionsViewModel
 import java.text.SimpleDateFormat
@@ -59,6 +61,7 @@ fun TransactionFormSheet(
     
     val searchResults by viewModel.searchResults.collectAsState()
     val financeColors = LocalSarmayaColors.current
+    val haptic = LocalHapticFeedback.current
     
     val primaryColor = MaterialTheme.colorScheme.primary
     // UI Config based on type
@@ -249,7 +252,7 @@ fun TransactionFormSheet(
                     }
                     if (existingTransaction == null) {
                         Icon(
-                            Icons.Filled.KeyboardArrowRight,
+                            Icons.Default.KeyboardArrowRight,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.outline
                         )
@@ -402,6 +405,7 @@ fun TransactionFormSheet(
                                 commissionAmount = comm,
                                 splitRatio = splitRatio,
                                 onSuccess = { 
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     isProcessing = false
                                     onDismissRequest() 
                                 },
@@ -422,6 +426,7 @@ fun TransactionFormSheet(
                                 commissionAmount = comm,
                                 splitRatio = splitRatio,
                                 onSuccess = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     isProcessing = false
                                     onDismissRequest()
                                 },

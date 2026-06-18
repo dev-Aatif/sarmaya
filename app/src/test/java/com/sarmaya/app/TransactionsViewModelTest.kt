@@ -55,8 +55,6 @@ class TransactionsViewModelTest {
             return insertedTransactions.filter { it.stockSymbol == symbol }.sortedBy { it.date }
         }
         override suspend fun getTransactionsForStockInPortfolio(symbol: String, portfolioId: Long) = emptyList<Transaction>()
-        override suspend fun getStockQuantity(s: String): Int? = 0
-        override suspend fun getStockQuantityInPortfolio(s: String, p: Long): Int? = 0
         override suspend fun getTransactionById(id: Long): Transaction? = insertedTransactions.find { it.id == id }
     }
 

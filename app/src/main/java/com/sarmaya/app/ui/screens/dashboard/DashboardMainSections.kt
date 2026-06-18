@@ -58,15 +58,16 @@ fun MarketStatusCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.width(8.dp))
+                val financeColors = com.sarmaya.app.ui.theme.LocalSarmayaColors.current
                 Surface(
-                    color = if (isMarketOpen) ProfitGreenLight.copy(alpha = 0.15f) else LossRedLight.copy(alpha = 0.15f),
+                    color = if (isMarketOpen) financeColors.profitContainer else financeColors.lossContainer,
                     shape = RoundedCornerShape(6.dp)
                 ) {
                     Text(
                         if (isMarketOpen) "Open" else "Closed",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = if (isMarketOpen) ProfitGreenLight else LossRedLight,
+                        color = if (isMarketOpen) financeColors.onProfitContainer else financeColors.onLossContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }

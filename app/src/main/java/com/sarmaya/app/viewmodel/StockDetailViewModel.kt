@@ -13,7 +13,6 @@ import com.sarmaya.app.network.PricePoint
 import com.sarmaya.app.network.StockDataRepository
 import com.sarmaya.app.network.UnifiedQuote
 import com.sarmaya.app.data.*
-import com.sarmaya.app.network.websocket.TickUpdate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +33,6 @@ sealed class StockDetailUiState {
 
 class StockDetailViewModel(
     private val repository: StockDataRepository,
-    private val wsManager: com.sarmaya.app.network.websocket.PsxWebSocketManager,
     private val symbol: String
 ) : ViewModel() {
 
@@ -46,35 +44,6 @@ class StockDetailViewModel(
 
     init {
         refreshAll()
-        
-        // WebSocket logic: subscribe to this specific symbol
-        wsManager.subscribe("tick:REG:$symbol")
-        
-        viewModelScope.launch {
-            wsManager.tickUpdates
-                .filter { it.symbol == symbol }
-                .collect { update: TickUpdate ->
-                    val currentState = _uiState.value
-                    if (currentState is StockDetailUiState.Success) {
-                        _uiState.value = currentState.copy(
-                            quote = currentState.quote.copy(
-                                price = update.price,
-                                change = update.change,
-                                changePercent = update.changePercent,
-                                volume = update.volume,
-                                trades = update.trades,
-                                value = update.value,
-                                marketState = update.marketState
-                            )
-                        )
-                    }
-                }
-        }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        wsManager.unsubscribe("tick:REG:$symbol")
     }
 
 
@@ -141,7 +110,6 @@ class StockDetailViewModel(
             val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as SarmayaApplication
             return StockDetailViewModel(
                 application.container.stockDataRepository,
-                application.container.psxWebSocketManager,
                 symbol
             ) as T
         }

@@ -65,21 +65,18 @@ fun DashboardScreen(
     val activePortfolio by viewModel.activePortfolio.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-    var showTypeSelection by remember { mutableStateOf(false) }
+
     var showTransactionForm by remember { mutableStateOf<String?>(null) } 
     var selectedStockForForm by remember { mutableStateOf<String?>(null) }
 
     val financeColors = LocalSarmayaColors.current
 
     TransactionFlow(
-        showTypeSelection = showTypeSelection,
+        showTypeSelection = false,
         showTransactionForm = showTransactionForm,
         preselectedSymbol = selectedStockForForm,
-        onTypeSelected = { type ->
-            showTypeSelection = false
-            showTransactionForm = type
-        },
-        onDismissTypeSelection = { showTypeSelection = false },
+        onTypeSelected = { },
+        onDismissTypeSelection = { },
         onDismissForm = {
             showTransactionForm = null
             selectedStockForForm = null
@@ -140,7 +137,7 @@ fun DashboardScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { showTypeSelection = true },
+                onClick = { showTransactionForm = "BUY" },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(24.dp),

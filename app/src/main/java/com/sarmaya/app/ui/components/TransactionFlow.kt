@@ -17,12 +17,7 @@ fun TransactionFlow(
     onDismissTypeSelection: () -> Unit,
     onDismissForm: () -> Unit
 ) {
-    if (showTypeSelection) {
-        TransactionTypeSelectionSheet(
-            onDismissRequest = onDismissTypeSelection,
-            onTypeSelected = onTypeSelected
-        )
-    }
+
 
     if (showTransactionForm != null) {
         TransactionFormSheet(

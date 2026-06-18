@@ -1,7 +1,8 @@
 package com.sarmaya.app
 
 import android.app.Application
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONArray
@@ -9,6 +10,7 @@ import com.sarmaya.app.data.Stock
 
 class SarmayaApplication : Application() {
     lateinit var container: AppContainer
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
@@ -19,7 +21,7 @@ class SarmayaApplication : Application() {
         container.syncManager.runImmediateSnapshot()
 
         // Populate offline stock database if empty
-        GlobalScope.launch(Dispatchers.IO) {
+        applicationScope.launch {
             try {
                 if (container.stockDao.getStocksCount() == 0) {
                     val inputStream = assets.open("psx_stocks.json")

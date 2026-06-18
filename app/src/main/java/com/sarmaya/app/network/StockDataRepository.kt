@@ -116,7 +116,9 @@ class StockDataRepository(
                     stockDao.updatePrice(psxSymbol, quote.price)
                     return@withContext Result.success(quote)
                 }
-            } catch (e: Exception) { }
+            } catch (e: Exception) {
+                Log.w(TAG, "Yahoo fallback failed for $psxSymbol: ${e.message}")
+            }
         }
 
         if (cached != null) return@withContext Result.success(cached.toUnifiedQuote())
@@ -188,7 +190,9 @@ class StockDataRepository(
                 bulkCacheAndUpdate(allTicks)
                 return@withContext Result.success(Unit)
             }
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+            Log.w(TAG, "PSX Terminal sync failed: ${e.message}")
+        }
 
         // Fallback to DPS
         try {
@@ -205,7 +209,9 @@ class StockDataRepository(
                 bulkCacheAndUpdate(quotes)
                 return@withContext Result.success(Unit)
             }
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+            Log.w(TAG, "DPS sync failed: ${e.message}")
+        }
 
         Result.failure(Exception("All PSX data sources unavailable"))
     }
@@ -229,7 +235,9 @@ class StockDataRepository(
                 )
             }
             if (points.isNotEmpty()) return@withContext Result.success(points)
-        } catch (e: Exception) { }
+        } catch (e: Exception) {
+            Log.w(TAG, "PSX Terminal klines failed for $psxSymbol: ${e.message}")
+        }
 
         // Fallback to Yahoo
         try {
@@ -249,7 +257,9 @@ class StockDataRepository(
                 }
                 return@withContext Result.success(points)
             }
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+            Log.w(TAG, "Yahoo klines failed for $psxSymbol: ${e.message}")
+        }
 
         Result.failure(Exception("No chart data available for $psxSymbol"))
     }
@@ -263,7 +273,9 @@ class StockDataRepository(
                 try { 
                     val fundasRes = psxTerminalApi.getFundamentals(psxSymbol)
                     fundas = fundasRes.data
-                } catch (e: Exception) {}
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to fetch fundamentals for $psxSymbol: ${e.message}")
+                }
                 
                 return@withContext Result.success(
                     CompanyProfile(
@@ -275,7 +287,9 @@ class StockDataRepository(
                         dividendYield = fundas?.dividendYield ?: 0.0, earningsDate = ""
                     )
                 )
-            } catch (e: Exception) { }
+            } catch (e: Exception) {
+                Log.w(TAG, "Terminal API company profile failed for $psxSymbol: ${e.message}")
+            }
 
             try {
                 val response = yahooApi.getQuoteSummary(toYahooSymbol(psxSymbol))
@@ -296,7 +310,9 @@ class StockDataRepository(
                         )
                     )
                 }
-            } catch (e: Exception) {}
+            } catch (e: Exception) {
+                Log.w(TAG, "Yahoo company profile failed for $psxSymbol: ${e.message}")
+            }
         }
         
         Result.success(
@@ -312,7 +328,9 @@ class StockDataRepository(
             val response = psxApi.getIndices()
             val indices = response.indices
             if (!indices.isNullOrEmpty()) return@withContext Result.success(indices)
-        } catch (e: Exception) { }
+        } catch (e: Exception) {
+            Log.w(TAG, "DPS indices failed: ${e.message}")
+        }
 
         // Fallback to Terminal API for major indices
         try {
@@ -398,7 +416,9 @@ class StockDataRepository(
                 changePercent = quote.changePercent, volume = quote.volume,
                 high = quote.dayHigh, low = quote.dayLow, cachedAt = System.currentTimeMillis()
             ))
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+            Log.w(TAG, "cacheQuote failed for ${quote.symbol}: ${e.message}")
+        }
     }
 
     private fun isCacheFresh(cachedAt: Long): Boolean = 
