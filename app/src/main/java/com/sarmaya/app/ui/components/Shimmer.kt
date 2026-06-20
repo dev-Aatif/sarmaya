@@ -16,7 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-fun Modifier.shimmerEffect(): Modifier = composed {
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.RectangleShape
+
+fun Modifier.shimmerEffect(shape: Shape = RectangleShape): Modifier = composed {
     val transition = rememberInfiniteTransition(label = "shimmer")
     val translateAnim = transition.animateFloat(
         initialValue = 0f,
@@ -40,7 +43,7 @@ fun Modifier.shimmerEffect(): Modifier = composed {
         end = Offset(x = translateAnim.value, y = translateAnim.value)
     )
 
-    background(brush)
+    background(brush, shape)
 }
 
 @Composable
@@ -53,8 +56,7 @@ fun ShimmerCard(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .background(Color.LightGray.copy(alpha = 0.1f), shape)
-            .shimmerEffect()
+            .shimmerEffect(shape)
     )
 }
 

@@ -100,7 +100,7 @@ fun PortfolioSummaryScreen(
                     StatBox(
                         label = "Dividends",
                         value = "₨ ${String.format("%,.0f", totalDividends)}",
-                        color = Color(0xFF1976D2),
+                        color = financeColors.dividend,
                         modifier = Modifier.weight(1f)
                     )
                     StatBox(

@@ -20,8 +20,14 @@ interface PortfolioDao {
     @Query("SELECT * FROM Portfolio WHERE id = :id LIMIT 1")
     suspend fun getPortfolioById(id: Long): Portfolio?
 
+    @Query("SELECT * FROM Portfolio WHERE id = :id LIMIT 1")
+    fun getPortfolioByIdFlow(id: Long): Flow<Portfolio?>
+
     @Query("SELECT * FROM Portfolio WHERE isDefault = 1 LIMIT 1")
     suspend fun getDefaultPortfolio(): Portfolio?
+
+    @Query("SELECT * FROM Portfolio WHERE isDefault = 1 LIMIT 1")
+    fun getDefaultPortfolioFlow(): Flow<Portfolio?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(portfolio: Portfolio): Long

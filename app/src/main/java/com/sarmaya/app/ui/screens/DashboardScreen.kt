@@ -58,7 +58,7 @@ fun DashboardScreen(
     val totalDividends by viewModel.totalDividends.collectAsStateWithLifecycle()
     val totalReturn by viewModel.totalReturn.collectAsStateWithLifecycle()
     val holdingsCount by viewModel.holdingsCount.collectAsStateWithLifecycle()
-    val sectorAllocation by viewModel.sectorAllocation.collectAsStateWithLifecycle()
+
     val recentTransactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
     val username by viewModel.username.collectAsStateWithLifecycle()
     val allPortfolios by viewModel.allPortfolios.collectAsStateWithLifecycle()
@@ -222,7 +222,7 @@ fun DashboardScreen(
                                 label = "Dividends",
                                 value = "₨ ${String.format("%,.0f", totalDividends)}",
                                 containerColor = financeColors.dividendContainer,
-                                contentColor = Color(0xFF1976D2)
+                                contentColor = financeColors.dividend
                             )
                         }
                     }

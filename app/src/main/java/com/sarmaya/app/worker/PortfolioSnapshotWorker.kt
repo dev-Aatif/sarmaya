@@ -27,13 +27,16 @@ class PortfolioSnapshotWorker(
         val snapshotDao = container.portfolioSnapshotDao
         
         try {
-            val allStocks = container.stockQuoteCacheDao.getAllCacheSync().map { cache ->
-                com.sarmaya.app.data.Stock(
-                    symbol = cache.symbol,
-                    name = "", // Not strictly needed for calculation
-                    sector = "",
-                    currentPrice = cache.price
-                )
+            val dbStocks = stockDao.getAllStocksSync()
+            val cacheStocks = container.stockQuoteCacheDao.getAllCacheSync().associateBy { it.symbol }
+            
+            val allStocks = dbStocks.map { stock ->
+                val cached = cacheStocks[stock.symbol]
+                if (cached != null) {
+                    stock.copy(currentPrice = cached.price)
+                } else {
+                    stock
+                }
             }
             
             val portfolios = portfolioDao.getAllPortfoliosSync()

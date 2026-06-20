@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.sarmaya.app.SarmayaApplication
 import com.sarmaya.app.data.DataStoreManager
 import com.sarmaya.app.data.TransactionDao
+import com.sarmaya.app.data.PortfolioDao
 import com.sarmaya.app.network.api.GithubApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +35,8 @@ class SettingsViewModel(
     private val context: Context,
     private val transactionDao: TransactionDao,
     private val dataStoreManager: DataStoreManager,
-    private val githubApi: GithubApi
+    private val githubApi: GithubApi,
+    private val portfolioDao: PortfolioDao
 ) : ViewModel() {
 
     // null = system default, true = dark, false = light
@@ -51,14 +53,6 @@ class SettingsViewModel(
     val username: StateFlow<String> = dataStoreManager.username
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
-    val notificationsPortfolio: StateFlow<Boolean> = dataStoreManager.notificationsPortfolio
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val notificationsMarket: StateFlow<Boolean> = dataStoreManager.notificationsMarket
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val notificationsUpdates: StateFlow<Boolean> = dataStoreManager.notificationsUpdates
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     private val _isUpdateAvailable = MutableStateFlow<String?>(null) // Contains the new version name or null
     val isUpdateAvailable: StateFlow<String?> = _isUpdateAvailable.asStateFlow()
@@ -75,10 +69,21 @@ class SettingsViewModel(
                 val latest = githubApi.getLatestRelease("dev-Aatif", "Sarmaya")
                 val currentVersion = BuildConfig.VERSION_NAME
                 
-                // Simple version comparison: if tag != version, assume update available (or more complex version logic)
-                // GitHub tags usually are "v1.1.0", while VERSION_NAME is "1.1.0"
                 val tag = latest.tagName.removePrefix("v").trim()
-                if (tag != currentVersion) {
+                
+                fun compareVersions(v1: String, v2: String): Int {
+                    val parts1 = v1.split(".").map { it.toIntOrNull() ?: 0 }
+                    val parts2 = v2.split(".").map { it.toIntOrNull() ?: 0 }
+                    val length = maxOf(parts1.size, parts2.size)
+                    for (i in 0 until length) {
+                        val p1 = parts1.getOrElse(i) { 0 }
+                        val p2 = parts2.getOrElse(i) { 0 }
+                        if (p1 != p2) return p1.compareTo(p2)
+                    }
+                    return 0
+                }
+
+                if (compareVersions(tag, currentVersion) > 0) {
                     _isUpdateAvailable.value = tag
                     _updateUrl.value = latest.htmlUrl
                 } else {
@@ -107,23 +112,6 @@ class SettingsViewModel(
         }
     }
 
-    fun setNotificationPortfolio(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setNotificationPreference(DataStoreManager.KEY_NOTIFICATIONS_PORTFOLIO, enabled)
-        }
-    }
-
-    fun setNotificationMarket(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setNotificationPreference(DataStoreManager.KEY_NOTIFICATIONS_MARKET, enabled)
-        }
-    }
-
-    fun setNotificationUpdates(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setNotificationPreference(DataStoreManager.KEY_NOTIFICATIONS_UPDATES, enabled)
-        }
-    }
 
     fun exportPortfolioToCsv() {
         viewModelScope.launch {
@@ -226,7 +214,38 @@ class SettingsViewModel(
                     }
 
                     if (transactions.isNotEmpty()) {
-                        transactionDao.insertTransactions(transactions)
+                        var isValid = true
+                        transactions.groupBy { it.portfolioId to it.stockSymbol }.forEach { (key, txs) ->
+                            val existingTxs = transactionDao.getTransactionsForStockInPortfolio(key.second, key.first)
+                            val allTxs = existingTxs + txs
+                            val sorted = allTxs.sortedBy { it.date }
+                            var runningBalance = 0
+                            for (txn in sorted) {
+                                when (txn.type) {
+                                    "BUY", "BONUS" -> runningBalance += txn.quantity
+                                    "SELL" -> runningBalance -= txn.quantity
+                                    "SPLIT" -> {
+                                        val factor = txn.splitRatio ?: 1.0
+                                        runningBalance = Math.round(runningBalance * factor).toInt()
+                                    }
+                                }
+                                if (runningBalance < 0) {
+                                    isValid = false
+                                }
+                            }
+                        }
+                        if (isValid) {
+                            val portfolioIds = transactions.map { it.portfolioId }.distinct()
+                            for (pid in portfolioIds) {
+                                val existingPortfolio = portfolioDao.getPortfolioById(pid)
+                                if (existingPortfolio == null) {
+                                    portfolioDao.insert(com.sarmaya.app.data.Portfolio(id = pid, name = "Imported Portfolio $pid"))
+                                }
+                            }
+                            transactionDao.insertTransactions(transactions)
+                        } else {
+                            Log.e("SettingsVM", "Chronological balance validation failed for imported data.")
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -275,7 +294,8 @@ class SettingsViewModel(
                     application,
                     application.container.transactionDao,
                     application.container.dataStoreManager,
-                    application.container.githubApi
+                    application.container.githubApi,
+                    application.container.portfolioDao
                 ) as T
             }
         }

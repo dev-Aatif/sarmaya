@@ -294,7 +294,7 @@ fun HoldingItem(
                         DetailLabel(
                             label = "Dividends", 
                             value = "₨ ${String.format("%,.0f", holding.totalDividends)}",
-                            valueColor = Color(0xFF1976D2)
+                            valueColor = financeColors.dividend
                         )
                     }
                 }

@@ -409,7 +409,7 @@ private fun formatLargeNumber(number: Long): String {
     }
 }
 
-object RowDefaults {
+private object RowDefaults {
     @Composable
     fun cardBorder() = androidx.compose.foundation.BorderStroke(
         width = 1.dp,

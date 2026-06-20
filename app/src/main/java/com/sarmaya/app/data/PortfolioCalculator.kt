@@ -100,7 +100,7 @@ object PortfolioCalculator {
                 }
                 "SPLIT" -> {
                     val factor = tx.splitRatio ?: 1.0
-                    qty = (qty * factor).toInt()
+                    qty = Math.round(qty * factor).toInt()
                 }
             }
             if (qty <= 0) {

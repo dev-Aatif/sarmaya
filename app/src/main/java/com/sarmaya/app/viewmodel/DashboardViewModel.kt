@@ -29,9 +29,9 @@ class DashboardViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val activePortfolio: StateFlow<Portfolio?> = _activePortfolioId.flatMapLatest { id: Long? ->
         if (id != null) {
-            flow { emit(portfolioDao.getPortfolioById(id)) }
+            portfolioDao.getPortfolioByIdFlow(id)
         } else {
-            flow { emit(portfolioDao.getDefaultPortfolio()) }
+            portfolioDao.getDefaultPortfolioFlow()
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -84,14 +84,6 @@ class DashboardViewModel(
         holdings.count { it.quantity > 0 }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
     
-    val sectorAllocation = computedHoldings.map { holdings ->
-        holdings.filter { it.quantity > 0 }
-            .groupBy { it.sector }
-            .mapValues { entry -> entry.value.sumOf { it.currentValue } }
-            .toList()
-            .sortedByDescending { it.second }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
 
 
     val recentTransactions = transactions
@@ -105,17 +97,10 @@ class DashboardViewModel(
     val username = dataStoreManager.username
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading = _isLoading.asStateFlow()
-
-
+    val isLoading: StateFlow<Boolean> = computedHoldings.map { false }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     init {
-        viewModelScope.launch {
-            // Give Room a moment to emit initial values
-            kotlinx.coroutines.delay(300)
-            _isLoading.value = false
-        }
     }
 
     private val _isRefreshing = MutableStateFlow(false)

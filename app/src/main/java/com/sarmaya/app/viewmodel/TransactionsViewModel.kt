@@ -38,9 +38,9 @@ class TransactionsViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val activePortfolio: StateFlow<Portfolio?> = _activePortfolioId.flatMapLatest { id ->
         if (id != null) {
-            flow { emit(portfolioDao.getPortfolioById(id)) }
+            portfolioDao.getPortfolioByIdFlow(id)
         } else {
-            flow { emit(portfolioDao.getDefaultPortfolio()) }
+            portfolioDao.getDefaultPortfolioFlow()
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -104,6 +104,7 @@ class TransactionsViewModel(
                 }
                 val t = domainModel.toEntity()
 
+                var success = false
                 dbTransactionRunner {
                     if (type != "DIVIDEND") {
                         val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, currentPortfolioId).toMutableList()
@@ -126,13 +127,16 @@ class TransactionsViewModel(
                         )))
                     } else {
                         val stock = existingStocks.first()
-                        if (stock.currentPrice <= 0.0 || type == "BUY") {
+                        if (stock.currentPrice <= 0.0) {
                             stockDao.updatePrice(stockSymbol, pricePerShare)
                         }
                     }
                     transactionDao.insert(t)
+                    success = true
                 }
-                onSuccess()
+                if (success) {
+                    onSuccess()
+                }
             }
         }
     }
@@ -176,6 +180,7 @@ class TransactionsViewModel(
                 }
                 val t = domainModel.toEntity()
 
+                var success = false
                 dbTransactionRunner {
                     if (type != "DIVIDEND" || oldTx.type != "DIVIDEND") {
                         val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, oldTx.portfolioId).toMutableList()
@@ -195,13 +200,13 @@ class TransactionsViewModel(
                     }
                 
                     transactionDao.update(t)
-                    // When editing a BUY, also update the stock's currentPrice
-                    // to match the new buy price (same behavior as addTransaction)
-                    if (type == "BUY") {
-                        stockDao.updatePrice(stockSymbol, pricePerShare)
-                    }
+                    // We DO NOT blindly update currentPrice on edit of a BUY because 
+                    // this could be a historical transaction edit.
+                    success = true
                 }
-                onSuccess()
+                if (success) {
+                    onSuccess()
+                }
             }
         }
     }
@@ -213,6 +218,7 @@ class TransactionsViewModel(
     ) {
         viewModelScope.launch {
             mutex.withLock {
+                var success = false
                 dbTransactionRunner {
                     if (transaction.type != "DIVIDEND") {
                         val allTxs = transactionDao.getTransactionsForStockInPortfolio(transaction.stockSymbol, transaction.portfolioId).toMutableList()
@@ -227,8 +233,11 @@ class TransactionsViewModel(
                     }
                 
                     transactionDao.delete(transaction)
+                    success = true
                 }
-                onSuccess()
+                if (success) {
+                    onSuccess()
+                }
             }
         }
     }
@@ -242,7 +251,7 @@ class TransactionsViewModel(
                 "SELL" -> runningBalance -= txn.quantity
                 "SPLIT" -> {
                     val factor = txn.splitRatio ?: 1.0
-                    runningBalance = (runningBalance * factor).toInt()
+                    runningBalance = Math.round(runningBalance * factor).toInt()
                 }
             }
             if (runningBalance < 0) {

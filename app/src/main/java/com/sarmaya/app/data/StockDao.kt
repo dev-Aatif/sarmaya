@@ -11,6 +11,9 @@ interface StockDao {
     @Query("SELECT * FROM Stock ORDER BY symbol ASC")
     fun getAllStocks(): Flow<List<Stock>>
 
+    @Query("SELECT * FROM Stock")
+    suspend fun getAllStocksSync(): List<Stock>
+
     @Query("SELECT COUNT(*) FROM Stock")
     suspend fun getStocksCount(): Int
 

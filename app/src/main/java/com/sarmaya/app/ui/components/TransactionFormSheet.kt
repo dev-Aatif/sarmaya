@@ -188,11 +188,12 @@ fun TransactionFormSheet(
             
             // Segmented Control for Type (only if not editing)
             if (existingTransaction == null) {
+                var showAdvancedTypes by remember { mutableStateOf(false) }
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val types = listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
+                    val types = if (showAdvancedTypes) listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT") else listOf("BUY", "SELL", "DIVIDEND")
                     items(types) { t ->
                         FilterChip(
                             selected = currentType == t,
@@ -206,6 +207,15 @@ fun TransactionFormSheet(
                                 selectedLabelColor = config.color
                             )
                         )
+                    }
+                    if (!showAdvancedTypes) {
+                        item {
+                            FilterChip(
+                                selected = false,
+                                onClick = { showAdvancedTypes = true },
+                                label = { Text("More ▼", fontWeight = FontWeight.Bold) }
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))

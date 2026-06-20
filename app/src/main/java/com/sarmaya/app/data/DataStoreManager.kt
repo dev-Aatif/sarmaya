@@ -23,14 +23,8 @@ class DataStoreManager(private val context: Context) {
         val KEY_USERNAME = stringPreferencesKey("username")
         val KEY_HAS_ONBOARDED = booleanPreferencesKey("has_onboarded")
         val KEY_DARK_THEME = stringPreferencesKey("dark_theme") // "true", "false", or "system"
-        val KEY_AUTO_REFRESH = booleanPreferencesKey("auto_refresh_enabled")
         val KEY_DISMISSED_UPDATE_TAG = stringPreferencesKey("dismissed_update_tag")
-        val KEY_NOTIFICATIONS_PORTFOLIO = booleanPreferencesKey("notif_portfolio")
-        val KEY_NOTIFICATIONS_MARKET = booleanPreferencesKey("notif_market")
-        val KEY_NOTIFICATIONS_UPDATES = booleanPreferencesKey("notif_updates")
         val KEY_ACTIVE_PORTFOLIO_ID = longPreferencesKey("active_portfolio_id")
-        val KEY_IS_FILER = booleanPreferencesKey("is_filer")
-        val KEY_COMMISSION_RATE = stringPreferencesKey("commission_rate") // Saved as string to avoid float precision issues in text field
     }
 
     // ─── Username ───
@@ -45,27 +39,6 @@ class DataStoreManager(private val context: Context) {
         }
     }
 
-    // ─── Filer Status ───
-    val isFiler: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[KEY_IS_FILER] ?: true
-    }
-
-    suspend fun setIsFiler(value: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[KEY_IS_FILER] = value
-        }
-    }
-
-    // ─── Broker Commission ───
-    val commissionRate: Flow<Double> = context.dataStore.data.map { prefs ->
-        prefs[KEY_COMMISSION_RATE]?.toDoubleOrNull() ?: 0.0015 // Default 0.15%
-    }
-
-    suspend fun setCommissionRate(rate: Double) {
-        context.dataStore.edit { prefs ->
-            prefs[KEY_COMMISSION_RATE] = rate.toString()
-        }
-    }
 
     // ─── Onboarding ───
 
@@ -92,17 +65,6 @@ class DataStoreManager(private val context: Context) {
         }
     }
 
-    // ─── Auto Refresh ───
-
-    val autoRefreshEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[KEY_AUTO_REFRESH] ?: false
-    }
-
-    suspend fun setAutoRefresh(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[KEY_AUTO_REFRESH] = enabled
-        }
-    }
 
     // ─── Dismissed Update ───
 
@@ -116,25 +78,6 @@ class DataStoreManager(private val context: Context) {
         }
     }
 
-    // ─── Notification Preferences ───
-
-    val notificationsPortfolio: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[KEY_NOTIFICATIONS_PORTFOLIO] ?: true
-    }
-
-    val notificationsMarket: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[KEY_NOTIFICATIONS_MARKET] ?: true
-    }
-
-    val notificationsUpdates: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[KEY_NOTIFICATIONS_UPDATES] ?: true
-    }
-
-    suspend fun setNotificationPreference(key: Preferences.Key<Boolean>, enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[key] = enabled
-        }
-    }
 
     // ─── Active Portfolio ───
 

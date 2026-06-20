@@ -16,11 +16,14 @@ import kotlinx.coroutines.launch
 
 import com.sarmaya.app.data.PortfolioCalculator
 
+import com.sarmaya.app.data.StockQuoteCacheDao
+
 class HoldingsViewModel(
     private val transactionDao: TransactionDao,
     private val stockDao: StockDao,
     private val portfolioDao: PortfolioDao,
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    private val quoteCacheDao: StockQuoteCacheDao
 ) : ViewModel() {
 
     val allPortfolios: StateFlow<List<Portfolio>> = portfolioDao.getAllPortfolios()
@@ -31,9 +34,9 @@ class HoldingsViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val activePortfolio: StateFlow<Portfolio?> = _activePortfolioId.flatMapLatest { id ->
         if (id != null) {
-            flow { emit(portfolioDao.getPortfolioById(id)) }
+            portfolioDao.getPortfolioByIdFlow(id)
         } else {
-            flow { emit(portfolioDao.getDefaultPortfolio()) }
+            portfolioDao.getDefaultPortfolioFlow()
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -49,20 +52,14 @@ class HoldingsViewModel(
     // Sorted by descending current value by default
     val holdings = PortfolioCalculator.getEventSourcedHoldings(
         transactions,
-        stockDao.getAllStocks()
+        stockDao.getAllStocks(),
+        quoteCacheDao.getAll()
     ).map { list ->
         list.sortedByDescending { it.currentValue }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading = _isLoading.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            kotlinx.coroutines.delay(300)
-            _isLoading.value = false
-        }
-    }
+    val isLoading: StateFlow<Boolean> = holdings.map { false }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     fun selectPortfolio(portfolioId: Long) {
         viewModelScope.launch {
@@ -90,7 +87,8 @@ class HoldingsViewModel(
                     application.container.transactionDao,
                     application.container.stockDao,
                     application.container.portfolioDao,
-                    application.container.dataStoreManager
+                    application.container.dataStoreManager,
+                    application.container.stockQuoteCacheDao
                 ) as T
             }
         }
