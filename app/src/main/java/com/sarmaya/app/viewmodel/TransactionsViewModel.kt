@@ -106,7 +106,7 @@ class TransactionsViewModel(
 
                 var success = false
                 dbTransactionRunner {
-                    if (type != "DIVIDEND") {
+                    if (type !in listOf("DIVIDEND", "DEPOSIT", "WITHDRAWAL")) {
                         val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, currentPortfolioId).toMutableList()
                         allTxs.add(t)
                         val error = validateChronologicalBalance(allTxs)
@@ -116,19 +116,21 @@ class TransactionsViewModel(
                         }
                     }
 
-                    val existingStocks = stockDao.getStocksSync(listOf(stockSymbol))
-                    if (existingStocks.isEmpty()) {
-                        stockDao.insertStocks(listOf(Stock(
-                            symbol = stockSymbol,
-                            name = stockSymbol,
-                            sector = "Other",
-                            currentPrice = pricePerShare,
-                            priceUpdatedAt = System.currentTimeMillis()
-                        )))
-                    } else {
-                        val stock = existingStocks.first()
-                        if (stock.currentPrice <= 0.0) {
-                            stockDao.updatePrice(stockSymbol, pricePerShare)
+                    if (type !in listOf("DEPOSIT", "WITHDRAWAL")) {
+                        val existingStocks = stockDao.getStocksSync(listOf(stockSymbol))
+                        if (existingStocks.isEmpty()) {
+                            stockDao.insertStocks(listOf(Stock(
+                                symbol = stockSymbol,
+                                name = stockSymbol,
+                                sector = "Other",
+                                currentPrice = pricePerShare,
+                                priceUpdatedAt = System.currentTimeMillis()
+                            )))
+                        } else {
+                            val stock = existingStocks.first()
+                            if (stock.currentPrice <= 0.0) {
+                                stockDao.updatePrice(stockSymbol, pricePerShare)
+                            }
                         }
                     }
                     transactionDao.insert(t)
@@ -182,7 +184,7 @@ class TransactionsViewModel(
 
                 var success = false
                 dbTransactionRunner {
-                    if (type != "DIVIDEND" || oldTx.type != "DIVIDEND") {
+                    if (type !in listOf("DIVIDEND", "DEPOSIT", "WITHDRAWAL") || oldTx.type !in listOf("DIVIDEND", "DEPOSIT", "WITHDRAWAL")) {
                         val allTxs = transactionDao.getTransactionsForStockInPortfolio(stockSymbol, oldTx.portfolioId).toMutableList()
                         val index = allTxs.indexOfFirst { it.id == transactionId }
                         if (index != -1) {
@@ -220,7 +222,7 @@ class TransactionsViewModel(
             mutex.withLock {
                 var success = false
                 dbTransactionRunner {
-                    if (transaction.type != "DIVIDEND") {
+                    if (transaction.type !in listOf("DIVIDEND", "DEPOSIT", "WITHDRAWAL")) {
                         val allTxs = transactionDao.getTransactionsForStockInPortfolio(transaction.stockSymbol, transaction.portfolioId).toMutableList()
                         allTxs.removeIf { it.id == transaction.id }
                         // We sort and recalculate running balance to prevent deleting 

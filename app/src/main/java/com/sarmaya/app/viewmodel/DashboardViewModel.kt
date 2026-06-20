@@ -44,20 +44,30 @@ class DashboardViewModel(
         }
     }
 
-    val computedHoldings = PortfolioCalculator.getEventSourcedHoldings(
+    val portfolioState = PortfolioCalculator.getEventSourcedHoldings(
         transactions,
         stockDao.getAllStocks(),
         quoteCacheDao.getAll()
     ).stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        emptyList()
+        PortfolioState(emptyList(), 0.0)
     )
 
+    val uninvestedCash = portfolioState.map { it.uninvestedCash }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val computedHoldings = portfolioState.map { it.holdings }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
 
 
-    val totalPortfolioValue = computedHoldings.map { holdings ->
-        holdings.sumOf { it.currentValue }
+
+    val totalPortfolioValue = portfolioState.map { state ->
+        state.holdings.sumOf { it.currentValue } + state.uninvestedCash
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     val totalInvested = computedHoldings.map { holdings ->

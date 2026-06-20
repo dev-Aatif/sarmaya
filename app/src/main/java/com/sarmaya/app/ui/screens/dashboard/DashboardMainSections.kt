@@ -135,7 +135,7 @@ fun PortfolioValueCard(
         ) {
             Column {
                 Text(
-                    "Total Portfolio Value",
+                    "Net Worth",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )

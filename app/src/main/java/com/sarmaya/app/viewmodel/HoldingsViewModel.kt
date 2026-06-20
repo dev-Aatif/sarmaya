@@ -54,8 +54,8 @@ class HoldingsViewModel(
         transactions,
         stockDao.getAllStocks(),
         quoteCacheDao.getAll()
-    ).map { list ->
-        list.sortedByDescending { it.currentValue }
+    ).map { state ->
+        state.holdings.sortedByDescending { it.currentValue }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val isLoading: StateFlow<Boolean> = holdings.map { false }

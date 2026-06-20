@@ -69,6 +69,8 @@ fun TransactionFormSheet(
         when (currentType) {
             "BUY" -> TransactionUIConfig("Buy Stock", "Quantity", "Price per share", "Record Purchase", Icons.Default.Add, financeColors.profit)
             "SELL" -> TransactionUIConfig("Sell Stock", "Quantity", "Sale Price", "Record Sale", Icons.AutoMirrored.Filled.Send, financeColors.loss)
+            "DEPOSIT" -> TransactionUIConfig("Deposit Cash", "N/A", "Amount", "Record Deposit", Icons.Default.KeyboardArrowDown, financeColors.profit)
+            "WITHDRAWAL" -> TransactionUIConfig("Withdraw Cash", "N/A", "Amount", "Record Withdrawal", Icons.Default.KeyboardArrowUp, financeColors.loss)
             "DIVIDEND" -> TransactionUIConfig("Add Dividend", "N/A", "Total Dividend", "Record Dividend", Icons.Default.KeyboardArrowUp, financeColors.dividend)
             "BONUS" -> TransactionUIConfig("Add Bonus", "Bonus Shares", "N/A", "Record Bonus", Icons.Default.Star, financeColors.warning)
             "SPLIT" -> TransactionUIConfig("Stock Split", "N/A", "Split Ratio", "Record Split", Icons.Default.Refresh, primaryColor)
@@ -100,9 +102,9 @@ fun TransactionFormSheet(
     val priceVal = pricePerShare.toDoubleOrNull() ?: 0.0
     val totalAmount = qtyVal * priceVal
 
-    val showQty = currentType != "DIVIDEND" && currentType != "SPLIT"
+    val showQty = currentType !in listOf("DIVIDEND", "SPLIT", "DEPOSIT", "WITHDRAWAL")
     val showPrice = currentType != "BONUS"
-    val showCommission = currentType == "BUY" || currentType == "SELL"
+    val showCommission = currentType in listOf("BUY", "SELL")
 
     val isQuantityInvalid = showQty && quantity.isNotEmpty() && qtyVal <= 0
     val isPriceInvalid = showPrice && pricePerShare.isNotEmpty() && priceVal < 0.0
@@ -193,7 +195,7 @@ fun TransactionFormSheet(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val types = if (showAdvancedTypes) listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT") else listOf("BUY", "SELL", "DIVIDEND")
+                    val types = if (showAdvancedTypes) listOf("BUY", "SELL", "DEPOSIT", "WITHDRAWAL", "DIVIDEND", "BONUS", "SPLIT") else listOf("BUY", "SELL", "DEPOSIT", "WITHDRAWAL")
                     items(types) { t ->
                         FilterChip(
                             selected = currentType == t,
@@ -222,7 +224,8 @@ fun TransactionFormSheet(
             }
 
             // Asset Selection Card
-            Surface(
+            if (currentType !in listOf("DEPOSIT", "WITHDRAWAL")) {
+                Surface(
                 onClick = { if (existingTransaction == null) showStockPicker = true },
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
@@ -285,7 +288,7 @@ fun TransactionFormSheet(
                 ) {
                     Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            if (currentType == "DIVIDEND") "Total Dividend" else "Total Value",
+                            if (currentType == "DIVIDEND") "Total Dividend" else if (currentType in listOf("DEPOSIT", "WITHDRAWAL")) "Total Amount" else "Total Value",
                             style = MaterialTheme.typography.labelMedium,
                             color = config.color
                         )
@@ -384,7 +387,7 @@ fun TransactionFormSheet(
             // Action Button
             Button(
                 onClick = {
-                    val sym = selectedStock?.symbol ?: existingTransaction?.stockSymbol
+                    val sym = if (currentType in listOf("DEPOSIT", "WITHDRAWAL")) "CASH" else (selectedStock?.symbol ?: existingTransaction?.stockSymbol)
                     val isQtyValid = if (showQty) quantity.isNotBlank() && !isQuantityInvalid else true
                     val isPriceValid = if (showPrice) pricePerShare.isNotBlank() && !isPriceInvalid else true
 
@@ -452,7 +455,7 @@ fun TransactionFormSheet(
                     .fillMaxWidth()
                     .height(64.dp),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
-                enabled = (selectedStock != null || existingTransaction != null) && 
+                enabled = (selectedStock != null || existingTransaction != null || currentType in listOf("DEPOSIT", "WITHDRAWAL")) && 
                           (if (showQty) quantity.isNotBlank() && !isQuantityInvalid else true) && 
                           (if (showPrice) pricePerShare.isNotBlank() && !isPriceInvalid else true) && 
                           !isProcessing,

@@ -5,18 +5,39 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.Dispatchers
 
+data class PortfolioState(
+    val holdings: List<ComputedHolding>,
+    val uninvestedCash: Double
+)
+
 object PortfolioCalculator {
     fun getEventSourcedHoldings(
         transactionsFlow: Flow<List<Transaction>>,
         stocksFlow: Flow<List<Stock>>,
         quotesFlow: Flow<List<StockQuoteCache>> = kotlinx.coroutines.flow.flowOf(emptyList())
-    ): Flow<List<ComputedHolding>> {
+    ): Flow<PortfolioState> {
         return combine(transactionsFlow, stocksFlow, quotesFlow) { transactions, stocks, quotes ->
             val stockMap = stocks.associateBy { it.symbol }
             val quoteMap = quotes.associateBy { it.symbol }
             val holdingsMap = mutableMapOf<String, ComputedHolding>()
             
-            transactions.groupBy { it.stockSymbol }.forEach { (symbol, txList) ->
+            var cash = java.math.BigDecimal.ZERO
+            
+            transactions.sortedBy { it.date }.forEach { tx ->
+                val txPrice = tx.pricePerShare.toSafeBigDecimal()
+                val txQuantity = java.math.BigDecimal(tx.quantity)
+                val txCommission = tx.commissionAmount.toSafeBigDecimal()
+                
+                when (tx.type) {
+                    "DEPOSIT" -> cash = cash.add(txPrice)
+                    "WITHDRAWAL" -> cash = cash.subtract(txPrice)
+                    "DIVIDEND" -> cash = cash.add(txPrice)
+                    "BUY" -> cash = cash.subtract(txPrice.multiply(txQuantity)).subtract(txCommission)
+                    "SELL" -> cash = cash.add(txPrice.multiply(txQuantity)).subtract(txCommission)
+                }
+            }
+
+            transactions.filter { it.type !in listOf("DEPOSIT", "WITHDRAWAL") }.groupBy { it.stockSymbol }.forEach { (symbol, txList) ->
                 val stock = stockMap[symbol] ?: return@forEach
                 val quote = quoteMap[symbol]
                 val currentPrice = quote?.price ?: stock.currentPrice
@@ -26,7 +47,10 @@ object PortfolioCalculator {
                     holdingsMap[symbol] = holding
                 }
             }
-            holdingsMap.values.toList().sortedBy { it.stockSymbol }
+            PortfolioState(
+                holdings = holdingsMap.values.toList().sortedBy { it.stockSymbol },
+                uninvestedCash = cash.toDouble()
+            )
         }.flowOn(Dispatchers.Default)
     }
 
@@ -36,18 +60,36 @@ object PortfolioCalculator {
     fun computeSnapshotSynchronous(
         transactions: List<Transaction>,
         stocks: List<Stock>
-    ): List<ComputedHolding> {
+    ): PortfolioState {
         val stockMap = stocks.associateBy { it.symbol }
         val holdingsMap = mutableMapOf<String, ComputedHolding>()
         
-        transactions.groupBy { it.stockSymbol }.forEach { (symbol, txList) ->
+        var cash = java.math.BigDecimal.ZERO
+        transactions.sortedBy { it.date }.forEach { tx ->
+            val txPrice = tx.pricePerShare.toSafeBigDecimal()
+            val txQuantity = java.math.BigDecimal(tx.quantity)
+            val txCommission = tx.commissionAmount.toSafeBigDecimal()
+            
+            when (tx.type) {
+                "DEPOSIT" -> cash = cash.add(txPrice)
+                "WITHDRAWAL" -> cash = cash.subtract(txPrice)
+                "DIVIDEND" -> cash = cash.add(txPrice)
+                "BUY" -> cash = cash.subtract(txPrice.multiply(txQuantity)).subtract(txCommission)
+                "SELL" -> cash = cash.add(txPrice.multiply(txQuantity)).subtract(txCommission)
+            }
+        }
+
+        transactions.filter { it.type !in listOf("DEPOSIT", "WITHDRAWAL") }.groupBy { it.stockSymbol }.forEach { (symbol, txList) ->
             val stock = stockMap[symbol] ?: return@forEach
             val holding = calculateHolding(symbol, stock.name, stock.sector, stock.currentPrice, txList)
             if (holding != null) {
                 holdingsMap[symbol] = holding
             }
         }
-        return holdingsMap.values.toList().sortedBy { it.stockSymbol }
+        return PortfolioState(
+            holdings = holdingsMap.values.toList().sortedBy { it.stockSymbol },
+            uninvestedCash = cash.toDouble()
+        )
     }
 
     private fun calculateHolding(
@@ -70,7 +112,7 @@ object PortfolioCalculator {
             when (tx.type) {
                 "BUY" -> {
                     qty += tx.quantity
-                    val commission = if (tx.commissionType == "PER_SHARE") txCommission.multiply(txQuantity) else txCommission
+                    val commission = txCommission
                     invested = invested.add(txQuantity.multiply(txPrice)).add(commission)
                 }
                 "BONUS" -> {
@@ -83,14 +125,12 @@ object PortfolioCalculator {
                         val qtyDecimal = java.math.BigDecimal(qty)
                         
                         val avgCost = invested.safeDivide(qtyDecimal)
-                        val commission = if (tx.commissionType == "PER_SHARE") txCommission.multiply(sellQty) else txCommission
+                        val commission = txCommission
                         
-                        // Realized P/L = (sell price - avg cost) * quantity sold - commission
                         val profitFromShares = txPrice.subtract(avgCost).multiply(sellQty)
                         realizedPL = realizedPL.add(profitFromShares).subtract(commission)
                         
                         qty -= sellQtyInt
-                        // Proportional reduction of cost basis, floored at 0
                         val costBasisReduction = sellQty.multiply(avgCost)
                         invested = invested.subtract(costBasisReduction).max(java.math.BigDecimal.ZERO)
                     }

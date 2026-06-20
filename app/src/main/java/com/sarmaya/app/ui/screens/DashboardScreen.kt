@@ -58,6 +58,7 @@ fun DashboardScreen(
     val totalDividends by viewModel.totalDividends.collectAsStateWithLifecycle()
     val totalReturn by viewModel.totalReturn.collectAsStateWithLifecycle()
     val holdingsCount by viewModel.holdingsCount.collectAsStateWithLifecycle()
+    val uninvestedCash by viewModel.uninvestedCash.collectAsStateWithLifecycle()
 
     val recentTransactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
     val username by viewModel.username.collectAsStateWithLifecycle()
@@ -154,7 +155,7 @@ fun DashboardScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Add Trade",
+                    text = "Add Transaction",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
@@ -201,6 +202,14 @@ fun DashboardScreen(
                         contentPadding = PaddingValues(horizontal = 24.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        item {
+                            QuickStatCard(
+                                label = "Uninvested Cash",
+                                value = "₨ ${String.format("%,.0f", uninvestedCash)}",
+                                containerColor = financeColors.cardSurface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                         item {
                             QuickStatCard(
                                 label = "Direct Invested",

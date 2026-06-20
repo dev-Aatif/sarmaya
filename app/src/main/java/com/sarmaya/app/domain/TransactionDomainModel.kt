@@ -15,13 +15,11 @@ data class TransactionDomainModel(
     val pricePerShare: Double,
     val date: Long,
     val notes: String = "",
-    val commissionType: String = "FLAT",
     val commissionAmount: Double = 0.0,
     val splitRatio: Double? = null
 ) {
     companion object {
-        val VALID_TYPES = listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT")
-        val VALID_COMMISSION_TYPES = listOf("FLAT", "PER_SHARE")
+        val VALID_TYPES = listOf("BUY", "SELL", "DIVIDEND", "BONUS", "SPLIT", "DEPOSIT", "WITHDRAWAL")
     }
 
     /**
@@ -35,14 +33,14 @@ data class TransactionDomainModel(
         if (pricePerShare.isNaN() || pricePerShare.isInfinite()) {
             return "Price cannot be NaN or Infinite"
         }
-        if (quantity <= 0 && type != "DIVIDEND" && type != "SPLIT") {
+        if (quantity <= 0 && type !in listOf("DIVIDEND", "SPLIT", "DEPOSIT", "WITHDRAWAL")) {
             return "Quantity must be strictly positive"
         }
         if (date > System.currentTimeMillis() + 86400000L) { // Allow up to 1 day in the future just in case of timezone delays
             return "Transaction date cannot be in the future"
         }
-        if (pricePerShare < 0.01 && (type == "BUY" || type == "SELL")) {
-            return "Price must be at least 0.01 for BUY/SELL"
+        if (pricePerShare < 0.01 && type in listOf("BUY", "SELL", "DEPOSIT", "WITHDRAWAL")) {
+            return "Amount/Price must be at least 0.01"
         }
         if (pricePerShare < 0.0 && type != "BONUS" && type != "SPLIT") {
             return "Price must be non-negative"
@@ -54,9 +52,6 @@ data class TransactionDomainModel(
         }
         if (notes.length > 500) {
             return "Notes cannot exceed 500 characters"
-        }
-        if (commissionType !in VALID_COMMISSION_TYPES) {
-            return "Invalid commission type: $commissionType"
         }
         if (commissionAmount < 0.0) {
             return "Commission amount cannot be negative"
@@ -77,7 +72,7 @@ data class TransactionDomainModel(
             pricePerShare = pricePerShare,
             date = date,
             notes = notes,
-            commissionType = commissionType,
+            commissionType = "FLAT",
             commissionAmount = commissionAmount,
             splitRatio = splitRatio
         )
